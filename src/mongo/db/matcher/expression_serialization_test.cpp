@@ -1632,5 +1632,22 @@ TEST(SerializeInternalSchema, ExpressionInternalSchemaRootDocEqSerializesCorrect
     ASSERT_BSONOBJ_EQ(*reserialized.getQuery(), fromjson("{$_internalSchemaRootDocEq: {y: 1}}"));
     ASSERT_BSONOBJ_EQ(*reserialized.getQuery(), serialize(reserialized.getMatchExpression()));
 }
+
+TEST(SerializeInternalBinDataSubType, ExpressionBinDataSubTypeSerializesCorrectly) {
+    boost::intrusive_ptr<ExpressionContextForTest> expCtx(new ExpressionContextForTest());
+    Matcher original(BSON("x" << BSON("$_internalBinDataSubType" << BinDataType::Function)),
+                     expCtx);
+    Matcher reserialized(serialize(original.getMatchExpression()), expCtx);
+    ASSERT_BSONOBJ_EQ(*reserialized.getQuery(), fromjson("{x: {$_internalBinDataSubType: 1}}"));
+    ASSERT_BSONOBJ_EQ(*reserialized.getQuery(), serialize(reserialized.getMatchExpression()));
+
+    BSONObj obj = BSON("x" << BSONBinData(NULL, NULL, BinDataType::bdtCustom));
+    ASSERT_EQ(original.matches(obj), reserialized.matches(obj));
+
+    uint8_t bytes[] = {0, 1, 2, 10, 11, 12};
+    obj = BSON("x" << BSONBinData(bytes, 5, BinDataType::bdtCustom));
+    ASSERT_EQ(original.matches(obj), reserialized.matches(obj));
+}
+
 }  // namespace
 }  // namespace mongo

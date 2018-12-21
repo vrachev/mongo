@@ -1708,6 +1708,32 @@ StatusWithMatchExpression parseSubField(const BSONObj& context,
         case PathAcceptingKeyword::INTERNAL_SCHEMA_EQ: {
             return {stdx::make_unique<InternalSchemaEqMatchExpression>(name, e)};
         }
+
+        case PathAcceptingKeyword::BIN_DATA_SUBTYPE: {
+            if (!e.isNumber()) {
+                return Status(ErrorCodes::FailedToParse,
+                              str::stream() << BinDataSubTypeMatchExpression::kName
+                                            << " Type must be represented as a number");
+            }
+
+            auto valueAsInt = MatchExpressionParser::parseIntegerElementToInt(e);
+            if (!valueAsInt.isOK()) {
+                return Status(ErrorCodes::FailedToParse,
+                              str::stream() << BinDataSubTypeMatchExpression::kName
+                                            << " Invalid numerical type code: "
+                                            << e.number());
+            }
+
+            if (!isValidBinDataType(valueAsInt.getValue())) {
+                return Status(ErrorCodes::FailedToParse,
+                              str::stream() << BinDataSubTypeMatchExpression::kName
+                                            << " Value must represent BinData subtype: "
+                                            << e.number());
+            }
+
+            return {stdx::make_unique<BinDataSubTypeMatchExpression>(
+                name, static_cast<mongo::BinDataType>(valueAsInt.getValue()))};
+        }
     }
 
     return {
@@ -1882,6 +1908,7 @@ MONGO_INITIALIZER(MatchExpressionParser)(InitializerContext* context) {
             {"size", PathAcceptingKeyword::SIZE},
             {"type", PathAcceptingKeyword::TYPE},
             {"within", PathAcceptingKeyword::WITHIN},
+            {"_internalBinDataSubType", PathAcceptingKeyword::BIN_DATA_SUBTYPE},
         });
     return Status::OK();
 }

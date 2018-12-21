@@ -86,6 +86,7 @@ enum class PathAcceptingKeyword {
     SIZE,
     TYPE,
     WITHIN,
+    BIN_DATA_SUBTYPE,
 };
 
 class MatchExpressionParser {

@@ -286,6 +286,7 @@ Document redactSafePortionDollarOps(BSONObj expr) {
             case PathAcceptingKeyword::NOT_IN:
             case PathAcceptingKeyword::SIZE:
             case PathAcceptingKeyword::WITHIN:
+            case PathAcceptingKeyword::BIN_DATA_SUBTYPE:
                 continue;
         }
     }

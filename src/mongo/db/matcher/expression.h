@@ -96,6 +96,7 @@ public:
         GEO,
         WHERE,
         EXPRESSION,
+        BINDATA_TYPE_OPERATOR,
 
         // Boolean expressions.
         ALWAYS_FALSE,

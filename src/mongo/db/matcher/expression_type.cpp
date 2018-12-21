@@ -36,5 +36,6 @@ namespace mongo {
 
 constexpr StringData TypeMatchExpression::kName;
 constexpr StringData InternalSchemaTypeExpression::kName;
+constexpr StringData BinDataSubTypeMatchExpression::kName;
 
 }  // namespace mongo

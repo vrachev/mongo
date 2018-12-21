@@ -473,4 +473,49 @@ TEST(MatchesExpressionParserTest, InternalExprEqComparisonToUndefinedDoesNotPars
     auto query = fromjson("{'a.b': {$_internalExprEq: undefined}}");
     ASSERT_EQ(MatchExpressionParser::parse(query, expCtx).getStatus(), ErrorCodes::BadValue);
 }
+
+TEST(InternalBinDataSubTypeMatchExpressionTest, InternalBinDataSubTypeParsesCorrectly) {
+    boost::intrusive_ptr<ExpressionContextForTest> expCtx(new ExpressionContextForTest());
+    auto query = BSON("a" << BSON("$_internalBinDataSubType" << BinDataType::bdtCustom));
+    auto statusWith = MatchExpressionParser::parse(query, expCtx);
+    ASSERT_OK(statusWith.getStatus());
+
+    uint8_t bytes[] = {0, 1, 2, 3, 4, 5};
+    BSONObj match = BSON("a" << BSONBinData(bytes, 5, BinDataType::bdtCustom));
+    BSONObj notMatch = BSON("a" << BSONBinData(bytes, 5, BinDataType::Function));
+
+    ASSERT_TRUE(statusWith.getValue()->matchesBSON(match));
+    ASSERT_FALSE(statusWith.getValue()->matchesBSON(notMatch));
+}
+
+TEST(InternalBinDataSubTypeMatchExpressionTest, InternalBinDataSubTypeWithFloatParsesCorrectly) {
+    boost::intrusive_ptr<ExpressionContextForTest> expCtx(new ExpressionContextForTest());
+    auto query = BSON("a" << BSON("$_internalBinDataSubType" << 5.0));
+    auto statusWith = MatchExpressionParser::parse(query, expCtx);
+    ASSERT_OK(statusWith.getStatus());
+
+    uint8_t bytes[] = {0, 1, 2, 3, 4, 5};
+    BSONObj match = BSON("a" << BSONBinData(bytes, 5, BinDataType::MD5Type));
+    BSONObj notMatch = BSON("a" << BSONBinData(bytes, 5, BinDataType::bdtCustom));
+
+    ASSERT_TRUE(statusWith.getValue()->matchesBSON(match));
+    ASSERT_FALSE(statusWith.getValue()->matchesBSON(notMatch));
+}
+
+TEST(InternalBinDataSubTypeMatchExpressionTest,
+     InternalBinDataSubTypeNonNumericalValueDoesNotParse) {
+    boost::intrusive_ptr<ExpressionContextForTest> expCtx(new ExpressionContextForTest());
+    auto query = BSON("a" << BSON("$_internalBinDataSubType"
+                                  << "foo"));
+    auto statusWith = MatchExpressionParser::parse(query, expCtx);
+    ASSERT_NOT_OK(statusWith.getStatus());
+}
+
+TEST(InternalBinDataSubTypeMatchExpressionTest,
+     InternalBinDataSubTypeInvalidNumericalValueDoesNotParse) {
+    boost::intrusive_ptr<ExpressionContextForTest> expCtx(new ExpressionContextForTest());
+    auto query = BSON("a" << BSON("$_internalBinDataSubType" << 99));
+    auto statusWith = MatchExpressionParser::parse(query, expCtx);
+    ASSERT_NOT_OK(statusWith.getStatus());
+}
 }  // namespace mongo

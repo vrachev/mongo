@@ -155,4 +155,72 @@ public:
     }
 };
 
+class BinDataSubTypeMatchExpression : public LeafMatchExpression {
+public:
+    static constexpr StringData kName = "$_internalBinDataSubType"_sd;
+
+    BinDataSubTypeMatchExpression(StringData path, BinDataType binDataSubType)
+        : LeafMatchExpression(MatchExpression::BINDATA_TYPE_OPERATOR, path),
+          _binDataSubType(binDataSubType) {}
+
+    virtual ~BinDataSubTypeMatchExpression() = default;
+
+    virtual StringData name() const final {
+        return kName;
+    }
+
+    bool matchesSingleElement(const BSONElement& elem,
+                              MatchDetails* details = nullptr) const final {
+        if (elem.type() != BSONType::BinData) {
+            return false;
+        }
+        return _binDataSubType == elem.binDataType();
+    }
+
+    std::unique_ptr<MatchExpression> shallowClone() const final {
+        auto expr = stdx::make_unique<BinDataSubTypeMatchExpression>(path(), _binDataSubType);
+        if (getTag()) {
+            expr->setTag(getTag()->clone());
+        }
+        return std::move(expr);
+    }
+
+    void debugString(StringBuilder& debug, int level) const final {
+        _debugAddSpace(debug, level);
+        debug << path() << " " << name() << ": " << typeName(_binDataSubType);
+
+        MatchExpression::TagData* td = getTag();
+        if (td) {
+            debug << " ";
+            td->debugString(&debug);
+        }
+        debug << "\n";
+    }
+
+    void serialize(BSONObjBuilder* out) const final {
+        BSONObjBuilder subBuilder(out->subobjStart(path()));
+        subBuilder.append(name(), _binDataSubType);
+        subBuilder.doneFast();
+    }
+
+    bool equivalent(const MatchExpression* other) const final {
+        if (matchType() != other->matchType())
+            return false;
+
+        auto realOther = static_cast<const BinDataSubTypeMatchExpression*>(other);
+
+        if (path() != realOther->path()) {
+            return false;
+        }
+
+        return _binDataSubType == realOther->_binDataSubType;
+    }
+
+private:
+    mongo::BinDataType _binDataSubType;
+
+    ExpressionOptimizerFunc getOptimizer() const final {
+        return [](std::unique_ptr<MatchExpression> expression) { return expression; };
+    }
+};
 }  // namespace mongo
