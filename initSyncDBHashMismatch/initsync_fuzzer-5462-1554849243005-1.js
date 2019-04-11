@@ -327,8 +327,7 @@ const steps = [
     { // 0
         type: 'plain',
         ops: [
-            //{dbName: 'db1',commandObj: { convertToCapped: 'coll2' }},
-            //{dbName: 'db2',commandObj: { convertToCapped: 'coll1' }},
+            {dbName: 'db1',commandObj: { convertToCapped: 'coll2' }},
         ],
     },
     { // 1
@@ -336,11 +335,6 @@ const steps = [
         ops: [
             {dbName: 'db2',commandObj: {renameCollection: 'db1.coll2',to: 'db2.coll1',dropTarget: true}},
             {dbName: 'db2',commandObj: { drop: 'coll2' }},
-        ],
-    },
-    { // 2
-        type: 'plain',
-        ops: [
         ],
     },
     { // 3
