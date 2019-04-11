@@ -327,8 +327,8 @@ const steps = [
     { // 0
         type: 'plain',
         ops: [
-            {dbName: 'db1',commandObj: { convertToCapped: 'coll2' }},
-            {dbName: 'db2',commandObj: { convertToCapped: 'coll1' }},
+            //{dbName: 'db1',commandObj: { convertToCapped: 'coll2' }},
+            //{dbName: 'db2',commandObj: { convertToCapped: 'coll1' }},
         ],
     },
     { // 1
