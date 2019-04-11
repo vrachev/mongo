@@ -346,8 +346,6 @@ const steps = [
     { // 3
         type: 'plain',
         ops: [
-            // should fail - {dbName: 'db1',commandObj: {renameCollection: 'db1.coll1',to: 'db2.coll1',dropTarget: false}},
-            // should fail - {dbName: 'db2',commandObj: {create: 'coll1',capped: false}},
             {dbName: 'db1',commandObj: {renameCollection: 'db2.coll1',to: 'db2.coll2',dropTarget: false}},
             {dbName: 'db1',commandObj: { drop: 'coll1' }},
         ],
