@@ -335,23 +335,19 @@ const steps = [
         type: 'plain',
         ops: [
             {dbName: 'db2',commandObj: {renameCollection: 'db1.coll2',to: 'db2.coll1',dropTarget: true}},
-            {dbName: 'db1',commandObj: {renameCollection: 'db1.coll2',to: 'db1.coll1'}},
             {dbName: 'db2',commandObj: { drop: 'coll2' }},
         ],
     },
     { // 2
         type: 'plain',
         ops: [
-            {dbName: 'db1',commandObj: {renameCollection: 'db1.coll2',to: 'db2.coll1',dropTarget: false}},
-            {dbName: 'db2',commandObj: { drop: 'coll2' }},
-            {dbName: 'db1',commandObj: { drop: 'coll2' }},
         ],
     },
     { // 3
         type: 'plain',
         ops: [
-            {dbName: 'db1',commandObj: {renameCollection: 'db1.coll1',to: 'db2.coll1',dropTarget: false}},
-            {dbName: 'db2',commandObj: {create: 'coll1',capped: false}},
+            // should fail - {dbName: 'db1',commandObj: {renameCollection: 'db1.coll1',to: 'db2.coll1',dropTarget: false}},
+            // should fail - {dbName: 'db2',commandObj: {create: 'coll1',capped: false}},
             {dbName: 'db1',commandObj: {renameCollection: 'db2.coll1',to: 'db2.coll2',dropTarget: false}},
             {dbName: 'db1',commandObj: { drop: 'coll1' }},
         ],
