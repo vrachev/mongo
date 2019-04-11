@@ -327,18 +327,14 @@ const steps = [
     { // 0
         type: 'plain',
         ops: [
-            {dbName: 'db1',commandObj: {create: 'coll2',capped: true}},
             {dbName: 'db1',commandObj: { convertToCapped: 'coll2' }},
             {dbName: 'db2',commandObj: { convertToCapped: 'coll1' }},
-            {dbName: 'db2',commandObj: {create: 'coll2',capped: false}},
-            {dbName: 'db2',commandObj: {renameCollection: 'db2.coll1',to: 'db1.coll2',dropTarget: false}},
         ],
     },
     { // 1
         type: 'plain',
         ops: [
             {dbName: 'db2',commandObj: {collMod: 'coll1',usePowerOf2Sizes: true}},
-            {dbName: 'db2',commandObj: {create: 'coll1',capped: false}},
             {dbName: 'db2',commandObj: {renameCollection: 'db1.coll2',to: 'db2.coll1',dropTarget: true}},
             {dbName: 'db1',commandObj: {renameCollection: 'db1.coll2',to: 'db1.coll1'}},
             {dbName: 'db2',commandObj: { drop: 'coll2' }},
@@ -407,10 +403,6 @@ const steps = [
     { // 8
         type: 'plain',
         ops: [
-            {dbName: 'db1',commandObj: {renameCollection: 'db2.coll1',to: 'db2.coll1'}},
-            {dbName: 'db1',commandObj: {collMod: 'coll2',usePowerOf2Sizes: true}},
-            {dbName: 'db1',commandObj: {renameCollection: 'db1.coll2',to: 'db2.coll2'}},
-            {dbName: 'db1',commandObj: {renameCollection: 'db1.coll2',to: 'db2.coll1',dropTarget: false}},
         ],
     },
 ];
