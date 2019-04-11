@@ -383,26 +383,16 @@ const steps = [
     { // 6
         type: 'plain',
         ops: [
-            {dbName: 'db2',commandObj: {collMod: 'coll1',usePowerOf2Sizes: true}},
-            {dbName: 'db2',commandObj: {insert: 'coll2',documents: [{_id: 200,counter: 0}]}},
             {dbName: 'db2',commandObj: {renameCollection: 'db2.coll2',to: 'db1.coll2',dropTarget: false}},
             {dbName: 'db2',commandObj: {create: 'coll2',capped: true}},
-            {dbName: 'db1',commandObj: {collMod: 'coll2',usePowerOf2Sizes: true}},
         ],
     },
     { // 7
         type: 'plain',
         ops: [
             {dbName: 'db2',commandObj: { convertToCapped: 'coll2' }},
-            {dbName: 'db1',commandObj: { drop: 'coll1' }},
-            {dbName: 'db1',commandObj: {create: 'coll1',capped: false}},
             {dbName: 'db2',commandObj: {collMod: 'coll2',usePowerOf2Sizes: true}},
             {dbName: 'db2',commandObj: {renameCollection: 'db2.coll2',to: 'db2.coll1'}},
-        ],
-    },
-    { // 8
-        type: 'plain',
-        ops: [
         ],
     },
 ];
