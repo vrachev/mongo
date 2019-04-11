@@ -74,9 +74,9 @@ const seedData = [
     { // 0
         type: 'plain',
         ops: [
-            {dbName: 'db1',commandObj: {insert: 'coll2',documents: [{_id: 2}]}},
-            {dbName: 'db2',commandObj: {insert: 'coll1',documents: [{_id: 3}]}},
-            {dbName: 'db2',commandObj: {insert: 'coll2',documents: [{_id: 4}]}},
+            {dbName: 'db1',commandObj: {insert: 'coll2',documents: [{_id: 0}]}},
+            {dbName: 'db2',commandObj: {insert: 'coll1',documents: [{_id: 1}]}},
+            {dbName: 'db2',commandObj: {insert: 'coll2',documents: [{_id: 2}]}},
         ]
     }
 ];
@@ -105,7 +105,6 @@ const steps = [
         type: 'plain',
         ops: [
             {dbName: 'db1',commandObj: {create: 'coll1',capped: false}},
-            {dbName: 'db2',commandObj: {delete: 'coll1',deletes: [{q: { _id: 2 },limit: 1}]}},
             {dbName: 'db1',commandObj: { convertToCapped: 'coll1' }},
         ],
     },
@@ -114,7 +113,6 @@ const steps = [
         ops: [
             {dbName: 'db1',commandObj: {renameCollection: 'db1.coll1',to: 'db2.coll1'}},
             {dbName: 'db2',commandObj: { convertToCapped: 'coll2' }},
-            {dbName: 'db2',commandObj: {delete: 'coll2',deletes: [{q: { _id: 1 },limit: 1}]}},
         ],
     },
 ];
