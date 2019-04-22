@@ -1937,6 +1937,9 @@ var ReplSetTest = function(opts) {
                     // secondaries.
                     var secondaryCollInfo = secondary.getDB(dbName).getCollectionInfos(
                         {name: {$in: secondaryCollections}});
+                    
+                    print("VLADRACHEV::replsettest:listCollections -- primary: " + tojson(primaryCollInfo));
+                    print("VLADRACHEV::replsettest:listCollections -- secondary: " + tojson(secondaryCollInfo));
 
                     secondaryCollInfo.forEach(secondaryInfo => {
                         primaryCollInfo.forEach(primaryInfo => {

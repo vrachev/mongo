@@ -27,6 +27,8 @@
  *    it in the license file.
  */
 
+#define MONGO_LOG_DEFAULT_COMPONENT ::mongo::logger::LogComponent::kCommand
+
 #include "mongo/platform/basic.h"
 
 #include <vector>
@@ -59,6 +61,7 @@
 #include "mongo/db/storage/storage_options.h"
 #include "mongo/db/views/view_catalog.h"
 #include "mongo/stdx/memory.h"
+#include "mongo/util/log.h"
 
 namespace mongo {
 
@@ -402,6 +405,8 @@ public:
 
         appendCursorResponseObject(
             pinnedCursor.getCursor()->cursorid(), cursorNss.ns(), firstBatch.arr(), &result);
+        
+        log() << "VLAD::list_collections";
 
         return true;
     }

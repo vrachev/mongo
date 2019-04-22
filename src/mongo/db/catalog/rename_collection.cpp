@@ -212,14 +212,17 @@ Status renameCollectionCommon(OperationContext* opCtx,
     // Return a non-OK status if target exists and dropTarget is not true or if the collection
     // is sharded.
     Collection* targetColl = targetDB->getCollection(opCtx, target);
+    log() << (targetColl ? "VLAD: targetColl1 exists" : "VLAD: targetDB does not exist");
     if (targetColl) {
+        log() << "VLAD::renameCollectionCommon::targetCollExists [0]";
         // If we already have the collection with the target UUID, we found our future selves,
         // so nothing left to do.
         if (targetUUID && targetUUID == targetColl->uuid()) {
             invariant(source == target);
             return Status::OK();
         }
-
+        
+        log() << "VLAD::renameCollectionCommon::targetCollExists [1]";
         {
             auto* const css = CollectionShardingState::get(opCtx, target);
             const auto metadata = css->getCurrentMetadata();
@@ -227,13 +230,18 @@ Status renameCollectionCommon(OperationContext* opCtx,
                 return {ErrorCodes::IllegalOperation, "cannot rename to a sharded collection"};
         }
 
+        log() << "VLAD::renameCollectionCommon::targetCollExists [2]";
+
         if (!options.dropTarget) {
             return Status(ErrorCodes::NamespaceExists, "target namespace exists");
         }
 
+        log() << "VLAD::renameCollectionCommon::targetCollExists [3]";
+
         // If UUID doesn't point to the existing target, we should rename the target rather than
         // drop it.
         if (options.dropTargetUUID && options.dropTargetUUID != targetColl->uuid()) {
+            log() << "VLAD::renameCollectionCommon::targetCollExists [4]";
             auto dropTargetNssFromUUID = getNamespaceFromUUID(opCtx, options.dropTargetUUID.get());
             // We need to rename the targetColl to a temporary name.
             auto status = renameTargetCollectionToTmp(
@@ -253,9 +261,12 @@ Status renameCollectionCommon(OperationContext* opCtx,
     if (!targetColl && options.dropTargetUUID) {
         invariant(options.dropTarget);
         auto dropTargetNssFromUUID = getNamespaceFromUUID(opCtx, options.dropTargetUUID.get());
+        //log() << "VLAD::renameCollectionCommon::dropTargetNssFromUUID: [0] " << dropTargetNssFromUUID;
+        //log() << "VLAD::renameCollectionCommon::options.dropTargetUUID: [0] " << options.dropTargetUUID.get().toString();
         if (!dropTargetNssFromUUID.isEmpty() && !dropTargetNssFromUUID.isDropPendingNamespace()) {
             invariant(dropTargetNssFromUUID.db() == target.db());
             targetColl = targetDB->getCollection(opCtx, dropTargetNssFromUUID);
+           // log() << "VLAD::renameCollectionCommon::targetColl: [1] " << targetColl->ns().ns();
         }
     }
 
@@ -264,6 +275,7 @@ Status renameCollectionCommon(OperationContext* opCtx,
     auto sourceUUID = sourceColl->uuid();
     // If we are renaming in the same database, just rename the namespace and we're done.
     if (sourceDB == targetDB) {
+        //log() << "VLAD GOT HERE -- sourceDB == targetDB";
         return writeConflictRetry(opCtx, "renameCollection", target.ns(), [&] {
             WriteUnitOfWork wunit(opCtx);
             if (!targetColl) {
@@ -360,6 +372,7 @@ Status renameCollectionCommon(OperationContext* opCtx,
             IndexBuildsCoordinator::get(opCtx)->assertNoIndexBuildInProgForCollection(
                 targetColl->uuid().get());
 
+            //log() << "VLAD::renameCollectionCommon::targetColl: [2] " << targetColl->ns().ns();
             status = targetDB->dropCollection(opCtx, targetColl->ns().ns(), renameOpTime);
             if (!status.isOK()) {
                 return status;
@@ -598,7 +611,7 @@ Status renameCollection(OperationContext* opCtx,
 
     const std::string dropTargetMsg =
         options.dropTarget ? " and drop " + target.toString() + "." : ".";
-    log() << "renameCollectionForCommand: rename " << source << " to " << target << dropTargetMsg;
+    //log() << "renameCollectionForCommand: rename " << source << " to " << target << dropTargetMsg;
 
     OptionalCollectionUUID noTargetUUID;
     return renameCollectionCommon(opCtx, source, target, noTargetUUID, {}, options);
@@ -683,11 +696,21 @@ Status renameCollectionForApplyOps(OperationContext* opCtx,
                           << "renameCollection() cannot accept a source "
                              "collection that does not exist or is in a drop-pending state: "
                           << sourceNss.toString());
-    }
+    }   
 
     const std::string dropTargetMsg =
         options.dropTargetUUID ? " and drop " + options.dropTargetUUID->toString() + "." : ".";
     const std::string uuidString = targetUUID ? targetUUID->toString() : "UUID unknown";
+
+    log() << "VLAD::renameCollectionForApplyOps::sourceNss: " << sourceNss.toString();
+    log() << "VLAD::renameCollectionForApplyOps::uiNss: " << uiNss.toString();
+    log() << "VLAD::renameCollectionForApplyOps::targetUUID: " << targetUUID;
+    log() << "VLAD::renameCollectionForApplyOps::options.dropTargetUUID: " << options.dropTargetUUID;
+    log() << "VLAD::renameCollectionForApplyOps::uuidString: " << uuidString;
+    auto vladDropTargetNs = getNamespaceFromUUID(opCtx, options.dropTargetUUID.get());
+    log() << "VLADVLAD::renameCollectionForApplyOps::targetNss: " << targetNss.toString();
+    log() << "VLADVLAD::renameCollectionForApplyOps::vladDropTargetNS: " << vladDropTargetNs;
+
     log() << "renameCollectionForApplyOps: rename " << sourceNss << " (" << uuidString << ") to "
           << targetNss << dropTargetMsg;
 

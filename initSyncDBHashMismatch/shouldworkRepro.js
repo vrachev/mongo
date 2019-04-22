@@ -39,13 +39,14 @@ const steps = [
         type: 'plain',
         ops: [
             {dbName: 'db1',commandObj: {create: 'coll1',capped: false}},
+            {dbName: 'db1',commandObj: { convertToCapped: 'coll1' }},
         ],
     },
     { // 5
         type: 'plain',
         ops: [
-            {dbName: 'db1',commandObj: {renameCollection: 'db1.coll1',to: 'db2.coll1'}, dropTarget: false},
-            {dbName: 'db2',commandObj: { convertToCapped: 'coll2' }},
+            {dbName: 'db1',commandObj: {renameCollection: 'db1.coll1',to: 'db2.coll1'}},
+            //{dbName: 'db2',commandObj: { convertToCapped: 'coll2' }},
         ],
     },
 ];
@@ -100,7 +101,7 @@ function seedInitialData(db) {
 
 function runSteps(initSyncTest, db) {
     let stepNo = 0;
-    let count = 0;
+
     do {
         const step = steps[stepNo];
 
@@ -111,18 +112,9 @@ function runSteps(initSyncTest, db) {
         ++stepNo;
 
         for (let {dbName, commandObj} of step.ops) {
-            print("VLADCommandCount: " + count);
-            count++;
             runStep(db, dbName, commandObj);
         }
     } while (!initSyncTest.step());
-
-    
-    assert.commandWorked(db.getSiblingDB('db2').runCommand({                                         
-        insert: 'coll1',                                                                             
-        documents: [{_id: -1}],                                                                      
-        writeConcern: {w: 2, wtimeout: 10 * 1000},                                                   
-    }));
 }
 
 function main() {

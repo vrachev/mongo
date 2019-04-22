@@ -1,0 +1,62 @@
+
+[js_test:initsync_fuzzer-5462-1554849243005-1] 2019-04-11T17:18:32.330-0400 d20020| 2019-04-11T17:18:32.329-0400 I  STORAGE  [conn1] renameCollection: renaming collection 3597c209-08fa-4706-a6db-85e1915406a8 from db2.coll1 to db2.coll2
+
+[js_test:initsync_fuzzer-5462-1554849243005-1] 2019-04-11T17:18:33.509-0400 d20020| 2019-04-11T17:18:33.509-0400 I  COMMAND  [conn1] renameCollectionForCommand: rename db2.tmpSk9gN.convertToCapped.coll2 to db2.coll2 and drop db2.coll2.
+
+[js_test:initsync_fuzzer-5462-1554849243005-1] 2019-04-11T17:18:33.510-0400 d20020| 2019-04-11T17:18:33.510-0400 I  STORAGE  [conn1] dropCollection: db2.coll2 (3597c209-08fa-4706-a6db-85e1915406a8) - storage engine will take ownership of drop-pending collection with optime { ts: Timestamp(1555017513, 5), t: 1 } and commit timestamp Timestamp(0, 0)
+
+----
+
+[js_test:initsync_fuzzer-5462-1554849243005-1] 2019-04-11T17:18:39.060-0400 d20021| 2019-04-11T17:18:39.059-0400 I  COMMAND  [repl-writer-worker-14] renameCollectionForApplyOps: rename db2.coll1 (3597c209-08fa-4706-a6db-85e1915406a8) to db2.coll2.
+
+[js_test:initsync_fuzzer-5462-1554849243005-1] 2019-04-11T17:18:43.245-0400 d20021| 2019-04-11T17:18:43.245-0400 I  COMMAND  [repl-writer-worker-14] renameCollectionForApplyOps: rename db2.tmpSk9gN.convertToCapped.coll2 (6413d074-4d44-47fb-8940-ba9f8762c112) to db2.coll2 and drop 3597c209-08fa-4706-a6db-85e1915406a8.
+
+[js_test:initsync_fuzzer-5462-1554849243005-1] 2019-04-11T17:18:43.246-0400 d20021| 2019-04-11T17:18:43.245-0400 I  STORAGE  [repl-writer-worker-14] dropCollection: db2.coll1 (3597c209-08fa-4706-a6db-85e1915406a8) - storage engine will take ownership of drop-pending collection with optime { ts: Timestamp(1555017513, 5), t: 1 } and commit timestamp Timestamp(1555017513, 5)
+
+
+
+
+[js_test:initSyncRepro] 2019-04-16T13:38:39.055-0400 d34588| 2019-04-16T13:38:39.054-0400 I  COMMAND  [repl-writer-worker-0] VLAD::renameCollectionForApplyOps::sourceNss: db2.tmpbMaAg.convertToCapped.coll2
+[js_test:initSyncRepro] 2019-04-16T13:38:39.055-0400 d34588| 2019-04-16T13:38:39.054-0400 I  COMMAND  [repl-writer-worker-0] VLAD::renameCollectionForApplyOps::uiNss: db2.tmpbMaAg.convertToCapped.coll2
+[js_test:initSyncRepro] 2019-04-16T13:38:39.055-0400 d34588| 2019-04-16T13:38:39.054-0400 I  COMMAND  [repl-writer-worker-0] VLAD::renameCollectionForApplyOps::targetUUID: 8fdf735f-b14a-47ed-86ea-b6ebd8f73365
+[js_test:initSyncRepro] 2019-04-16T13:38:39.055-0400 d34588| 2019-04-16T13:38:39.054-0400 I  COMMAND  [repl-writer-worker-0] VLAD::renameCollectionForApplyOps::options.dropTargetUUID: d5578e18-77e1-4fe5-81dc-63880d9b01f3
+[js_test:initSyncRepro] 2019-04-16T13:38:39.055-0400 d34588| 2019-04-16T13:38:39.054-0400 I  COMMAND  [repl-writer-worker-0] VLAD::renameCollectionForApplyOps::uuidString: 8fdf735f-b14a-47ed-86ea-b6ebd8f73365
+[js_test:initSyncRepro] 2019-04-16T13:38:39.055-0400 d34588| 2019-04-16T13:38:39.054-0400 I  COMMAND  [repl-writer-worker-0] VLADVLAD::renameCollectionForApplyOps::targetNss: db2.coll2
+[js_test:initSyncRepro] 2019-04-16T13:38:39.056-0400 d34588| 2019-04-16T13:38:39.054-0400 I  COMMAND  [repl-writer-worker-0] VLADVLAD::renameCollectionForApplyOps::vladDropTargetNS: db2.coll1
+[js_test:initSyncRepro] 2019-04-16T13:38:39.056-0400 d34588| 2019-04-16T13:38:39.054-0400 I  COMMAND  [repl-writer-worker-0] renameCollectionForApplyOps: rename db2.tmpbMaAg.convertToCapped.coll2 (8fdf735f-b14a-47ed-86ea-b6ebd8f73365) to db2.coll2 and drop d5578e18-77e1-4fe5-81dc-63880d9b01f3.
+[js_test:initSyncRepro] 2019-04-16T13:38:39.056-0400 d34588| 2019-04-16T13:38:39.054-0400 I  SHARDING [repl-writer-worker-0] Marking collection db2.tmpbMaAg.convertToCapped.coll2 as collection version: <unsharded>
+[js_test:initSyncRepro] 2019-04-16T13:38:39.056-0400 d34588| 2019-04-16T13:38:39.054-0400 I  COMMAND  [repl-writer-worker-0] VLAD: targetDB does not exist
+[js_test:initSyncRepro] 2019-04-16T13:38:39.056-0400 d34588| 2019-04-16T13:38:39.055-0400 I  STORAGE  [repl-writer-worker-0] dropCollection: db2.coll1 (d5578e18-77e1-4fe5-81dc-63880d9b01f3) - storage engine will take ownership of drop-pending collection with optime { ts: Timestamp(1555436309, 1), t: 1 } and commit timestamp Timestamp(1555436309, 1)
+
+
+[js_test:initSyncRepro] 2019-04-16T13:59:39.450-0400 [jsTest] {  "ts" : Timestamp(1555437577, 1),  "t" : NumberLong(1),  "h" : NumberLong(0),  "v" : 2,  "op" : "c",  "ns" : "config.$cmd",  "ui" : UUID("8538a7af-b1d6-4dfc-8d3f-14b95aee111b"),  "o2" : {  "collectionOptions_old" : {  "uuid" : UUID("8538a7af-b1d6-4dfc-8d3f-14b95aee111b") } },  "wall" : ISODate("2019-04-16T17:59:37.631Z"),  "o" : {  "collMod" : "transactions" } }
+[js_test:initSyncRepro] 2019-04-16T13:59:39.450-0400 [jsTest] {  "ts" : Timestamp(1555437567, 5),  "t" : NumberLong(1),  "h" : NumberLong(0),  "v" : 2,  "op" : "c",  "ns" : "db2.$cmd",  "ui" : UUID("d9f5c4e5-d8df-4aa0-97aa-54a1b58073ca"),  "o2" : {  "numRecords" : 0 },  "wall" : ISODate("2019-04-16T17:59:27.401Z"),  "o" : {  "renameCollection" : "db2.tmpaR9gF.convertToCapped.coll2",  "to" : "db2.coll2",  "stayTemp" : false,  "dropTarget" : UUID("04a04105-9657-40c1-8b58-668d4b0e8a1a") } }
+[js_test:initSyncRepro] 2019-04-16T13:59:39.450-0400 [jsTest] {  "ts" : Timestamp(1555437567, 4),  "t" : NumberLong(1),  "h" : NumberLong(0),  "v" : 2,  "op" : "c",  "ns" : "db2.$cmd",  "ui" : UUID("d9f5c4e5-d8df-4aa0-97aa-54a1b58073ca"),  "wall" : ISODate("2019-04-16T17:59:27.401Z"),  "o" : {  "create" : "tmpaR9gF.convertToCapped.coll2",  "capped" : true,  "size" : 4294967296,  "temp" : true,  "idIndex" : {  "v" : 2,  "key" : {  "_id" : 1 },  "name" : "_id_",  "ns" : "db2.tmpaR9gF.convertToCapped.coll2" } } }
+[js_test:initSyncRepro] 2019-04-16T13:59:39.450-0400 [jsTest] {  "ts" : Timestamp(1555437567, 3),  "t" : NumberLong(1),  "h" : NumberLong(0),  "v" : 2,  "op" : "c",  "ns" : "db1.$cmd",  "ui" : UUID("10caca72-80fd-4d21-80b3-0f614d193b08"),  "o2" : {  "numRecords" : 0 },  "wall" : ISODate("2019-04-16T17:59:27.293Z"),  "o" : {  "drop" : "coll1" } }
+[js_test:initSyncRepro] 2019-04-16T13:59:39.451-0400 [jsTest] {  "ts" : Timestamp(1555437567, 2),  "t" : NumberLong(1),  "h" : NumberLong(0),  "v" : 2,  "op" : "c",  "ns" : "db2.$cmd",  "ui" : UUID("87ac8b5c-63ee-404f-bd72-b7f8875ef351"),  "wall" : ISODate("2019-04-16T17:59:27.293Z"),  "o" : {  "renameCollection" : "db2.tmpOBigU.renameCollection",  "to" : "db2.coll1",  "stayTemp" : false } }
+[js_test:initSyncRepro] 2019-04-16T13:59:39.451-0400 [jsTest] {  "ts" : Timestamp(1555437567, 1),  "t" : NumberLong(1),  "h" : NumberLong(0),  "v" : 2,  "op" : "c",  "ns" : "db2.$cmd",  "ui" : UUID("87ac8b5c-63ee-404f-bd72-b7f8875ef351"),  "wall" : ISODate("2019-04-16T17:59:27.293Z"),  "o" : {  "create" : "tmpOBigU.renameCollection",  "capped" : true,  "size" : 4294967296,  "idIndex" : {  "v" : 2,  "key" : {  "_id" : 1 },  "name" : "_id_",  "ns" : "db2.tmpOBigU.renameCollection" } } }
+[js_test:initSyncRepro] 2019-04-16T13:59:39.451-0400 [jsTest] {  "ts" : Timestamp(1555437566, 3),  "t" : NumberLong(1),  "h" : NumberLong(0),  "v" : 2,  "op" : "c",  "ns" : "db1.$cmd",  "ui" : UUID("10caca72-80fd-4d21-80b3-0f614d193b08"),  "o2" : {  "numRecords" : 0 },  "wall" : ISODate("2019-04-16T17:59:26.665Z"),  "o" : {  "renameCollection" : "db1.tmpTzZXJ.convertToCapped.coll1",  "to" : "db1.coll1",  "stayTemp" : false,  "dropTarget" : UUID("93794c02-9e52-42f2-89c8-f748428fd0d4") } }
+[js_test:initSyncRepro] 2019-04-16T13:59:39.451-0400 [jsTest] {  "ts" : Timestamp(1555437566, 2),  "t" : NumberLong(1),  "h" : NumberLong(0),  "v" : 2,  "op" : "c",  "ns" : "db1.$cmd",  "ui" : UUID("10caca72-80fd-4d21-80b3-0f614d193b08"),  "wall" : ISODate("2019-04-16T17:59:26.665Z"),  "o" : {  "create" : "tmpTzZXJ.convertToCapped.coll1",  "capped" : true,  "size" : 4294967296,  "temp" : true,  "idIndex" : {  "v" : 2,  "key" : {  "_id" : 1 },  "name" : "_id_",  "ns" : "db1.tmpTzZXJ.convertToCapped.coll1" } } }
+[js_test:initSyncRepro] 2019-04-16T13:59:39.451-0400 [jsTest] {  "ts" : Timestamp(1555437566, 1),  "t" : NumberLong(1),  "h" : NumberLong(0),  "v" : 2,  "op" : "c",  "ns" : "db1.$cmd",  "ui" : UUID("93794c02-9e52-42f2-89c8-f748428fd0d4"),  "wall" : ISODate("2019-04-16T17:59:26.597Z"),  "o" : {  "create" : "coll1",  "idIndex" : {  "v" : 2,  "key" : {  "_id" : 1 },  "name" : "_id_",  "ns" : "db1.coll1" } } }
+[js_test:initSyncRepro] 2019-04-16T13:59:39.451-0400 [jsTest] {  "ts" : Timestamp(1555437565, 5),  "t" : NumberLong(1),  "h" : NumberLong(0),  "v" : 2,  "op" : "c",  "ns" : "db2.$cmd",  "ui" : UUID("04a04105-9657-40c1-8b58-668d4b0e8a1a"),  "wall" : ISODate("2019-04-16T17:59:25.952Z"),  "o" : {  "renameCollection" : "db2.coll1",  "to" : "db2.coll2",  "stayTemp" : false } }
+[js_test:initSyncRepro] 2019-04-16T13:59:39.451-0400 [jsTest] {  "ts" : Timestamp(1555437565, 4),  "t" : NumberLong(1),  "h" : NumberLong(0),  "v" : 2,  "op" : "c",  "ns" : "db2.$cmd",  "ui" : UUID("7bfd3ab9-da96-4277-a078-593f5dd87438"),  "o2" : {  "numRecords" : 0 },  "wall" : ISODate("2019-04-16T17:59:25.438Z"),  "o" : {  "drop" : "coll2" } }
+[js_test:initSyncRepro] 2019-04-16T13:59:39.451-0400 [jsTest] {  "ts" : Timestamp(1555437565, 3),  "t" : NumberLong(1),  "h" : NumberLong(0),  "v" : 2,  "op" : "c",  "ns" : "db1.$cmd",  "ui" : UUID("1980d757-ed66-4be3-aeac-fffed23266e2"),  "o2" : {  "numRecords" : 0 },  "wall" : ISODate("2019-04-16T17:59:25.437Z"),  "o" : {  "drop" : "coll2" } }
+[js_test:initSyncRepro] 2019-04-16T13:59:39.451-0400 [jsTest] {  "ts" : Timestamp(1555437565, 2),  "t" : NumberLong(1),  "h" : NumberLong(0),  "v" : 2,  "op" : "c",  "ns" : "db2.$cmd",  "ui" : UUID("04a04105-9657-40c1-8b58-668d4b0e8a1a"),  "o2" : {  "numRecords" : 0 },  "wall" : ISODate("2019-04-16T17:59:25.436Z"),  "o" : {  "renameCollection" : "db2.tmprWxOw.renameCollection",  "to" : "db2.coll1",  "stayTemp" : false,  "dropTarget" : UUID("94962fa6-2c19-47d2-a56e-f8f1cc0024bc") } }
+[js_test:initSyncRepro] 2019-04-16T13:59:39.451-0400 [jsTest] {  "ts" : Timestamp(1555437565, 1),  "t" : NumberLong(1),  "h" : NumberLong(0),  "v" : 2,  "op" : "c",  "ns" : "db2.$cmd",  "ui" : UUID("04a04105-9657-40c1-8b58-668d4b0e8a1a"),  "wall" : ISODate("2019-04-16T17:59:25.436Z"),  "o" : {  "create" : "tmprWxOw.renameCollection",  "idIndex" : {  "v" : 2,  "key" : {  "_id" : 1 },  "name" : "_id_",  "ns" : "db2.tmprWxOw.renameCollection" } } }
+[js_test:initSyncRepro] 2019-04-16T13:59:39.452-0400 [jsTest] ----
+
+
+
+# 
+#
+#
+[js_test:initSyncRepro] 2019-04-16T13:59:33.369-0400 d34588| 2019-04-16T13:59:33.369-0400 I  COMMAND  [repl-writer-worker-0] VLAD::renameCollectionForApplyOps::sourceNss: db2.coll1
+[js_test:initSyncRepro] 2019-04-16T13:59:33.370-0400 d34588| 2019-04-16T13:59:33.369-0400 I  COMMAND  [repl-writer-worker-0] VLAD::renameCollectionForApplyOps::uiNss: db2.coll1
+[js_test:initSyncRepro] 2019-04-16T13:59:33.370-0400 d34588| 2019-04-16T13:59:33.369-0400 I  COMMAND  [repl-writer-worker-0] VLAD::renameCollectionForApplyOps::targetUUID: 04a04105-9657-40c1-8b58-668d4b0e8a1a
+[js_test:initSyncRepro] 2019-04-16T13:59:33.370-0400 d34588| 2019-04-16T13:59:33.369-0400 I  COMMAND  [repl-writer-worker-0] VLAD::renameCollectionForApplyOps::options.dropTargetUUID: (nothing)
+[js_test:initSyncRepro] 2019-04-16T13:59:33.370-0400 d34588| 2019-04-16T13:59:33.369-0400 I  COMMAND  [repl-writer-worker-0] VLAD::renameCollectionForApplyOps::uuidString: 04a04105-9657-40c1-8b58-668d4b0e8a1a
+[js_test:initSyncRepro] 2019-04-16T13:59:33.370-0400 d34588| 2019-04-16T13:59:33.369-0400 I  COMMAND  [repl-writer-worker-0] VLADVLAD::renameCollectionForApplyOps::targetNss: db2.coll2
+[js_test:initSyncRepro] 2019-04-16T13:59:33.371-0400 d34588| 2019-04-16T13:59:33.369-0400 I  COMMAND  [repl-writer-worker-0] VLADVLAD::renameCollectionForApplyOps::vladDropTargetNS:
+[js_test:initSyncRepro] 2019-04-16T13:59:33.371-0400 d34588| 2019-04-16T13:59:33.369-0400 I  COMMAND  [repl-writer-worker-0] renameCollectionForApplyOps: rename db2.coll1 (04a04105-9657-40c1-8b58-668d4b0e8a1a) to db2.coll2.
+[js_test:initSyncRepro] 2019-04-16T13:59:33.371-0400 d34588| 2019-04-16T13:59:33.369-0400 I  COMMAND  [repl-writer-worker-0] VLAD: targetColl exists
+[js_test:initSyncRepro] 2019-04-16T13:59:33.371-0400 d34588| 2019-04-16T13:59:33.369-0400 I  SHARDING [repl-writer-worker-0] Marking collection db2.coll2 as collection version: <unsharded>

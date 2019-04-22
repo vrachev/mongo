@@ -16,16 +16,21 @@ const seedData = [
 ];
 
 const steps = [
-    { // 0
-        type: 'plain',
-        ops: [
-            {dbName: 'db1',commandObj: { convertToCapped: 'coll2' }},
-        ],
-    },
+
     { // 1
         type: 'plain',
         ops: [
             {dbName: 'db2',commandObj: {renameCollection: 'db1.coll2',to: 'db2.coll1',dropTarget: true}},
+
+            // This drop does not appear to be happening in the secondary.
+            // 
+            // Because of this, the next command of renaming db2.coll1 to db2.coll2 does not happen
+            // because `dropTarget: false` and db2.coll2 still exists.
+            // 
+            // the UUID that points to db2.coll1 then stays pointing to db2.coll1 instead of db2.coll2,
+            // and because of that, the drop coll operation of the 
+            // `dbName: 'db2',commandObj: { convertToCapped: 'coll2' }}` drops db2.coll1 instead of db2.coll2
+            //
             {dbName: 'db2',commandObj: { drop: 'coll2' }},
         ],
     },
@@ -38,13 +43,12 @@ const steps = [
     { // 4
         type: 'plain',
         ops: [
-            {dbName: 'db1',commandObj: {create: 'coll1',capped: false}},
+  
         ],
     },
     { // 5
         type: 'plain',
         ops: [
-            {dbName: 'db1',commandObj: {renameCollection: 'db1.coll1',to: 'db2.coll1'}, dropTarget: false},
             {dbName: 'db2',commandObj: { convertToCapped: 'coll2' }},
         ],
     },
@@ -100,7 +104,7 @@ function seedInitialData(db) {
 
 function runSteps(initSyncTest, db) {
     let stepNo = 0;
-    let count = 0;
+
     do {
         const step = steps[stepNo];
 
@@ -111,18 +115,9 @@ function runSteps(initSyncTest, db) {
         ++stepNo;
 
         for (let {dbName, commandObj} of step.ops) {
-            print("VLADCommandCount: " + count);
-            count++;
             runStep(db, dbName, commandObj);
         }
     } while (!initSyncTest.step());
-
-    
-    assert.commandWorked(db.getSiblingDB('db2').runCommand({                                         
-        insert: 'coll1',                                                                             
-        documents: [{_id: -1}],                                                                      
-        writeConcern: {w: 2, wtimeout: 10 * 1000},                                                   
-    }));
 }
 
 function main() {

@@ -219,6 +219,7 @@ function InitialSyncTest(name = "InitialSyncTest", replSet, timeout) {
      *
      * @return true if initial sync has completed
      */
+    let count = 0;
     this.step = function() {
         // If initial sync has not started yet, restart the node without data to cause it to go
         // through initial sync.
@@ -244,6 +245,8 @@ function InitialSyncTest(name = "InitialSyncTest", replSet, timeout) {
 
         pauseBeforeSyncSourceCommand();
 
+        print("VLADCommandCountFromInitSyncTest: " + count);
+        count++;
         // Clear ramlog so checkLog can't find log messages from previous times either failpoint was
         // enabled.
         assert.commandWorked(secondary.adminCommand({clearLog: 'global'}));
