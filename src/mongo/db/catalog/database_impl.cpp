@@ -684,12 +684,8 @@ Collection* DatabaseImpl::createCollection(OperationContext* opCtx,
     _checkCanCreateCollection(opCtx, nss, optionsWithUUID);
     audit::logCreateCollection(&cc(), nss.ns());
 
-    BSONObj optionsWithoutUUID = optionsWithUUID.toBSON().removeField("uuid");
-
     log() << "createCollection: " << nss << " with " << (generatedUUID ? "generated" : "provided")
-          << " UUID: " << optionsWithUUID.uuid.get()
-          << (!optionsWithoutUUID.isEmpty() ? " and options: " + optionsWithoutUUID.toString()
-                                            : "");
+          << " UUID: " << optionsWithUUID.uuid.get() << " and options: " << options.toBSON();
 
     // Create CollectionCatalogEntry
     auto storageEngine =
