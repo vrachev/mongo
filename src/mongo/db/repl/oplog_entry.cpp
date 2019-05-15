@@ -37,6 +37,8 @@
 #include "mongo/util/log.h"
 #include "mongo/util/time_support.h"
 
+#include "mongo/db/repl/oplog_entry_gen.h"
+
 
 namespace mongo {
 namespace repl {
@@ -264,6 +266,7 @@ bool OplogEntry::isCommand() const {
 
 // static
 bool OplogEntry::isCrudOpType(OpTypeEnum opType) {
+    log() << "VLAD::oplog_entry::isCrudOpType -- opType: " << OpType_serializer(opType);
     switch (opType) {
         case OpTypeEnum::kInsert:
         case OpTypeEnum::kDelete:
@@ -271,7 +274,6 @@ bool OplogEntry::isCrudOpType(OpTypeEnum opType) {
             return true;
         case OpTypeEnum::kCommand:
         case OpTypeEnum::kNoop:
-            log() << "VLAD::oplog_entry::isCrudOpType -- opType: kNoop";
             return false;
     }
     MONGO_UNREACHABLE;
@@ -286,6 +288,7 @@ bool OplogEntry::shouldPrepare() const {
 }
 
 BSONElement OplogEntry::getIdElement() const {
+    //log() << "VLAD::oplog_entry::getIdElement -- getObject()['id']: " + getObject()["_id"]; 
     invariant(isCrudOpType());
     if (getOpType() == OpTypeEnum::kUpdate) {
         // We cannot use getObjectContainingDocumentKey() here because the BSONObj will go out
