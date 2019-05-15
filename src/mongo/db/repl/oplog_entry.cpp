@@ -37,6 +37,7 @@
 #include "mongo/util/log.h"
 #include "mongo/util/time_support.h"
 
+
 namespace mongo {
 namespace repl {
 
@@ -263,6 +264,7 @@ bool OplogEntry::isCommand() const {
 
 // static
 bool OplogEntry::isCrudOpType(OpTypeEnum opType) {
+    log() << "VLAD::oplog_entry::isCrudOpType -- opType: " << opType;
     switch (opType) {
         case OpTypeEnum::kInsert:
         case OpTypeEnum::kDelete:
