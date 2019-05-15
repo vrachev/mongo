@@ -890,6 +890,7 @@ BSONObj SyncTail::getMissingDoc(OperationContext* opCtx, const OplogEntry& oplog
             continue;  // try again
         }
 
+        log() << "VLAD: oplogEntry: " << oplogEntry.toBSON();
         // get _id from oplog entry to create query to fetch document.
         const auto idElem = oplogEntry.getIdElement();
 
