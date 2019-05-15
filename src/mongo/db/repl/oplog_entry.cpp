@@ -264,7 +264,6 @@ bool OplogEntry::isCommand() const {
 
 // static
 bool OplogEntry::isCrudOpType(OpTypeEnum opType) {
-    log() << "VLAD::oplog_entry::isCrudOpType -- opType: " << opType;
     switch (opType) {
         case OpTypeEnum::kInsert:
         case OpTypeEnum::kDelete:
@@ -272,6 +271,7 @@ bool OplogEntry::isCrudOpType(OpTypeEnum opType) {
             return true;
         case OpTypeEnum::kCommand:
         case OpTypeEnum::kNoop:
+            log() << "VLAD::oplog_entry::isCrudOpType -- opType: kNoop";
             return false;
     }
     MONGO_UNREACHABLE;
