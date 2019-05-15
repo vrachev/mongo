@@ -288,7 +288,7 @@ bool OplogEntry::shouldPrepare() const {
 }
 
 BSONElement OplogEntry::getIdElement() const {
-    //log() << "VLAD::oplog_entry::getIdElement -- getObject()['id']: " + getObject()["_id"]; 
+    log() << "VLAD::oplog_entry::getIdElement -- getObject()['id']: " + getObject()["_id"].toString(); 
     invariant(isCrudOpType());
     if (getOpType() == OpTypeEnum::kUpdate) {
         // We cannot use getObjectContainingDocumentKey() here because the BSONObj will go out
