@@ -1809,7 +1809,7 @@ functions:
           set -o errexit
           set -o verbose
 
-          git clone git@github.com:10gen/jstestfuzz.git
+          git clone --branch=TIG-1503 git@github.com:vrachev/jstestfuzz.git
 
           cp mongodb*/bin/mongod .
 
@@ -4945,8 +4945,8 @@ tasks:
   - func: "generate fuzzer tasks"
     vars:
       <<: *jstestfuzz_config_vars
-      num_files: 10
-      num_tasks: 5
+      num_files: 50
+      num_tasks: 50
       npm_command: initsync-fuzzer
       resmoke_args: --suites=initial_sync_fuzzer
       name: initial_sync_fuzzer
