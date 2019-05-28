@@ -56,6 +56,7 @@
 #include "mongo/db/repl/repl_server_parameters_gen.h"
 #include "mongo/db/repl/replication_consistency_markers.h"
 #include "mongo/db/repl/replication_process.h"
+#include "mongo/db/repl/storage_engine.h"
 #include "mongo/db/repl/storage_interface.h"
 #include "mongo/db/repl/sync_source_selector.h"
 #include "mongo/db/repl/transaction_oplog_application.h"
@@ -493,12 +494,16 @@ void InitialSyncer::_startInitialSyncAttemptCallback(
     // has to run outside lock.
     stdx::lock_guard<stdx::mutex> lock(_mutex);
 
+    auto opCtx = makeOpCtx();
+    auto storageEngine = opCtx->getServiceContext()->getStorageEngine();
+
     _oplogApplier = {};
 
     LOG(2) << "Resetting sync source so a new one can be chosen for this initial sync attempt.";
     _syncSource = HostAndPort();
 
     LOG(2) << "Resetting all optimes before starting this initial sync attempt.";
+    storageEngine->setOldestTimestamp(OpTime());
     _opts.resetOptimes();
     _lastApplied = {OpTime(), Date_t::min()};
     _lastFetched = {};
@@ -509,7 +514,7 @@ void InitialSyncer::_startInitialSyncAttemptCallback(
     serverGlobalParams.featureCompatibility.reset();
 
     // Clear the oplog buffer.
-    _oplogBuffer->clear(makeOpCtx().get());
+    _oplogBuffer->clear(opCtx.get());
 
     // Get sync source.
     std::uint32_t chooseSyncSourceAttempt = 0;
