@@ -503,7 +503,7 @@ void InitialSyncer::_startInitialSyncAttemptCallback(
     _syncSource = HostAndPort();
 
     LOG(2) << "Resetting all optimes before starting this initial sync attempt.";
-    storageEngine->setOldestTimestamp(OpTime());
+    // storageEngine->setOldestTimestamp(OpTime());
     _opts.resetOptimes();
     _lastApplied = {OpTime(), Date_t::min()};
     _lastFetched = {};
