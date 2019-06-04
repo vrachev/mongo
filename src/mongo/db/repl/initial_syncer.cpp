@@ -56,11 +56,11 @@
 #include "mongo/db/repl/repl_server_parameters_gen.h"
 #include "mongo/db/repl/replication_consistency_markers.h"
 #include "mongo/db/repl/replication_process.h"
-#include "mongo/db/repl/storage_engine.h"
 #include "mongo/db/repl/storage_interface.h"
 #include "mongo/db/repl/sync_source_selector.h"
 #include "mongo/db/repl/transaction_oplog_application.h"
 #include "mongo/db/session_txn_record_gen.h"
+//#include "mongo/db/storage/storage_engine.h"
 #include "mongo/executor/task_executor.h"
 #include "mongo/executor/thread_pool_task_executor.h"
 #include "mongo/rpc/metadata/repl_set_metadata.h"
@@ -495,7 +495,7 @@ void InitialSyncer::_startInitialSyncAttemptCallback(
     stdx::lock_guard<stdx::mutex> lock(_mutex);
 
     auto opCtx = makeOpCtx();
-    auto storageEngine = opCtx->getServiceContext()->getStorageEngine();
+    //auto storageEngine = opCtx->getServiceContext()->getStorageEngine();
 
     _oplogApplier = {};
 
@@ -503,7 +503,8 @@ void InitialSyncer::_startInitialSyncAttemptCallback(
     _syncSource = HostAndPort();
 
     LOG(2) << "Resetting all optimes before starting this initial sync attempt.";
-    // storageEngine->setOldestTimestamp(OpTime());
+    log() << "VLAD - _startInitialSyncAttemptCallback";
+    //storageEngine->setStableTimestamp(OpTime().getTimestamp(), true);
     _opts.resetOptimes();
     _lastApplied = {OpTime(), Date_t::min()};
     _lastFetched = {};
