@@ -269,6 +269,10 @@ function InitialSyncTest(name = "InitialSyncTest", replSet, timeout) {
         return secondary;
     };
 
+    this.getReplSet = function() {
+        return replSet;
+    }
+
     /**
      * Performs data consistency checks and then stops the replica set. Will fail if there is a
      * transaction that wasn't aborted or committed.
