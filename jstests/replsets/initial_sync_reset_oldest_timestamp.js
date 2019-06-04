@@ -16,7 +16,7 @@
     load('jstests/replsets/libs/initial_sync_test.js');
     
     const name = 'intial_sync_reset_oldest_timestamp';
-    const initialSyncTest = new initialSyncTest(name);
+    const initialSyncTest = new InitialSyncTest(name);
     const primary = initialSyncTest.getPrimary();
     let secondary = initialSyncTest.getSecondary();
     const db = primary.getDB(name);
