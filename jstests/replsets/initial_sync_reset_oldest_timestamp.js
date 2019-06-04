@@ -13,33 +13,41 @@
     "use strict";
 
     load("jstests/core/txns/libs/prepare_helpers.js");
-    load('jstests/replsets/libs/initial_sync_test.js');
-    
-    const name = 'intial_sync_reset_oldest_timestamp';
-    const initialSyncTest = new InitialSyncTest(name);
-    const primary = initialSyncTest.getPrimary();
-    let secondary = initialSyncTest.getSecondary();
-    const db = primary.getDB(name);
 
-    // cannot create collection in a transaction, 
-    assert.commandWorked(db.foo.insert({a: 1}));
+    const replTest = new ReplSetTest({nodes: 2, nodeOptions: 
+        {setParameter: "numInitialSyncAttempts=5"}});
+    replTest.startSet();
+
+    const config = replTest.getReplSetConfig();
+    // Increase the election timeout so that we do not accidentally trigger an election while the
+    // secondary is restarting.
+    config.settings = {"electionTimeoutMillis": 12 * 60 * 60 * 1000};
+    replTest.initiate(config);
+
+    const primary = replTest.getPrimary();
+    let secondary = replTest.getSecondary();
+
+    const dbName = "test";
+    const collName = "initial_sync_reset_oldest_timestamp";
+    const testDB = primary.getDB(dbName);
+    const testColl = testDB.getCollection(collName);
+
+    // Need to create a collection outside of a transaction.
+    assert.commandWorked(testColl.insert({_id: 1}));
 
     const session = primary.startSession({causalConsistensy: false});
     const sessionDB = session.getDatabase(name);
-    const sessionColl = sessionDB.getCollection("foo");
+    const sessionColl = sessionDB.collection(collName);
     session.startTransaction();
-    assert.commandWorked(sessionColl.insert({b: 1}));
+    assert.commandWorked(sessionColl.insert({_id: 2}));
+    const prepareTimestamp = PrepareHelpers.prepareTransaction(session);
 
-    let prepareTimeStamp = PrepareHelpers.prepareTransaction(session);
-
-    assert(!initialSyncTest.step());
-
-    secondary = initialSyncTest.getSecondary();
-    secondary.setSlaveOk();
-
-    const res = PrepareHelpers.commitTransaction(session, prepareTimeStamp);
-
-    assert.commandWorked(PrepareHelpers.commitTransaction(session, prepareTimeStamp));
-
-    initialSyncTest.stop();
-})();
+    replTest.stop(secondary, undefined, {skipValidation: true});
+    secondary = replTest.start(secondary, {
+        startClean: true,
+        setParameter: {
+            'failpoint.failInitialSyncBeforeApplyingBatch': tojson(
+                {mode: 'alwaysOn'})}},
+        true);
+    
+})()
