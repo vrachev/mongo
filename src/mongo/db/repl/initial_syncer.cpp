@@ -1181,9 +1181,9 @@ void InitialSyncer::_getNextApplierBatchCallback(
     }
 
     if (MONGO_FAIL_POINT(failInitialSyncBeforeApplyingBatch)) {
-        log() << "Failing initial sync before applying the next batch.";
+        log() << "initial sync - failInitialSyncBeforeApplyingBatch fail point enabled.";
         status = Status(ErrorCodes::CallbackCanceled,
-                        "no sync source avail(failInitialSyncWithBadHost failpoint is set).");
+                        "failInitialSyncBeforeApplyingBatch fail point enabled");
         onCompletionGuard->setResultAndCancelRemainingWork_inlock(lock, status);
         return;
     }
