@@ -65,6 +65,9 @@ namespace repl {
 // Failpoint which fails initial sync and leaves an oplog entry in the buffer.
 MONGO_FAIL_POINT_DECLARE(failInitSyncWithBufferedEntriesLeft);
 
+// Failpoint which fails initial sync before it applies the next batch of oplog entries.
+MONGO_FAIL_POINT_DECLARE(failInitialSyncBeforeApplyingBatch);
+
 // Failpoint which causes the initial sync function to hang before copying databases.
 MONGO_FAIL_POINT_DECLARE(initialSyncHangBeforeCopyingDatabases);
 

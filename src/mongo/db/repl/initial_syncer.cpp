@@ -83,6 +83,9 @@ MONGO_FAIL_POINT_DEFINE(failInitialSyncWithBadHost);
 // Failpoint which fails initial sync and leaves an oplog entry in the buffer.
 MONGO_FAIL_POINT_DEFINE(failInitSyncWithBufferedEntriesLeft);
 
+// Failpoint which fails initial sync before it applies the next batch of oplog entries.
+MONGO_FAIL_POINT_DEFINE(failInitialSyncBeforeApplyingBatch);
+
 // Failpoint which causes the initial sync function to hang before copying databases.
 MONGO_FAIL_POINT_DEFINE(initialSyncHangBeforeCopyingDatabases);
 
@@ -1175,6 +1178,14 @@ void InitialSyncer::_getNextApplierBatchCallback(
     if (MONGO_FAIL_POINT(initialSyncFuzzerSynchronizationPoint2)) {
         log() << "initialSyncFuzzerSynchronizationPoint2 fail point enabled.";
         MONGO_FAIL_POINT_PAUSE_WHILE_SET(initialSyncFuzzerSynchronizationPoint2);
+    }
+
+    if (MONGO_FAIL_POINT(failInitialSyncBeforeApplyingBatch)) {
+        log() << "Failing initial sync before applying the next batch.";
+        status = Status(ErrorCodes::CallbackCanceled,
+                        "no sync source avail(failInitialSyncWithBadHost failpoint is set).");
+        onCompletionGuard->setResultAndCancelRemainingWork_inlock(lock, status);
+        return;
     }
 
     // Schedule MultiApplier if we have operations to apply.
