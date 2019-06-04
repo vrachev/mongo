@@ -20,8 +20,10 @@
     const primary = initialSyncTest.getPrimary();
     let secondary = initialSyncTest.getSecondary();
     const db = primary.getDB(name);
+    const secondaryDB = secondary.getDB(name);
 
     // cannot create collection in a transaction, 
+    assert.commandWorked(db.foo.insert({a: 1}));
     assert.commandWorked(db.foo.insert({a: 1}));
 
     const session = primary.startSession({causalConsistensy: false});
@@ -32,10 +34,12 @@
 
     let prepareTimeStamp = PrepareHelpers.prepareTransaction(session);
 
-    assert(!initialSyncTest.step);
+    assert(!initialSyncTest.step());
 
     secondary = initialSyncTest.getSecondary();
     secondary.setSlaveOk();
+
+    const res = PrepareHelpers.commitTransaction(session, prepareTimeStamp);
 
     assert.commandWorked(PrepareHelpers.commitTransaction(session, prepareTimeStamp));
 })();
