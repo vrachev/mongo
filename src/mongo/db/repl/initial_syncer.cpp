@@ -754,6 +754,8 @@ void InitialSyncer::_getBeginFetchingOpTimeCallback(
             beginFetchingOpTime = optime.get();
         }
     }
+    
+    log() << "VLAD begin fetching optime" << beginFetchingOpTime;
 
     status = _scheduleLastOplogEntryFetcher_inlock(
         [=](const StatusWith<mongo::Fetcher::QueryResponse>& response,
@@ -1566,7 +1568,11 @@ void InitialSyncer::_checkApplierProgressAndScheduleGetNextApplierBatch_inlock(
         invariant(!_lastApplied.opTime.getTimestamp().isNull());
         _scheduleRollbackCheckerCheckForRollback_inlock(lock, onCompletionGuard);
         return;
+    } else {
+        log() << "VLAD - checkApplierProgress - optime" << _lastApplied.opTime;
     }
+
+    log() << "VLAD - checkApplierProgress - got here";
 
     // Get another batch to apply.
     // _scheduleWorkAndSaveHandle_inlock() is shutdown-aware.
@@ -1577,6 +1583,7 @@ void InitialSyncer::_checkApplierProgressAndScheduleGetNextApplierBatch_inlock(
         &_getNextApplierBatchHandle,
         "_getNextApplierBatchCallback");
     if (!status.isOK()) {
+        log() << "Vlad got here - checkApplierProgress - bad status" << status;
         onCompletionGuard->setResultAndCancelRemainingWork_inlock(lock, status);
         return;
     }
