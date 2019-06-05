@@ -1166,6 +1166,10 @@ void InitialSyncer::_getNextApplierBatchCallback(
         return;
     }
 
+    log() << "VLAD batchresult";
+    for (auto i = batchResult.getValue().begin(); i != batchResult.getValue().end(); i++) {
+        log() << "doc: " << &i;
+    }
     // Set and unset by the InitialSyncTest fixture to cause initial sync to pause so that the
     // Initial Sync Fuzzer can run commands on the sync source.
     if (MONGO_FAIL_POINT(initialSyncFuzzerSynchronizationPoint1)) {
