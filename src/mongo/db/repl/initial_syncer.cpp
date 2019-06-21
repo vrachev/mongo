@@ -1159,7 +1159,7 @@ void InitialSyncer::_getNextApplierBatchCallback(
     const executor::TaskExecutor::CallbackArgs& callbackArgs,
     std::shared_ptr<OnCompletionGuard> onCompletionGuard) {
     stdx::lock_guard<stdx::mutex> lock(_mutex);
-    log << "VLADinitialsyncer::_getNextApplierBatchCallback got to start";
+    log() << "VLADinitialsyncer::_getNextApplierBatchCallback got to start";
     auto status =
         _checkForShutdownAndConvertStatus_inlock(callbackArgs, "error getting next applier batch");
     if (!status.isOK()) {
