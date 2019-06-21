@@ -168,10 +168,13 @@ function InitialSyncTest(name = "InitialSyncTest", replSet, timeout) {
      */
     function waitUntilInitialSyncPausedOrCompleted() {
         assert.soon(function() {
+            print("VLAD2::waitUntilInitialSyncPausedOrCompleted - before checking that the failpoint was set..")
+
             if (checkLog.checkContainsOnce(
                     secondary, "initialSyncFuzzerSynchronizationPoint1 fail point enabled")) {
                 return true;
             }
+            print("VLAD2::waitUntilInitialSyncPausedOrCompleted - after checking that the failpoint was set..")
             return hasCompletedInitialSync();
 
         }, "initial sync did not pause or complete");
@@ -201,8 +204,10 @@ function InitialSyncTest(name = "InitialSyncTest", replSet, timeout) {
             {"configureFailPoint": 'initialSyncFuzzerSynchronizationPoint1', "mode": 'alwaysOn'}));
         assert.commandWorked(secondary.adminCommand(
             {"configureFailPoint": 'initialSyncFuzzerSynchronizationPoint2', "mode": 'off'}));
-
+        
+        print("VLAD1::resumeAndPauseBeforeNextSyncSourceCommand - before waitUntil..")
         waitUntilInitialSyncPausedOrCompleted();
+        print("VLAD1::resumeAndPauseBeforeNextSyncSourceCommand - after waitUntil..")
     }
 
     /**
@@ -223,14 +228,10 @@ function InitialSyncTest(name = "InitialSyncTest", replSet, timeout) {
      * @return true if initial sync has completed
      */
     this.step = function() {
-        print("VLAD1::step - got to beginning");
         // If initial sync has not started yet, restart the node without data to cause it to go
         // through initial sync.
         if (currState === State.kBeforeInitialSync) {
-            print("VLAD2::step - got to before restartNode");
             restartNodeWithoutData();
-             print("VLAD3::step - got to after restartNode");
-
 
             // Wait until initial sync has started.
             assert.soon(hasStartedInitialSync, "failed to start initial sync", initialSyncTimeout);
@@ -250,14 +251,13 @@ function InitialSyncTest(name = "InitialSyncTest", replSet, timeout) {
                    "Cannot call step() if initial sync already completed");
 
         pauseBeforeSyncSourceCommand();
-        print("VLAD4::step - got to after pause");
+        print("VLAD4::step - got to after pause // this is the last point we get to in step()");
 
         // Clear ramlog so checkLog can't find log messages from previous times either failpoint was
         // enabled.
         assert.commandWorked(secondary.adminCommand({clearLog: 'global'}));
 
         resumeAndPauseBeforeNextSyncSourceCommand();
-        print("VLAD5::step - got to after resume");
 
 
         // If initial sync is completed, let the caller know.
@@ -265,10 +265,8 @@ function InitialSyncTest(name = "InitialSyncTest", replSet, timeout) {
             transitionIfAllowed(State.kInitialSyncCompleted);
             assert.commandWorked(secondary.adminCommand(
                 {"configureFailPoint": 'initialSyncFuzzerSynchronizationPoint1', "mode": 'off'}));
-            print("VLAD6::step - got to in loop before returning true");
             return true;
         }
-        print("VLAD::step - got to before returning false");
 
         return false;
     };
