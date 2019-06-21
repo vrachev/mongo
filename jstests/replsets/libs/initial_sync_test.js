@@ -223,13 +223,13 @@ function InitialSyncTest(name = "InitialSyncTest", replSet, timeout) {
      * @return true if initial sync has completed
      */
     this.step = function() {
-        log("VLAD1::step - got to beginning");
+        print("VLAD1::step - got to beginning");
         // If initial sync has not started yet, restart the node without data to cause it to go
         // through initial sync.
         if (currState === State.kBeforeInitialSync) {
-            log("VLAD2::step - got to before restartNode");
+            print("VLAD2::step - got to before restartNode");
             restartNodeWithoutData();
-             log("VLAD3::step - got to after restartNode");
+             print("VLAD3::step - got to after restartNode");
 
 
             // Wait until initial sync has started.
@@ -250,14 +250,14 @@ function InitialSyncTest(name = "InitialSyncTest", replSet, timeout) {
                    "Cannot call step() if initial sync already completed");
 
         pauseBeforeSyncSourceCommand();
-        log("VLAD4::step - got to after pause");
+        print("VLAD4::step - got to after pause");
 
         // Clear ramlog so checkLog can't find log messages from previous times either failpoint was
         // enabled.
         assert.commandWorked(secondary.adminCommand({clearLog: 'global'}));
 
         resumeAndPauseBeforeNextSyncSourceCommand();
-        log("VLAD5::step - got to after resume");
+        print("VLAD5::step - got to after resume");
 
 
         // If initial sync is completed, let the caller know.
@@ -265,10 +265,10 @@ function InitialSyncTest(name = "InitialSyncTest", replSet, timeout) {
             transitionIfAllowed(State.kInitialSyncCompleted);
             assert.commandWorked(secondary.adminCommand(
                 {"configureFailPoint": 'initialSyncFuzzerSynchronizationPoint1', "mode": 'off'}));
-            log("VLAD6::step - got to in loop before returning true");
+            print("VLAD6::step - got to in loop before returning true");
             return true;
         }
-        log("VLAD::step - got to before returning false");
+        print("VLAD::step - got to before returning false");
 
         return false;
     };
