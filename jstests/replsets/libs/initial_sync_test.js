@@ -101,12 +101,13 @@ function InitialSyncTest(name = "InitialSyncTest", replSet, timeout) {
     function isNodeInState(node, state) {
         // We suppress the initialSync field here, because initial sync is paused while holding the
         // mutex needed to report initial sync progress.
-        const currState = assert
+        const assertRes = assert
         .commandWorkedOrFailedWithCode(
             node.adminCommand({replSetGetStatus: 1, initialSync: 0}),
-            ErrorCodes.NotYetInitialized)
-        .myState;
+            ErrorCodes.NotYetInitialized);
+        const currState = assertRes.myState;
         const stateComparison = (state === currState);
+        print("VLAD5::isNodeInState - assertRes: " + tojson(assertRes, null, 2));
         print("VLAD5::isNodeInState - stateExpected: " + tojson(state, null, 2));
         print("VLAD5::isNodeInState - currState: " + tojson(currState, null, 2));
         print("VLAD5::isNodeInState - stateComparison: " + stateComparison);
