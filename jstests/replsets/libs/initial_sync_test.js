@@ -101,12 +101,14 @@ function InitialSyncTest(name = "InitialSyncTest", replSet, timeout) {
     function isNodeInState(node, state) {
         // We suppress the initialSync field here, because initial sync is paused while holding the
         // mutex needed to report initial sync progress.
-        const stateComparison = (state ===
-        assert
-            .commandWorkedOrFailedWithCode(
-                node.adminCommand({replSetGetStatus: 1, initialSync: 0}),
-                ErrorCodes.NotYetInitialized)
-            .myState);
+        const currState = assert
+        .commandWorkedOrFailedWithCode(
+            node.adminCommand({replSetGetStatus: 1, initialSync: 0}),
+            ErrorCodes.NotYetInitialized)
+        .myState;
+        const stateComparison = (state === currState);
+        print("VLAD5::isNodeInState - stateExpected: " + tojson(state, null, 2));
+        print("VLAD5::isNodeInState - currState: " + tojson(currState, null, 2));
         print("VLAD5::isNodeInState - stateComparison: " + stateComparison);
         return stateComparison;
     }
@@ -254,14 +256,14 @@ function InitialSyncTest(name = "InitialSyncTest", replSet, timeout) {
                    "Cannot call step() if initial sync already completed");
 
         pauseBeforeSyncSourceCommand();
-        print("VLAD4::step - got to after pause // this is the last point we get to in step()");
 
         // Clear ramlog so checkLog can't find log messages from previous times either failpoint was
         // enabled.
         assert.commandWorked(secondary.adminCommand({clearLog: 'global'}));
 
+        print("VLAD4::step - got to before resumeAndPause // this is the last point we get to in step()");
         resumeAndPauseBeforeNextSyncSourceCommand();
-
+        print("VLAD4::step - got to after resumeAndPause");
 
         // If initial sync is completed, let the caller know.
         if (hasCompletedInitialSync()) {
