@@ -120,6 +120,7 @@ function InitialSyncTest(name = "InitialSyncTest", replSet, timeout) {
                   State.kDuringInitialSync,
                   "Should not check if initial sync completed before node is restarted");
 
+        print("VLAD3::hasCompletedInitialSync - before returning isNodeInState")
         // We know initial sync has completed if the node has transitioned to SECONDARY state.
         return isNodeInState(secondary, ReplSetTest.State.SECONDARY);
     }
