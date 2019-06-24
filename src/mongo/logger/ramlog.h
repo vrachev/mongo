@@ -109,7 +109,7 @@ private:
     ~RamLog();  // want this private as we want to leak so we can use them till the very end
 
     enum {
-        N = 1024,  // number of lines
+        N = 8192,  // number of lines
         C = 1024   // max size of line
     };
 
