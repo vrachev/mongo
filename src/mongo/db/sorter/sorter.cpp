@@ -54,6 +54,7 @@
 #include <snappy.h>
 #include <vector>
 
+#include "mongo/util/log.h"
 #include "mongo/base/string_data.h"
 #include "mongo/config.h"
 #include "mongo/db/jsobj.h"
@@ -68,7 +69,6 @@
 #include "mongo/util/destructor_guard.h"
 #include "mongo/util/str.h"
 #include "mongo/util/unowned_ptr.h"
-#include "mongo/util/log.h"
 
 namespace mongo {
 
