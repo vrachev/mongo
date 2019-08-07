@@ -57,7 +57,9 @@
 #if defined(MONGO_LOG_DEFAULT_COMPONENT)
 const ::mongo::logger::LogComponent MongoLogDefaultComponent_component =
     MONGO_LOG_DEFAULT_COMPONENT;
-
+#else
+const ::mongo::logger::LogComponent MongoLogDefaultComponent_component =
+    ::mongo::logger::LogComponent::kReplication
 #endif  // MONGO_LOG_DEFAULT_COMPONENT
 
 namespace mongo {
