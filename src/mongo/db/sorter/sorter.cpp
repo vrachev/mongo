@@ -46,6 +46,8 @@
  * Do this once for each unique set of parameters to MONGO_CREATE_SORTER.
  */
 
+#define MONGO_LOG_DEFAULT_COMPONENT ::mongo::logger::LogComponent::kReplication
+
 #include "mongo/db/sorter/sorter.h"
 
 #include <boost/filesystem/operations.hpp>
@@ -66,6 +68,7 @@
 #include "mongo/util/destructor_guard.h"
 #include "mongo/util/str.h"
 #include "mongo/util/unowned_ptr.h"
+#include "mongo/util/log.h"
 
 namespace mongo {
 
