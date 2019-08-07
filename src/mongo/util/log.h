@@ -37,10 +37,7 @@
 // inclusion of log.h will ensure that the default component will be set correctly.
 
 #if defined(MONGO_UTIL_LOG_H_)
-// #error \
-//     "mongo/util/log.h cannot be included multiple times. " \
-//        "This may occur when log.h is included in a header. " \
-//        "Please check your #include's."
+
 #else  // MONGO_UTIL_LOG_H_
 #define MONGO_UTIL_LOG_H_
 
