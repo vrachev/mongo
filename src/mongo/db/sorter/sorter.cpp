@@ -45,7 +45,6 @@
  *
  * Do this once for each unique set of parameters to MONGO_CREATE_SORTER.
  */
-#define MONGO_LOG_DEFAULT_COMPONENT ::mongo::logger::LogComponent::kReplication
 
 #include "mongo/util/log.h"
 #include "mongo/db/sorter/sorter.h"
