@@ -553,9 +553,9 @@ public:
         _memUsed += key.memUsageForSorter();
         _memUsed += val.memUsageForSorter();
 
-        log() << "VLAD::OOM: _memUsed: " << _memUsed;
+        log() << "VLAD::notYetOOM: _memUsed: " << _memUsed << " max mem: " << _opts.maxMemoryUsageBytes;
         if (_memUsed > _opts.maxMemoryUsageBytes)
-            log() << "VLAD::OOM: _memUsed: " << _memUsed;
+            log() << "VLAD::OOM: _memUsed: " << _memUsed << " max mem: " << _opts.maxMemoryUsageBytes;
             spill();
     }
 
