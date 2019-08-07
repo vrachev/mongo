@@ -52,7 +52,6 @@
 #include <snappy.h>
 #include <vector>
 
-#include "mongo/util/log.h"
 #include "mongo/base/string_data.h"
 #include "mongo/config.h"
 #include "mongo/db/jsobj.h"
