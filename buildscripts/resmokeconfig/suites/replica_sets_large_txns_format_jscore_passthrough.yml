@@ -14,7 +14,7 @@ selector:
   - jstests/core/txns/kill_op_on_txn_expiry.js
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHashInBackground
       - ValidateCollectionsInBackground

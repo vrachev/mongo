@@ -21,7 +21,7 @@ selector:
   - jstests/core/set_param1.js
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHashInBackground
       - ValidateCollectionsInBackground

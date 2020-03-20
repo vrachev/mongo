@@ -377,7 +377,7 @@ selector:
   - uses_$out
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
       - CheckReplOplogs

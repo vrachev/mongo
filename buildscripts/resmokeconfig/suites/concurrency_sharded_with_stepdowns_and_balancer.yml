@@ -189,7 +189,7 @@ selector:
   - uses_curop_agg_stage
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
       - ValidateCollections

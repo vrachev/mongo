@@ -7,7 +7,7 @@ selector:
   - build/install/bin/client_dbclient_connection_integration_test* # Needs sleep command
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
       - ValidateCollections

@@ -51,7 +51,7 @@ selector:
   - does_not_support_causal_consistency
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
       - CheckReplOplogs

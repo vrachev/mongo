@@ -28,7 +28,7 @@ class TestSuiteExecutor(object):  # pylint: disable=too-many-instance-attributes
 
     def __init__(  # pylint: disable=too-many-arguments
             self, exec_logger, suite, config=None, fixture=None, hooks=None, archive_instance=None,
-            archive=None):
+            archiveInEvergreen=None):
         """Initialize the TestSuiteExecutor with the test suite to run."""
         self.logger = exec_logger
 
@@ -48,7 +48,7 @@ class TestSuiteExecutor(object):  # pylint: disable=too-many-instance-attributes
         self.archival = None
         if archive_instance:
             self.archival = archival.HookTestArchival(suite, self.hooks_config, archive_instance,
-                                                      archive)
+                                                      archiveInEvergreen)
 
         self._suite = suite
         self.num_tests = len(suite.tests) * suite.options.num_repeat_tests

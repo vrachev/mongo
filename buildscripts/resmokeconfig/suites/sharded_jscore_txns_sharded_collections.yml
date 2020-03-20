@@ -48,7 +48,7 @@ selector:
   # Prepare is not a command on mongos.
   - uses_prepare_transaction
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
   config:

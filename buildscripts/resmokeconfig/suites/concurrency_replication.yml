@@ -17,7 +17,7 @@ selector:
   - requires_sharding
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHashInBackground
       - ValidateCollectionsInBackground

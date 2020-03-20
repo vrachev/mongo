@@ -37,7 +37,7 @@ selector:
   group_count_multiplier: 2.5
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
     tests: true

@@ -5,7 +5,7 @@ selector:
   - jstests/decimal/*.js
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
   config:

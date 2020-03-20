@@ -5,7 +5,7 @@ selector:
   - jstestfuzz/out/*.js
 
 executor:
-  archive:
+  archiveInEvergreen:
     tests: true
   config:
     shell_options:

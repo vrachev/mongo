@@ -116,7 +116,7 @@ selector:
   - inspects_whether_plan_cache_entry_is_active
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
       - CheckReplOplogs

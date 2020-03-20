@@ -10,7 +10,7 @@ selector:
   - requires_pipeline_optimization
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
   config:

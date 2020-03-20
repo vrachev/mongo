@@ -18,7 +18,7 @@ selector:
   - jstests/gle/core/update4.js
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
   config:

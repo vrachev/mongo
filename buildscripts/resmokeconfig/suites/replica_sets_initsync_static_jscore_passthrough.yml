@@ -14,7 +14,7 @@ selector:
 
 run_hook_interval: &run_hook_interval 20
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - IntermediateInitialSync
   config:

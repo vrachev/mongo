@@ -16,7 +16,7 @@ selector:
   - do_not_run_in_whole_cluster_passthrough
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
       - CheckReplOplogs

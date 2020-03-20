@@ -113,7 +113,7 @@ selector:
   - assumes_balancer_on
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHashInBackground
       - CheckReplDBHash

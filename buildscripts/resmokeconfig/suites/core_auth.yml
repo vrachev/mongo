@@ -25,7 +25,7 @@ selector:
   - creates_and_authenticates_user
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
   config:

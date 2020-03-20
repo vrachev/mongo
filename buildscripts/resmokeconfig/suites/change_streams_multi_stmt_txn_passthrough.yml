@@ -17,7 +17,7 @@ selector:
   - change_stream_does_not_expect_txns
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
       - CheckReplOplogs

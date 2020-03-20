@@ -8,7 +8,7 @@ selector:
   - mql-model/test/data/*.json
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
   config:

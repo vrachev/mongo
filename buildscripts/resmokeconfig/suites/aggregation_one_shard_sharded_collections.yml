@@ -28,7 +28,7 @@ selector:
   - requires_replication
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
       - ValidateCollections

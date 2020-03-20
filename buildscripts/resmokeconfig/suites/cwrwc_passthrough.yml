@@ -15,7 +15,7 @@ selector:
   - jstests/core/capped_update.js
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
   config:

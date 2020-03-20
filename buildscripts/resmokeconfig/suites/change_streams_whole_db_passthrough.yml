@@ -17,7 +17,7 @@ selector:
   - assumes_write_concern_unchanged
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
       - CheckReplOplogs

@@ -15,7 +15,7 @@ selector:
   - jstests/core/tailable_skip_limit.js # Negative limit value changes result to batchSize.
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
   config:

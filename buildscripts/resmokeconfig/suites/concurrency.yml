@@ -9,7 +9,7 @@ selector:
   - requires_sharding
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
     tests: true

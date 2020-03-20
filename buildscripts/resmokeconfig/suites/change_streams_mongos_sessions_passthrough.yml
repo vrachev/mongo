@@ -18,7 +18,7 @@ selector:
   - assumes_against_mongod_not_mongos
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
       - ValidateCollections

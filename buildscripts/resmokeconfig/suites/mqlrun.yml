@@ -6,7 +6,7 @@ selector:
 
 # mqlrun tests don't have a test fixture. Instead, they use the shell to spawn an mqlrun subprocess.
 executor:
-  archive:
+  archiveInEvergreen:
   config:
     shell_options:
       nodb: ''

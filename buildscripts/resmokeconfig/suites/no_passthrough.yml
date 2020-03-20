@@ -17,7 +17,7 @@ selector:
 
 # noPassthrough tests start their own mongod's.
 executor:
-  archive:
+  archiveInEvergreen:
     tests:
       - jstests/noPassthrough/backup*.js
       - jstests/noPassthrough/rollback_wt_cache_full.js

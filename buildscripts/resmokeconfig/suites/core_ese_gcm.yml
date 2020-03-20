@@ -11,7 +11,7 @@ selector:
   # Transactions are not supported on MongoDB standalone nodes.
   - jstests/core/txns/**/*.js
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
   config:

@@ -116,7 +116,7 @@ selector:
   - requires_profiling
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
       - ValidateCollections

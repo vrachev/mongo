@@ -17,7 +17,7 @@ selector:
   - jstests/core/list_sessions.js
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
   config:

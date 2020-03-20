@@ -8,7 +8,7 @@ selector:
   - jstests/aggregation/data/*.js
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
   config:

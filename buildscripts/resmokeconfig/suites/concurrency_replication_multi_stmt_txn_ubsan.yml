@@ -46,7 +46,7 @@ selector:
   - catches_command_failures
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHashInBackground
       - ValidateCollectionsInBackground

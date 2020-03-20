@@ -192,7 +192,7 @@ selector:
   - requires_non_retryable_writes
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
       - ValidateCollections

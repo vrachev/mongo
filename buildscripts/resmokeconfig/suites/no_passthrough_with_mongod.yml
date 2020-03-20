@@ -5,7 +5,7 @@ selector:
   - jstests/noPassthroughWithMongod/*.js
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
   config:

@@ -10,7 +10,7 @@ selector:
   - do_not_wrap_aggregations_in_facets
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
   config:

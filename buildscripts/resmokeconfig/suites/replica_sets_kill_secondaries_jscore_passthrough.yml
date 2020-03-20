@@ -29,7 +29,7 @@ selector:
   - requires_emptycapped
 
 executor:
-  archive:
+  archiveInEvergreen:
     tests: true
     hooks:
       - PeriodicKillSecondaries

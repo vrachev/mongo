@@ -22,7 +22,7 @@ selector:
   - requires_capped
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
   config:

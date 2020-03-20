@@ -40,7 +40,7 @@ selector:
   - requires_spawning_own_processes
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
       - CheckReplOplogs

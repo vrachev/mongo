@@ -131,7 +131,7 @@ selector:
   - operations_longer_than_stepdown_interval
 
 executor:
-  archive:
+  archiveInEvergreen:
     tests: true
     hooks:
       - CheckReplDBHash

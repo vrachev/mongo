@@ -22,7 +22,7 @@ selector:
   - assumes_unsharded_collection
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
       - ValidateCollections

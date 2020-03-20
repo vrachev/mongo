@@ -226,7 +226,7 @@ selector:
   # that are not individually retryable can be retried if they are part of a transaction.
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - CheckReplDBHash
       - ValidateCollections

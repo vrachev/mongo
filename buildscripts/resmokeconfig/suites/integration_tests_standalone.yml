@@ -4,7 +4,7 @@ selector:
   root: build/integration_tests.txt
 
 executor:
-  archive:
+  archiveInEvergreen:
     hooks:
       - ValidateCollections
   config: {}
