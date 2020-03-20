@@ -51,13 +51,6 @@ def _make_parser():  # pylint: disable=too-many-statements
         help=("Logs server output to a file located in the db path and prevents the"
               " cleaning of dbpaths after testing. Note that conflicting options"
               " passed in from test files may cause an error."))
-    parser.add_option(
-        "--archiveFile", dest="archive_file", metavar="ARCHIVE_FILE",
-        help=("Sets the archive file name for the Evergreen task running the tests."
-              " The archive file is JSON format containing a list of tests that were"
-              " successfully archived to S3. If unspecified, no data files from tests"
-              " will be archived in S3. Tests can be designated for archival in the"
-              " task suite configuration file."))
 
     parser.add_option(
         "--archiveLimitMb", type="int", dest="archive_limit_mb", metavar="ARCHIVE_LIMIT_MB",
@@ -444,7 +437,6 @@ def to_local_args(args=None):  # pylint: disable=too-many-branches,too-many-loca
     other_local_args = []
 
     options_to_ignore = {
-        "--archiveFile",
         "--archiveLimitMb",
         "--archiveLimitTests",
         "--buildloggerUrl",
@@ -597,7 +589,9 @@ def _update_config_vars(values):  # pylint: disable=too-many-statements,too-many
             config.update(user_config)
 
     _config.ALWAYS_USE_LOG_FILES = config.pop("always_use_log_files")
-    _config.ARCHIVE_FILE = config.pop("archive_file")
+    if config["task_id"] is not None:
+        _config.ARCHIVE_FILE = "archive.json"
+
     _config.ARCHIVE_LIMIT_MB = config.pop("archive_limit_mb")
     _config.ARCHIVE_LIMIT_TESTS = config.pop("archive_limit_tests")
     _config.IS_ASAN_BUILD = config.pop("is_asan_build")
