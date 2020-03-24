@@ -703,6 +703,7 @@ _SELECTOR_REGISTRY = {
     "mql_model_mongod_test": (_FileBasedSelectorConfig, _Selector),
     "multi_stmt_txn_passthrough": (_JSTestSelectorConfig, _JSTestSelector),
     "py_test": (_PyTestCaseSelectorConfig, _Selector),
+    "resmoke_selftest_timeout": (_JSTestSelectorConfig, _JSTestSelector),
     "sleep_test": (_SleepTestCaseSelectorConfig, _SleepTestCaseSelector),
     "genny_test": (_FileBasedSelectorConfig, _Selector),
     "gennylib_test": (_GennylibTestCaseSelectorConfig, _GennylibTestCaseSelector),
