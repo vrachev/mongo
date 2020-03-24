@@ -1,18 +1,12 @@
 """Utility for checking resmoke behavior when a test/suite it executes times out"""
 
-# from . import interface
-# from ..testcases import jstest
-# from ... import errors
-# from ...utils import registry
 from ... import logging
 
 class TimeoutChecks():
     """Checks resmoke report and artifacts following test timeout"""
 
     def __init__(self, logger, subprocess_pid, artifacts_dir, archive):
-        """Initialize TimeoutChecks."""       
-        if not isinstance(logger, logging.Logger):
-            raise TypeError("logger must be a Logger instance")
+        """Initialize TimeoutChecks."""
 
         self.logger = logger
         self.pid = subprocess_pid
