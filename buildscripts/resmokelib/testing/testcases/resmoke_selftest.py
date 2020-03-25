@@ -2,7 +2,9 @@
 
 import os
 import os.path
+import subprocess
 import sys
+import time
 
 from . import interface
 from ..hooks import timeout
@@ -64,6 +66,11 @@ class TimeoutTestCase(_ResmokeSelfTestCase):
         return []
 
     def _call_hooks(self):
+        self.logger.info("Sleeping for 5 seconds")
+        time.sleep(5)
+        cmd = "buildscripts/signal_resmoke.py --pid={}".format(self.sub_pid)
+        self.logger.info("Calling signal_resmoke.py: %s", cmd)
+        subprocess.call(cmd, shell=True)
         # call script that sends SIGUSR1 and waits for resmoke to exit.
         # call script that checks that the python process has successfully exited within some timeout.
         # timeout_checks = timeout.TimeoutChecks(self.logger, self.sub_pid, "some_dir", True)
