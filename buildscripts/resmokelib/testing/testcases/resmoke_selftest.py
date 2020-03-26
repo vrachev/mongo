@@ -1,4 +1,4 @@
-"""The unittest.TestCase for resmoke E2E self-tests"""
+"""The unittest.TestCase for resmoke E2E self-tests."""
 
 import os
 import os.path
@@ -62,13 +62,14 @@ class _ResmokeSelfTestCase(interface.ProcessTestCase):
 
 
 class TimeoutTestCase(_ResmokeSelfTestCase):
-    """A test to execute """
+    """A test to execute."""
 
     REGISTERED_NAME = "resmoke_selftest_timeout"
 
     def __init__(self, logger, js_filename, shell_options=None):
         """Initialize TimeoutTestCase."""
-        _ResmokeSelfTestCase.__init__(self, logger, "Resmoke Timeout Selftest", js_filename, shell_options)
+        _ResmokeSelfTestCase.__init__(self, logger, "Resmoke Timeout Selftest", js_filename,
+                                      shell_options)
 
     def _resmoke_args(self):
         return []

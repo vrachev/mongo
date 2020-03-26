@@ -1,10 +1,10 @@
-"""Utility for checking resmoke behavior when a test/suite it executes times out"""
+"""Utility for checking resmoke behavior when a test/suite it executes times out."""
 
 from ... import logging
 
 
 class TimeoutChecks():
-    """Checks resmoke report and artifacts following test timeout"""
+    """Checks resmoke report and artifacts following test timeout."""
 
     def __init__(self, logger, subprocess_pid, artifacts_dir, archive):
         """Initialize TimeoutChecks."""
@@ -27,7 +27,7 @@ class TimeoutChecks():
         pass
 
     def perform_checks(self):
-        """Perform checks"""
+        """Perform checks."""
         self._check_hang_analysis()
         self._check_report()
         if self.archive:
