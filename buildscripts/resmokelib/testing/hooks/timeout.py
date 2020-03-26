@@ -2,6 +2,7 @@
 
 from ... import logging
 
+
 class TimeoutChecks():
     """Checks resmoke report and artifacts following test timeout"""
 

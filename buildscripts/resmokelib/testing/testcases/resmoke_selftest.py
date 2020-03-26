@@ -13,6 +13,7 @@ from ..hooks import timeout
 from ... import config
 from ... import core
 
+
 class _ResmokeSelfTestCase(interface.ProcessTestCase):
     """A Resmoke self test to execute."""
 
@@ -29,15 +30,17 @@ class _ResmokeSelfTestCase(interface.ProcessTestCase):
 
     def _resmoke_args(self):
         """Return the arguments to pass to the resmoke subprocess."""
-        raise NotImplementedError("_resmoke_args must be implemented by _ResmokeSelfTestCase subclasses")
+        raise NotImplementedError(
+            "_resmoke_args must be implemented by _ResmokeSelfTestCase subclasses")
 
     def _call_hooks(self):
         """Return the hooks to execute on the resmoke subprocess."""
         raise NotImplementedError("_hooks must be implemented by _ResmokeSelfTestCase subclasses")
 
     def _make_process(self):
-        return core.programs.make_process(self.logger, [
-            sys.executable, "buildscripts/resmoke.py"] + self._resmoke_args() + [self.js_filename])
+        return core.programs.make_process(
+            self.logger,
+            [sys.executable, "buildscripts/resmoke.py"] + self._resmoke_args() + [self.js_filename])
 
     def _execute(self, process):
         """Run the specified process."""
@@ -50,11 +53,12 @@ class _ResmokeSelfTestCase(interface.ProcessTestCase):
         self._call_hooks()
 
         # self.return_code = process.wait() # TODO uncomment & remove next line after SERVER-46820.
-        self.return_code = 0 # Force test to pass for now.
+        self.return_code = 0  # Force test to pass for now.
         if self.return_code != 0:
             raise self.failureException("%s failed" % (self.short_description()))
 
         self.logger.info("%s finished.", self.short_description())
+
 
 class TimeoutTestCase(_ResmokeSelfTestCase):
     """A test to execute """
@@ -81,7 +85,8 @@ class TimeoutTestCase(_ResmokeSelfTestCase):
 
     def _call_hooks(self):
         self.logger.info("Sleeping for 15 seconds to give fixtures time to be set up.")
-        time.sleep(15) # TODO: Change to more durable way of ensuring the fixtures have been set up.
+        time.sleep(
+            15)  # TODO: Change to more durable way of ensuring the fixtures have been set up.
         self._signal_resmoke()
         timeout_checks = timeout.TimeoutChecks(self.logger, self.sub_pid, "some_dir", True)
         timeout_checks.perform_checks()
