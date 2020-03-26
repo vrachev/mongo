@@ -9936,6 +9936,7 @@ buildvariants:
   - name: .query_fuzzer
   - name: .random_multiversion_replica_sets
   - name: .read_write_concern .large
+  - name: .resmoke_selftest
     distros:
     - rhel62-large
   - name: .read_write_concern !.large
@@ -10628,7 +10629,6 @@ buildvariants:
   - name: multiversion_gen
   - name: replica_sets
   - name: .replica_sets .common
-  - name: .resmoke_selftest
   - name: .sharding .txns
   - name: .sharding .common !.op_query !.csrs
   - name: .ssl
