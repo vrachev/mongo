@@ -25,7 +25,7 @@ class TimeoutChecks():
         # TODO: check report
         pass
 
-    def perform_check(self):
+    def perform_checks(self):
         """Perform checks"""
         self._check_hang_analysis()
         self._check_report()
