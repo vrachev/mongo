@@ -6,5 +6,4 @@ while (true) {
     print('looping...');
     sleep(100);
 }
-
 })();
