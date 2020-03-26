@@ -1,0 +1,8 @@
+test_kind: resmoke_selftest_timeout
+
+selector:
+  roots:
+  - jstests/resmoke_selftest/e2e/timeout/passthrough/timeout2.js
+
+executor:
+  config: {}
