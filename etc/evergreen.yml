@@ -7004,13 +7004,13 @@ tasks:
       resmoke_args: --suites=resmoke_selftest_test_timeout --storageEngine=wiredTiger
 
 - <<: *task_template
-  name: resmoke_selftest_test_timeout_passthrough
+  name: resmoke_selftest_test_timeout_no_passthrough
   tags: ["resmoke_selftest"]
   commands:
   - func: "do setup"
   - func: "run tests"
     vars:
-      resmoke_args: --suites=resmoke_selftest_test_timeout_passthrough --storageEngine=wiredTiger
+      resmoke_args: --suites=resmoke_selftest_test_timeout_no_passthrough --storageEngine=wiredTiger
 
 - <<: *task_template
   name: resmoke_selftest_task_timeout
@@ -7022,13 +7022,13 @@ tasks:
       resmoke_args: --suites=resmoke_selftest_task_timeout --storageEngine=wiredTiger
 
 - <<: *task_template
-  name: resmoke_selftest_task_timeout_passthrough
+  name: resmoke_selftest_task_timeout_no_passthrough
   tags: ["resmoke_selftest"]
   commands:
   - func: "do setup"
   - func: "run tests"
     vars:
-      resmoke_args: --suites=resmoke_selftest_task_timeout_passthrough --storageEngine=wiredTiger
+      resmoke_args: --suites=resmoke_selftest_task_timeout_no_passthrough --storageEngine=wiredTiger
 
 - <<: *task_template
   name: sasl

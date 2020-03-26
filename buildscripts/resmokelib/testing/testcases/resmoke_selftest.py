@@ -17,10 +17,11 @@ from ... import core
 class _ResmokeSelfTestCase(interface.ProcessTestCase):
     """A Resmoke self test to execute."""
 
-    def __init__(self, logger, test_kind, js_filename):
+    def __init__(self, logger, test_kind, js_filename, shell_options=None):
         """Initialize ResmokeSelfTestCase."""
         interface.ProcessTestCase.__init__(self, logger, test_kind, js_filename)
 
+        self.shell_options = shell_options
         self.js_filename = js_filename
         self.sub_pid = None
 
@@ -65,9 +66,9 @@ class TimeoutTestCase(_ResmokeSelfTestCase):
 
     REGISTERED_NAME = "resmoke_selftest_timeout"
 
-    def __init__(self, logger, js_filename):
+    def __init__(self, logger, js_filename, shell_options=None):
         """Initialize TimeoutTestCase."""
-        _ResmokeSelfTestCase.__init__(self, logger, "Resmoke Timeout Selftest", js_filename)
+        _ResmokeSelfTestCase.__init__(self, logger, "Resmoke Timeout Selftest", js_filename, shell_options)
 
     def _resmoke_args(self):
         return []
@@ -84,9 +85,9 @@ class TimeoutTestCase(_ResmokeSelfTestCase):
         # self.logger.info("buildscripts/signal_resmoke.py started with pid %s", script_process.pid)
 
     def _call_hooks(self):
-        self.logger.info("Sleeping for 15 seconds to give fixtures time to be set up.")
+        self.logger.info("Sleeping for 20 seconds to give fixtures time to be set up.")
         time.sleep(
-            15)  # TODO: Change to more durable way of ensuring the fixtures have been set up.
+            20)  # TODO: Change to more durable way of ensuring the fixtures have been set up.
         self._signal_resmoke()
         timeout_checks = timeout.TimeoutChecks(self.logger, self.sub_pid, "some_dir", True)
         timeout_checks.perform_checks()
