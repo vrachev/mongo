@@ -9,7 +9,7 @@ import time
 import psutil
 
 from . import interface
-from ..hooks import timeout
+from ..hooks import selftesttimeout
 from ... import config
 from ... import core
 
@@ -90,6 +90,6 @@ class TimeoutTestCase(_ResmokeSelfTestCase):
         time.sleep(
             20)  # TODO: Change to more durable way of ensuring the fixtures have been set up.
         self._signal_resmoke()
-        timeout_checks = timeout.TimeoutChecks(self.logger, self.sub_pid, "some_dir", True)
+        timeout_checks = selftesttimeout.TimeoutChecks(self.logger, self.sub_pid, "some_dir", True)
         timeout_checks.perform_checks()
         pass

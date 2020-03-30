@@ -30,5 +30,4 @@ class TimeoutChecks():
         """Perform checks."""
         self._check_hang_analysis()
         self._check_report()
-        if self.archive:
-            self._check_archival()
+        self._check_archival()
