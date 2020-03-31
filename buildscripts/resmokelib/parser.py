@@ -114,7 +114,7 @@ def _make_parser():  # pylint: disable=too-many-statements
               " run."))
 
     # Used for testing resmoke. Do not set this.
-    parser.add_option("--internalParams", dest="internal_param", help=optparse.SUPPRESS_HELP)
+    parser.add_option("--internalParam", action="append", dest="internal_param", help=optparse.SUPPRESS_HELP)
 
     parser.add_option("-n", action="store_const", const="tests", dest="dry_run",
                       help="Outputs the tests that would be run.")
