@@ -59,13 +59,13 @@ class TestTimeout(unittest.TestCase):
     def test_task_timeout(self):
         resmoke_args = [
             "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_timeout.yml",
-            "--internalParam=test_archival,test_analysis",
+            "--internalParams=test_archival,test_analysis",
         ]
         self.execute(resmoke_args)
 
     def test_task_timeout_no_passthrough(self):
         resmoke_args = [
             "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_timeout_no_passthrough.yml",
-            "--internalParam=test_archival,test_analysis",
+            "--internalParams=test_archival,test_analysis",
         ]
         self.execute(resmoke_args)
