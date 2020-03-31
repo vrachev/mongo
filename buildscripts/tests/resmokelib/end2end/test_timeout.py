@@ -34,12 +34,10 @@ class TestTimeout(unittest.TestCase):
 
     def execute(self, resmoke_args):
         resmoke_process = core.programs.make_process(
-            self.logger,
-            [sys.executable, "buildscripts/resmoke.py"] + resmoke_args)
+            self.logger, [sys.executable, "buildscripts/resmoke.py"] + resmoke_args)
         resmoke_process.start()
 
-        time.sleep(
-            5)  # TODO: Change to more durable way of ensuring the fixtures have been set up.
+        time.sleep(5)  # TODO: Change to more durable way of ensuring the fixtures have been set up.
 
         self.signal_resmoke(resmoke_process)
 
@@ -54,6 +52,7 @@ class TestTimeout(unittest.TestCase):
             "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_timeout_no_passthrough.yml"
         ]
         self.execute(resmoke_args)
+
 
 class TimeoutChecks():
     """Checks resmoke report and artifacts following test timeout."""
