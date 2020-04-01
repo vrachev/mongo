@@ -10,7 +10,7 @@ import unittest
 
 import psutil
 
-from buildscripts.resmokelib import core, config
+from buildscripts.resmokelib import core
 
 # pylint: disable=missing-docstring,protected-access
 
@@ -18,7 +18,7 @@ from buildscripts.resmokelib import core, config
 class TestTimeout(unittest.TestCase):
 
     logger = logging.getLogger("resmoke_timeouts_unittest")
-    base_dir = config.DBPATH_PREFIX
+    base_dir = os.path.normpath("/data/db/selftest")
     archival_dir = os.path.join(base_dir, "test_archival")
     analysis_dir = os.path.join(base_dir, "test_analysis")
 
@@ -53,7 +53,7 @@ class TestTimeout(unittest.TestCase):
         resmoke_args = [
             "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_timeout.yml",
             "--internalParams=test_archival,test_analysis",
-            "--dbPathPrefix={}".format(self.base_dir)
+            "--dbpathPrefix={}".format(self.base_dir)
         ]
         self.execute(resmoke_args)
 
@@ -68,7 +68,7 @@ class TestTimeout(unittest.TestCase):
         resmoke_args = [
             "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_timeout_no_passthrough.yml",
             "--internalParams=test_archival,test_analysis",
-            "--dbPathPrefix={}".format(self.base_dir)
+            "--dbpathPrefix={}".format(self.base_dir)
         ]
         self.execute(resmoke_args)
 
