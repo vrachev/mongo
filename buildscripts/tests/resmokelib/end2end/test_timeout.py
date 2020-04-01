@@ -10,7 +10,7 @@ import unittest
 
 import psutil
 
-from buildscripts.resmokelib import core
+from buildscripts.resmokelib import core, config
 
 # pylint: disable=missing-docstring,protected-access
 
@@ -18,6 +18,8 @@ from buildscripts.resmokelib import core
 class TestTimeout(unittest.TestCase):
 
     logger = logging.getLogger("resmoke_timeouts_unittest")
+    base_dir = config.DBPATH_PREFIX
+    archival_dir = os.path.join(base_dir, "test_archival")
 
     def signal_resmoke(self, resmoke_process):
         resmoke_process.stop()
@@ -49,23 +51,26 @@ class TestTimeout(unittest.TestCase):
         # can specify it to write dumps to some tmp directory, and check that the files exist here.
         pass
 
-    def _check_archival(self):
-        # TODO: check archival.
-        # '--internalParam=test_analysis' will change archival._archive_files() to save the gzipped
-        # data files to a tmp directory and not send them to s3. We can check that the files exist
-        # here.
-        pass
+    def _check_archival(self, test_dir, num_entries):
+        # The test directory should contain one sub directory per node.
+        self.assertEquals(len(os.listdir(test_dir), num_entries))
 
     def test_task_timeout(self):
         resmoke_args = [
             "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_timeout.yml",
             "--internalParams=test_archival,test_analysis",
+            "--dbPathPrefix={}".format(self.base_dir)
         ]
         self.execute(resmoke_args)
+        fixture_archival_dir = os.path.join(self.archival_dir, "resmoke")
+        self._check_archival(fixture_archival_dir, 2)
 
     def test_task_timeout_no_passthrough(self):
         resmoke_args = [
             "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_timeout_no_passthrough.yml",
             "--internalParams=test_archival,test_analysis",
+            "--dbPathPrefix={}".format(self.base_dir)
         ]
         self.execute(resmoke_args)
+        mongorunner_archival_dir = os.path.join(self.archival_dir, "mongorunner")
+        self._check_archival(mongorunner_archival_dir, 2)

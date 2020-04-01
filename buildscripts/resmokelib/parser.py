@@ -666,6 +666,9 @@ def _update_config_vars(values):  # pylint: disable=too-many-statements,too-many
     _config.TAG_FILE = config.pop("tag_file")
     _config.TRANSPORT_LAYER = config.pop("transport_layer")
 
+    # Internal testing options.
+    _config.INTERNAL_PARAMS = _tags_from_list(config.pop("internal_params"))
+
     # Evergreen options.
     _config.EVERGREEN_BUILD_ID = config.pop("build_id")
     _config.EVERGREEN_DISTRO_ID = config.pop("distro_id")

@@ -1,6 +1,5 @@
 """Archival utility."""
 
-import queue
 import collections
 import json
 import math
@@ -10,6 +9,10 @@ import tarfile
 import tempfile
 import threading
 import time
+import queue
+from distutils import dir_util
+
+from .. import config
 
 _IS_WINDOWS = sys.platform == "win32" or sys.platform == "cygwin"
 
@@ -229,9 +232,17 @@ class Archival(object):  # pylint: disable=too-many-instance-attributes
         if isinstance(input_files, str):
             input_files = [input_files]
 
-        message = "Tar/gzip {} files: {}".format(display_name, input_files)
         status = 0
         size_mb = 0
+
+        if 'test_archival' in config.INTERNAL_PARAMS:
+            test_dir = os.path.join(config.DBPATH_PREFIX, "test_archival/")
+            message = "'test_archival' specified. Skipping tar/gzip."
+            for input_file in input_files:
+                dir_util.copy_tree(input_file, test_dir)
+            return status, message, size_mb
+
+        message = "Tar/gzip {} files: {}".format(display_name, input_files)
 
         # Tar/gzip to a temporary file.
         _, temp_file = tempfile.mkstemp(suffix=".tgz")

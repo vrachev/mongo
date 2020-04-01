@@ -1,4 +1,4 @@
-test_kind: resmoke_selftest_timeout
+test_kind: js_test
 
 selector:
   roots:
