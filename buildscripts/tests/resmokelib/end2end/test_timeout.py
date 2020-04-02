@@ -56,11 +56,8 @@ class TestTimeout(unittest.TestCase):
     def test_task_timeout(self):
         resmoke_args = [
             "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_timeout.yml",
-            "--internalParam=test_archival",
-            "--internalParam=test_analysis",
-            "--repeatTests=2",
-            "--jobs=2",
-            "--dbpathPrefix={}".format(self.base_dir)
+            "--internalParam=test_archival", "--internalParam=test_analysis", "--repeatTests=2",
+            "--jobs=2", "--dbpathPrefix={}".format(self.base_dir)
         ]
         self.execute(resmoke_args)
 
@@ -75,11 +72,8 @@ class TestTimeout(unittest.TestCase):
     def test_task_timeout_no_passthrough(self):
         resmoke_args = [
             "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_timeout_no_passthrough.yml",
-            "--internalParam=test_archival",
-            "--internalParam=test_analysis",
-            "--repeatTests=2",
-            "--jobs=2",
-            "--dbpathPrefix={}".format(self.base_dir)
+            "--internalParam=test_archival", "--internalParam=test_analysis", "--repeatTests=2",
+            "--jobs=2", "--dbpathPrefix={}".format(self.base_dir)
         ]
         self.execute(resmoke_args)
 
