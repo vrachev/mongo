@@ -20,8 +20,8 @@ class TestTimeout(unittest.TestCase):
 
     logger = logging.getLogger("resmoke_timeouts_unittest")
     base_dir = os.path.normpath("/data/db/selftest")
-    archival_dir = os.path.join(base_dir, "test_archival")
-    analysis_dir = os.path.join(base_dir, "test_analysis")
+    archival_file = os.path.join(base_dir, "test_archival.txt")
+    analysis_file = os.path.join(base_dir, "test_analysis.txt")
 
     def setUp(self):
         rmtree(self.base_dir)
@@ -50,8 +50,11 @@ class TestTimeout(unittest.TestCase):
 
         self.signal_resmoke(resmoke_process)
 
-    def assert_dir_file_count(self, test_dir, num_entries):
-        self.assertEquals(len(os.listdir(test_dir), num_entries))
+    def assert_dir_file_count(self, test_file, num_entries):
+        count = 0
+        with open(test_file) as f:
+            count = sum(1 for _ in f)
+        self.assertEquals(count, num_entries)
 
     def test_task_timeout(self):
         resmoke_args = [
@@ -62,12 +65,11 @@ class TestTimeout(unittest.TestCase):
         self.execute(resmoke_args)
 
         # TODO: enable tests
-        # fixture_archival_dir = os.path.join(self.archival_dir, "resmoke")
-        # archival_dirs_to_expect = 4 # 2 tests * 2 nodes
-        # # self.assert_dir_file_count(fixture_archival_dir, archival_dirs_to_expect)
+        archival_dirs_to_expect = 4  # 2 tests * 2 nodes
+        self.assert_dir_file_count(self.archival_file, archival_dirs_to_expect)
 
-        # analysis_files_to_expect = 6 # 2 tests * (2 mongod + 1 mongo)
-        # self.assert_dir_file_count(self.analysis_dir, analysis_files_to_expect)
+        analysis_files_to_expect = 6  # 2 tests * (2 mongod + 1 mongo)
+        self.assert_dir_file_count(self.analysis_file, analysis_files_to_expect)
 
     def test_task_timeout_no_passthrough(self):
         resmoke_args = [
@@ -78,9 +80,8 @@ class TestTimeout(unittest.TestCase):
         self.execute(resmoke_args)
 
         # TODO: Enable tests
-        # archival_dirs_to_expect = 4 # 2 tests * 2 nodes
-        # mongorunner_archival_dir = os.path.join(self.archival_dir, "mongorunner")
-        # self.assert_dir_file_count(mongorunner_archival_dir, archival_dirs_to_expect)
+        archival_dirs_to_expect = 4  # 2 tests * 2 nodes
+        self.assert_dir_file_count(self.archival_file, archival_dirs_to_expect)
 
-        # analysis_files_to_expect = 6 # 2 tests * (2 mongod + 1 mongo)
-        # self.assert_dir_file_count(self.analysis_dir, analysis_files_to_expect)
+        analysis_files_to_expect = 6  # 2 tests * (2 mongod + 1 mongo)
+        self.assert_dir_file_count(self.analysis_file, analysis_files_to_expect)
