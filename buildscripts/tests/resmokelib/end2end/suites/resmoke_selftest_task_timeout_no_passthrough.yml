@@ -6,6 +6,8 @@ selector:
 
 # js tests will start their own mongods
 executor:
+  archive:
+    tests: true
   config:
     shell_options:
       nodb: ''

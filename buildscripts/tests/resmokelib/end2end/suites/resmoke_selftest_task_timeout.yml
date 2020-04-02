@@ -5,6 +5,8 @@ selector:
   - jstests/resmoke_selftest/end2end/timeout/fixture/*.js
 
 executor:
+  archive:
+    tests: true
   fixture:
     class: ReplicaSetFixture
     mongod_options:
