@@ -46,35 +46,37 @@ class TestTimeout(unittest.TestCase):
 
         self.signal_resmoke(resmoke_process)
 
-    def assert_dir_size(self, test_dir, num_entries):
+    def assert_dir_file_count(self, test_dir, num_entries):
         self.assertEquals(len(os.listdir(test_dir), num_entries))
 
     def test_task_timeout(self):
         resmoke_args = [
             "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_timeout.yml",
-            "--internalParams=test_archival,test_analysis",
+            "--internalParam=test_archival",
+            "--internalParam=test_analysis",
             "--dbpathPrefix={}".format(self.base_dir)
         ]
         self.execute(resmoke_args)
 
         fixture_archival_dir = os.path.join(self.archival_dir, "resmoke")
         archival_dirs_to_expect = 4 # 2 tests * 2 nodes
-        self.assert_dir_size(fixture_archival_dir, archival_dirs_to_expect)
+        self.assert_dir_file_count(fixture_archival_dir, archival_dirs_to_expect)
 
         analysis_files_to_expect = 6 # 2 tests * (2 mongod + 1 mongo)
-        self.assert_dir_size(self.analysis_dir, analysis_files_to_expect)
+        self.assert_dir_file_count(self.analysis_dir, analysis_files_to_expect)
 
     def test_task_timeout_no_passthrough(self):
         resmoke_args = [
             "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_timeout_no_passthrough.yml",
-            "--internalParams=test_archival,test_analysis",
+            "--internalParam=test_archival",
+            "--internalParam=test_analysis",
             "--dbpathPrefix={}".format(self.base_dir)
         ]
         self.execute(resmoke_args)
 
         archival_dirs_to_expect = 4 # 2 tests * 2 nodes
         mongorunner_archival_dir = os.path.join(self.archival_dir, "mongorunner")
-        self.assert_dir_size(mongorunner_archival_dir, archival_dirs_to_expect)
+        self.assert_dir_file_count(mongorunner_archival_dir, archival_dirs_to_expect)
 
         analysis_files_to_expect = 6 # 2 tests * (2 mongod + 1 mongo)
-        self.assert_dir_size(self.analysis_dir, analysis_files_to_expect)
+        self.assert_dir_file_count(self.analysis_dir, analysis_files_to_expect)

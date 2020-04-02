@@ -10,7 +10,6 @@ import tempfile
 import threading
 import time
 import queue
-from distutils import dir_util
 
 from .. import config
 
@@ -236,10 +235,19 @@ class Archival(object):  # pylint: disable=too-many-instance-attributes
         size_mb = 0
 
         if 'test_archival' in config.INTERNAL_PARAMS:
-            test_dir = os.path.join(config.DBPATH_PREFIX, "test_archival/")
             message = "'test_archival' specified. Skipping tar/gzip."
-            for input_file in input_files:
-                dir_util.copy_tree(input_file, test_dir)
+            with open(os.path.join(config.DBPATH_PREFIX, "test_archival.txt"), "a") as test_file:
+                for input_file in input_files:
+                    if os.path.isdir(os.path.join(input_file, config.FIXTURE_SUBDIR)):
+                        input_file = os.path.join(input_file, config.FIXTURE_SUBDIR)
+                    elif os.path.isdir(os.path.join(input_file, config.MONGO_RUNNER_SUBDIR)):
+                        input_file = os.path.join(input_file, config.MONGO_RUNNER_SUBDIR)
+                    else:
+                        break
+                    # Each node contains one directory for its data files. Here we write out
+                    # the names of those directories. In the unit test for archival, we will
+                    # check that the directories are those we expect.
+                    test_file.write("\n".join(os.listdir(input_file)) + "\n")
             return status, message, size_mb
 
         message = "Tar/gzip {} files: {}".format(display_name, input_files)
