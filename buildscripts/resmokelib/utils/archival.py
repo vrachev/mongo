@@ -238,12 +238,12 @@ class Archival(object):  # pylint: disable=too-many-instance-attributes
             message = "'test_archival' specified. Skipping tar/gzip."
             with open(os.path.join(config.DBPATH_PREFIX, "test_archival.txt"), "a") as test_file:
                 for input_file in input_files:
-                    if os.path.isdir(os.path.join(input_file, config.FIXTURE_SUBDIR)):
-                        input_file = os.path.join(input_file, config.FIXTURE_SUBDIR)
-                    elif os.path.isdir(os.path.join(input_file, config.MONGO_RUNNER_SUBDIR)):
+                    # If a resmoke fixture is used, the input_file will be the source of the data
+                    # files. If mongorunner is used, input_file/mongorunner will be the source
+                    # of the data files.
+                    if os.path.isdir(os.path.join(input_file, config.MONGO_RUNNER_SUBDIR)):
                         input_file = os.path.join(input_file, config.MONGO_RUNNER_SUBDIR)
-                    else:
-                        break
+
                     # Each node contains one directory for its data files. Here we write out
                     # the names of those directories. In the unit test for archival, we will
                     # check that the directories are those we expect.
