@@ -47,6 +47,7 @@ class _ResmokeSelftest(unittest.TestCase):
             count = sum(1 for _ in file)
         self.assertEqual(count, num_entries)
 
+
 class TestArchivalOnFailure(_ResmokeSelftest):
     @classmethod
     def setUpClass(cls):
