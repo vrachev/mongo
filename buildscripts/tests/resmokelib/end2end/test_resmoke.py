@@ -43,10 +43,9 @@ class _ResmokeSelftest(unittest.TestCase):
 
     def assert_dir_file_count(self, test_file, num_entries):
         count = 0
-        with open(test_file) as f:
-            count = sum(1 for _ in f)
+        with open(test_file) as file:
+            count = sum(1 for _ in file)
         self.assertEqual(count, num_entries)
-
 
 class TestArchivalOnFailure(_ResmokeSelftest):
     @classmethod
@@ -92,7 +91,8 @@ class TestTimeout(_ResmokeSelftest):
         cls.archival_file = os.path.join(cls.test_dir, "test_archival.txt")
         cls.analysis_file = os.path.join(cls.test_dir, "test_analysis.txt")
 
-    def signal_resmoke(self, resmoke_process):
+    @staticmethod
+    def signal_resmoke(resmoke_process):
         resmoke_process.stop()
         resmoke_process.wait()
 
@@ -113,7 +113,7 @@ class TestTimeout(_ResmokeSelftest):
         time.sleep(
             10)  # TODO: Change to more durable way of ensuring the fixtures have been set up.
 
-        self.signal_resmoke(resmoke_process)
+        TestTimeout.signal_resmoke(resmoke_process)
 
     def test_task_timeout(self):
         resmoke_args = [
