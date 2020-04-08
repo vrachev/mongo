@@ -234,8 +234,6 @@ class Archival(object):  # pylint: disable=too-many-instance-attributes
         status = 0
         size_mb = 0
 
-        print("VLADinp_files:")
-        print(input_files)
         if 'test_archival' in config.INTERNAL_PARAMS:
             message = "'test_archival' specified. Skipping tar/gzip."
             with open(os.path.join(config.DBPATH_PREFIX, "test_archival.txt"), "a") as test_file:
