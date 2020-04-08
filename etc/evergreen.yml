@@ -7614,6 +7614,14 @@ tasks:
       resmoke_args: --suites=buildscripts_test
       resmoke_jobs_max: 1
 
+- <<: *task_template
+  name: resmoke_end2end_tests
+  commands:
+  - func: "do setup"
+  - func: "run tests"
+    vars:
+      resmoke_args: --suites=resmoke_end2end_tests
+
 - name: test_packages
   depends_on:
   - name: package
@@ -9456,6 +9464,7 @@ buildvariants:
     - name: .replica_sets .common
     - name: .replica_sets .multi_oplog
     - name: replica_sets_ese_gen
+    - name: resmoke_end2end_tests
     - name: sasl
     - name: server_discovery_and_monitoring_json_test_TG
     - name: .sharding .txns
@@ -9870,6 +9879,7 @@ buildvariants:
   - name: .auth
   - name: burn_in_tags_gen
   - name: buildscripts_test
+  - name: resmoke_end2end_tests
   - name: unittest_shell_hang_analyzer_gen
   - name: .causally_consistent !.sharding
   - name: .change_streams

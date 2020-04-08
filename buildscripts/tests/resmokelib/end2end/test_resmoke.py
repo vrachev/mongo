@@ -17,21 +17,21 @@ from buildscripts.resmokelib import core
 
 
 class _ResmokeSelftest(unittest.TestCase):
-    def __init__(self, methodName):
-        unittest.TestCase.__init__(self, methodName)
-
+    @classmethod
+    def setUpClass(cls):
         # Print logs from spawned resmoke process to stdout
-        self.logger = logging.getLogger("resmoke_timeouts_unittest")
-        self.logger.setLevel(logging.DEBUG)
+        cls.logger = logging.getLogger("resmoke_timeouts_unittest")
+        cls.logger.setLevel(logging.DEBUG)
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(logging.Formatter(fmt="%(message)s"))
-        self.logger.addHandler(handler)
+        cls.logger.addHandler(handler)
 
-        self.base_dir = os.path.normpath("/data/db/selftest")
-        self.resmoke_const_args = ["--dbpathPrefix={}".format(self.base_dir)]
+        cls.test_dir = os.path.normpath("/data/db/selftest")
+        cls.resmoke_const_args = ["--dbpathPrefix={}".format(cls.test_dir)]
 
     def setUp(self):
-        rmtree(self.base_dir, ignore_errors=True)
+        self.logger.info("Cleaning temp directory %s", self.test_dir)
+        rmtree(self.test_dir, ignore_errors=True)
 
     def execute_resmoke(self, resmoke_args):
         resmoke_process = core.programs.make_process(
@@ -45,13 +45,14 @@ class _ResmokeSelftest(unittest.TestCase):
         count = 0
         with open(test_file) as f:
             count = sum(1 for _ in f)
-        self.assertEquals(count, num_entries)
+        self.assertEqual(count, num_entries)
 
 
 class TestArchivalOnFailure(_ResmokeSelftest):
-    def __init__(self, methodName):
-        _ResmokeSelftest.__init__(self, methodName)
-        self.archival_file = os.path.join(self.base_dir, "test_archival.txt")
+    @classmethod
+    def setUpClass(cls):
+        super(TestArchivalOnFailure, cls).setUpClass()
+        cls.archival_file = os.path.join(cls.test_dir, "test_archival.txt")
 
     def test_archival_on_task_failure(self):
         resmoke_args = [
@@ -85,10 +86,11 @@ class TestArchivalOnFailure(_ResmokeSelftest):
 
 
 class TestTimeout(_ResmokeSelftest):
-    def __init__(self, methodName):
-        _ResmokeSelftest.__init__(self, methodName)
-        self.archival_file = os.path.join(self.base_dir, "test_archival.txt")
-        self.analysis_file = os.path.join(self.base_dir, "test_analysis.txt")
+    @classmethod
+    def setUpClass(cls):
+        super(TestTimeout, cls).setUpClass()
+        cls.archival_file = os.path.join(cls.test_dir, "test_archival.txt")
+        cls.analysis_file = os.path.join(cls.test_dir, "test_analysis.txt")
 
     def signal_resmoke(self, resmoke_process):
         resmoke_process.stop()
@@ -108,7 +110,8 @@ class TestTimeout(_ResmokeSelftest):
     def execute_resmoke(self, resmoke_args):
         resmoke_process = _ResmokeSelftest.execute_resmoke(self, resmoke_args)
 
-        time.sleep(10)  # TODO: Change to more durable way of ensuring the fixtures have been set up.
+        time.sleep(
+            10)  # TODO: Change to more durable way of ensuring the fixtures have been set up.
 
         self.signal_resmoke(resmoke_process)
 
