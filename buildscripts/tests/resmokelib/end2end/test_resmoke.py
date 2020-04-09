@@ -57,7 +57,7 @@ class TestArchivalOnFailure(_ResmokeSelftest):
     def test_archival_on_task_failure(self):
         resmoke_args = [
             "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_failure.yml",
-            "--archiveFile=archive.json",
+            "--taskId=123",
             "--internalParam=test_archival",
             "--repeatTests=2",
             "--jobs=2",
@@ -72,7 +72,7 @@ class TestArchivalOnFailure(_ResmokeSelftest):
     def test_archival_on_task_failure_no_passthrough(self):
         resmoke_args = [
             "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_failure_no_passthrough.yml",
-            "--archiveFile=archive.json",
+            "--taskId=123",
             "--internalParam=test_archival",
             "--repeatTests=2",
             "--jobs=2",
@@ -119,7 +119,7 @@ class TestTimeout(_ResmokeSelftest):
     def test_task_timeout(self):
         resmoke_args = [
             "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_timeout.yml",
-            "--archiveFile=archive.json",
+            "--taskId=123",
             "--internalParam=test_archival",
             "--internalParam=test_analysis",
             "--repeatTests=2",
@@ -137,7 +137,7 @@ class TestTimeout(_ResmokeSelftest):
     def test_task_timeout_no_passthrough(self):
         resmoke_args = [
             "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_timeout_no_passthrough.yml",
-            "--archiveFile=archive.json",
+            "--taskId=123",
             "--internalParam=test_archival",
             "--internalParam=test_analysis",
             "--repeatTests=2",
