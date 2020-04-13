@@ -673,11 +673,8 @@ def _update_config_vars(values):  # pylint: disable=too-many-statements,too-many
     _config.EVERGREEN_VERSION_ID = config.pop("version_id")
 
     # Archival options. Archival is enabled only when running on evergreen.
-    archive_file = config.pop("archive_file")
-    if _config.EVERGREEN_TASK_ID is not None:
-        _config.ARCHIVE_FILE = "archive.json"
-    else:
-        _config.ARCHIVE_FILE = archive_file
+    if not _config.EVERGREEN_TASK_ID:
+        _config.ARCHIVE_FILE = None
     _config.ARCHIVE_LIMIT_MB = config.pop("archive_limit_mb")
     _config.ARCHIVE_LIMIT_TESTS = config.pop("archive_limit_tests")
 

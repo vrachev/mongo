@@ -84,6 +84,20 @@ class TestArchivalOnFailure(_ResmokeSelftest):
         archival_dirs_to_expect = 4  # 2 tests * 2 nodes
         self.assert_dir_file_count(self.archival_file, archival_dirs_to_expect)
 
+    def test_no_archival_locally(self):
+        # archival should not happen if --taskId is not set.
+        resmoke_args = [
+            "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_task_failure_no_passthrough.yml",
+            "--internalParam=test_archival",
+            "--repeatTests=2",
+            "--jobs=2",
+        ]
+        resmoke_process = self.execute_resmoke(resmoke_args)
+        resmoke_process.wait()
+
+        # test that archival file wasn't created.
+        self.assertFalse(os.path.exists(self.archival_file))
+
 
 class TestTimeout(_ResmokeSelftest):
     @classmethod
