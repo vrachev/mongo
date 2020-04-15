@@ -8,7 +8,7 @@ import shlex
 import configparser
 
 import datetime
-import optparse
+import argparse
 import pymongo.uri_parser
 
 from . import config as _config
@@ -18,14 +18,14 @@ ResmokeConfig = collections.namedtuple(
     "ResmokeConfig",
     ["list_suites", "find_suites", "dry_run", "suite_files", "test_files", "logging_config"])
 
-_EVERGREEN_OPTIONS_TITLE = "Evergreen options"
+_EVERGREEN_ARGUMENT_TITLE = "Evergreen options"
 
 
 def _make_parser():  # pylint: disable=too-many-statements
     """Create and return the command line arguments parser."""
-    parser = optparse.OptionParser()
+    parser = argparse.ArgumentParser()
 
-    parser.add_option(
+    parser.add_argument(
         "--suites", dest="suite_files", metavar="SUITE1,SUITE2",
         help=("Comma separated list of YAML files that each specify the configuration"
               " of a suite. If the file is located in the resmokeconfig/suites/"
@@ -34,356 +34,352 @@ def _make_parser():  # pylint: disable=too-many-statements
               " positional arguments, they will be run using the suites'"
               " configurations"))
 
-    parser.add_option(
+    parser.add_argument(
         "--log", dest="logger_file", metavar="LOGGER",
         help=("A YAML file that specifies the logging configuration. If the file is"
               " located in the resmokeconfig/suites/ directory, then the basename"
               " without the .yml extension can be specified, e.g. 'console'."))
 
-    parser.add_option("--configDir", dest="config_dir", metavar="CONFIG_DIR",
+    parser.add_argument("--configDir", dest="config_dir", metavar="CONFIG_DIR",
                       help="Directory to search for resmoke configuration files")
 
-    parser.add_option("--installDir", dest="install_dir", metavar="INSTALL_DIR",
+    parser.add_argument("--installDir", dest="install_dir", metavar="INSTALL_DIR",
                       help="Directory to search for MongoDB binaries")
 
-    parser.add_option(
+    parser.add_argument(
         "--alwaysUseLogFiles", dest="always_use_log_files", action="store_true",
         help=("Logs server output to a file located in the db path and prevents the"
               " cleaning of dbpaths after testing. Note that conflicting options"
               " passed in from test files may cause an error."))
 
-    parser.add_option(
-        "--archiveLimitMb", type="int", dest="archive_limit_mb", metavar="ARCHIVE_LIMIT_MB",
+    parser.add_argument(
+        "--archiveLimitMb", type=int, dest="archive_limit_mb", metavar="ARCHIVE_LIMIT_MB",
         help=("Sets the limit (in MB) for archived files to S3. A value of 0"
               " indicates there is no limit."))
 
-    parser.add_option(
-        "--archiveLimitTests", type="int", dest="archive_limit_tests",
+    parser.add_argument(
+        "--archiveLimitTests", type=int, dest="archive_limit_tests",
         metavar="ARCHIVE_LIMIT_TESTS",
         help=("Sets the maximum number of tests to archive to S3. A value"
               " of 0 indicates there is no limit."))
 
-    parser.add_option(
+    parser.add_argument(
         "--basePort", dest="base_port", metavar="PORT",
         help=("The starting port number to use for mongod and mongos processes"
               " spawned by resmoke.py or the tests themselves. Each fixture and Job"
               " allocates a contiguous range of ports."))
 
-    parser.add_option("--buildloggerUrl", action="store", dest="buildlogger_url", metavar="URL",
+    parser.add_argument("--buildloggerUrl", action="store", dest="buildlogger_url", metavar="URL",
                       help="The root url of the buildlogger server.")
 
-    parser.add_option("--continueOnFailure", action="store_true", dest="continue_on_failure",
+    parser.add_argument("--continueOnFailure", action="store_true", dest="continue_on_failure",
                       help="Executes all tests in all suites, even if some of them fail.")
 
-    parser.add_option(
+    parser.add_argument(
         "--dbpathPrefix", dest="dbpath_prefix", metavar="PATH",
         help=("The directory which will contain the dbpaths of any mongod's started"
               " by resmoke.py or the tests themselves."))
 
-    parser.add_option("--dbtest", dest="dbtest_executable", metavar="PATH",
+    parser.add_argument("--dbtest", dest="dbtest_executable", metavar="PATH",
                       help="The path to the dbtest executable for resmoke to use.")
 
-    parser.add_option(
+    parser.add_argument(
         "--excludeWithAnyTags", action="append", dest="exclude_with_any_tags", metavar="TAG1,TAG2",
         help=("Comma separated list of tags. Any jstest that contains any of the"
               " specified tags will be excluded from any suites that are run."
               " The tag '{}' is implicitly part of this list.".format(_config.EXCLUDED_TAG)))
 
-    parser.add_option("-f", "--findSuites", action="store_true", dest="find_suites",
+    parser.add_argument("-f", "--findSuites", action="store_true", dest="find_suites",
                       help="Lists the names of the suites that will execute the specified tests.")
 
-    parser.add_option("--genny", dest="genny_executable", metavar="PATH",
+    parser.add_argument("--genny", dest="genny_executable", metavar="PATH",
                       help="The path to the genny executable for resmoke to use.")
 
-    parser.add_option(
-        "--spawnUsing", type="choice", dest="spawn_using", choices=("python", "jasper"),
+    parser.add_argument(
+        "--spawnUsing", dest="spawn_using", choices=("python", "jasper"),
         help=("Allows you to spawn resmoke processes using python or Jasper."
               "Defaults to python. Options are 'python' or 'jasper'."))
 
-    parser.add_option(
+    parser.add_argument(
         "--includeWithAnyTags", action="append", dest="include_with_any_tags", metavar="TAG1,TAG2",
         help=("Comma separated list of tags. For the jstest portion of the suite(s),"
               " only tests which have at least one of the specified tags will be"
               " run."))
 
     # Used for testing resmoke. Do not set this.
-    parser.add_option("--internalParam", action="append", dest="internal_params",
-                      help=optparse.SUPPRESS_HELP)
+    parser.add_argument("--internalParam", action="append", dest="internal_params",
+                      help=argparse.SUPPRESS)
 
-    parser.add_option("-n", action="store_const", const="tests", dest="dry_run",
+    parser.add_argument("-n", action="store_const", const="tests", dest="dry_run",
                       help="Outputs the tests that would be run.")
 
     # TODO: add support for --dryRun=commands
-    parser.add_option(
-        "--dryRun", type="choice", action="store", dest="dry_run", choices=("off", "tests"),
+    parser.add_argument(
+        "--dryRun", action="store", dest="dry_run", choices=("off", "tests"),
         metavar="MODE", help=("Instead of running the tests, outputs the tests that would be run"
-                              " (if MODE=tests). Defaults to MODE=%default."))
+                              " (if MODE=tests). Defaults to MODE=%%default."))
 
-    parser.add_option(
-        "-j", "--jobs", type="int", dest="jobs", metavar="JOBS",
+    parser.add_argument(
+        "-j", "--jobs", type=int, dest="jobs", metavar="JOBS",
         help=("The number of Job instances to use. Each instance will receive its"
               " own MongoDB deployment to dispatch tests to."))
 
-    parser.add_option("-l", "--listSuites", action="store_true", dest="list_suites",
+    parser.add_argument("-l", "--listSuites", action="store_true", dest="list_suites",
                       help="Lists the names of the suites available to execute.")
 
-    parser.add_option("--mongo", dest="mongo_executable", metavar="PATH",
+    parser.add_argument("--mongo", dest="mongo_executable", metavar="PATH",
                       help="The path to the mongo shell executable for resmoke.py to use.")
 
-    parser.add_option("--mongod", dest="mongod_executable", metavar="PATH",
+    parser.add_argument("--mongod", dest="mongod_executable", metavar="PATH",
                       help="The path to the mongod executable for resmoke.py to use.")
 
-    parser.add_option(
+    parser.add_argument(
         "--mongodSetParameters", dest="mongod_set_parameters",
         metavar="{key1: value1, key2: value2, ..., keyN: valueN}",
         help=("Passes one or more --setParameter options to all mongod processes"
               " started by resmoke.py. The argument is specified as bracketed YAML -"
               " i.e. JSON with support for single quoted and unquoted keys."))
 
-    parser.add_option("--mongos", dest="mongos_executable", metavar="PATH",
+    parser.add_argument("--mongos", dest="mongos_executable", metavar="PATH",
                       help="The path to the mongos executable for resmoke.py to use.")
 
-    parser.add_option(
+    parser.add_argument(
         "--mongosSetParameters", dest="mongos_set_parameters",
         metavar="{key1: value1, key2: value2, ..., keyN: valueN}",
         help=("Passes one or more --setParameter options to all mongos processes"
               " started by resmoke.py. The argument is specified as bracketed YAML -"
               " i.e. JSON with support for single quoted and unquoted keys."))
 
-    parser.add_option("--nojournal", action="store_true", dest="no_journal",
+    parser.add_argument("--nojournal", action="store_true", dest="no_journal",
                       help="Disables journaling for all mongod's.")
 
-    parser.add_option("--numClientsPerFixture", type="int", dest="num_clients_per_fixture",
+    parser.add_argument("--numClientsPerFixture", type=int, dest="num_clients_per_fixture",
                       help="Number of clients running tests per fixture.")
 
-    parser.add_option("--perfReportFile", dest="perf_report_file", metavar="PERF_REPORT",
+    parser.add_argument("--perfReportFile", dest="perf_report_file", metavar="PERF_REPORT",
                       help="Writes a JSON file with performance test results.")
 
-    parser.add_option(
+    parser.add_argument(
         "--shellConnString", dest="shell_conn_string", metavar="CONN_STRING",
         help="Overrides the default fixture and connects with a mongodb:// connection"
         " string to an existing MongoDB cluster instead. This is useful for"
         " connecting to a MongoDB deployment started outside of resmoke.py including"
         " one running in a debugger.")
 
-    parser.add_option(
+    parser.add_argument(
         "--shellPort", dest="shell_port", metavar="PORT",
         help="Convenience form of --shellConnString for connecting to an"
         " existing MongoDB cluster with the URL mongodb://localhost:[PORT]."
         " This is useful for connecting to a server running in a debugger.")
 
-    parser.add_option("--repeat", "--repeatSuites", type="int", dest="repeat_suites", metavar="N",
+    parser.add_argument("--repeat", "--repeatSuites", type=int, dest="repeat_suites", metavar="N",
                       help="Repeats the given suite(s) N times, or until one fails.")
 
-    parser.add_option(
-        "--repeatTests", type="int", dest="repeat_tests", metavar="N",
+    parser.add_argument(
+        "--repeatTests", type=int, dest="repeat_tests", metavar="N",
         help="Repeats the tests inside each suite N times. This applies to tests"
         " defined in the suite configuration as well as tests defined on the command"
         " line.")
 
-    parser.add_option(
-        "--repeatTestsMax", type="int", dest="repeat_tests_max", metavar="N",
+    parser.add_argument(
+        "--repeatTestsMax", type=int, dest="repeat_tests_max", metavar="N",
         help="Repeats the tests inside each suite no more than N time when"
         " --repeatTestsSecs is specified. This applies to tests defined in the suite"
         " configuration as well as tests defined on the command line.")
 
-    parser.add_option(
-        "--repeatTestsMin", type="int", dest="repeat_tests_min", metavar="N",
+    parser.add_argument(
+        "--repeatTestsMin", type=int, dest="repeat_tests_min", metavar="N",
         help="Repeats the tests inside each suite at least N times when"
         " --repeatTestsSecs is specified. This applies to tests defined in the suite"
         " configuration as well as tests defined on the command line.")
 
-    parser.add_option(
-        "--repeatTestsSecs", type="float", dest="repeat_tests_secs", metavar="SECONDS",
+    parser.add_argument(
+        "--repeatTestsSecs", type=float, dest="repeat_tests_secs", metavar="SECONDS",
         help="Repeats the tests inside each suite this amount of time. Note that"
         " this option is mutually exclusive with --repeatTests. This applies to"
         " tests defined in the suite configuration as well as tests defined on the"
         " command line.")
 
-    parser.add_option(
-        "--reportFailureStatus", type="choice", action="store", dest="report_failure_status",
+    parser.add_argument(
+        "--reportFailureStatus", action="store", dest="report_failure_status",
         choices=("fail", "silentfail"), metavar="STATUS",
         help="Controls if the test failure status should be reported as failed"
         " or be silently ignored (STATUS=silentfail). Dynamic test failures will"
-        " never be silently ignored. Defaults to STATUS=%default.")
+        " never be silently ignored. Defaults to STATUS=%%default.")
 
-    parser.add_option("--reportFile", dest="report_file", metavar="REPORT",
+    parser.add_argument("--reportFile", dest="report_file", metavar="REPORT",
                       help="Writes a JSON file with test status and timing information.")
 
-    parser.add_option(
-        "--seed", type="int", dest="seed", metavar="SEED",
+    parser.add_argument(
+        "--seed", type=int, dest="seed", metavar="SEED",
         help=("Seed for the random number generator. Useful in combination with the"
               " --shuffle option for producing a consistent test execution order."))
 
-    parser.add_option("--serviceExecutor", dest="service_executor", metavar="EXECUTOR",
+    parser.add_argument("--serviceExecutor", dest="service_executor", metavar="EXECUTOR",
                       help="The service executor used by jstests")
 
-    parser.add_option("--transportLayer", dest="transport_layer", metavar="TRANSPORT",
+    parser.add_argument("--transportLayer", dest="transport_layer", metavar="TRANSPORT",
                       help="The transport layer used by jstests")
 
-    parser.add_option("--shellReadMode", type="choice", action="store", dest="shell_read_mode",
+    parser.add_argument("--shellReadMode", action="store", dest="shell_read_mode",
                       choices=("commands", "compatibility", "legacy"), metavar="READ_MODE",
                       help="The read mode used by the mongo shell.")
 
-    parser.add_option("--shellWriteMode", type="choice", action="store", dest="shell_write_mode",
+    parser.add_argument("--shellWriteMode", action="store", dest="shell_write_mode",
                       choices=("commands", "compatibility", "legacy"), metavar="WRITE_MODE",
                       help="The write mode used by the mongo shell.")
 
-    parser.add_option(
+    parser.add_argument(
         "--shuffle", action="store_const", const="on", dest="shuffle",
         help=("Randomizes the order in which tests are executed. This is equivalent"
               " to specifying --shuffleMode=on."))
 
-    parser.add_option(
-        "--shuffleMode", type="choice", action="store", dest="shuffle",
+    parser.add_argument(
+        "--shuffleMode", action="store", dest="shuffle",
         choices=("on", "off", "auto"), metavar="ON|OFF|AUTO",
         help=("Controls whether to randomize the order in which tests are executed."
               " Defaults to auto when not supplied. auto enables randomization in"
               " all cases except when the number of jobs requested is 1."))
 
-    parser.add_option(
-        "--staggerJobs", type="choice", action="store", dest="stagger_jobs", choices=("on", "off"),
+    parser.add_argument(
+        "--staggerJobs", action="store", dest="stagger_jobs", choices=("on", "off"),
         metavar="ON|OFF", help=("Enables or disables the stagger of launching resmoke jobs."
-                                " Defaults to %default."))
+                                " Defaults to %%default."))
 
-    parser.add_option(
-        "--majorityReadConcern", type="choice", action="store", dest="majority_read_concern",
+    parser.add_argument(
+        "--majorityReadConcern", action="store", dest="majority_read_concern",
         choices=("on",
                  "off"), metavar="ON|OFF", help=("Enable or disable majority read concern support."
-                                                 " Defaults to %default."))
+                                                 " Defaults to %%default."))
 
-    parser.add_option("--flowControl", type="choice", action="store", dest="flow_control",
+    parser.add_argument("--flowControl", action="store", dest="flow_control",
                       choices=("on",
                                "off"), metavar="ON|OFF", help=("Enable or disable flow control."))
 
-    parser.add_option("--flowControlTicketOverride", type="int", action="store",
+    parser.add_argument("--flowControlTicketOverride", type=int, action="store",
                       dest="flow_control_tickets", metavar="TICKET_OVERRIDE",
                       help=("Number of tickets available for flow control."))
 
-    parser.add_option("--storageEngine", dest="storage_engine", metavar="ENGINE",
+    parser.add_argument("--storageEngine", dest="storage_engine", metavar="ENGINE",
                       help="The storage engine used by dbtests and jstests.")
 
-    parser.add_option(
+    parser.add_argument(
         "--storageEngineCacheSizeGB", dest="storage_engine_cache_size_gb", metavar="CONFIG",
         help="Sets the storage engine cache size configuration"
         " setting for all mongod's.")
 
-    parser.add_option(
-        "--numReplSetNodes", type="int", dest="num_replset_nodes", metavar="N",
+    parser.add_argument(
+        "--numReplSetNodes", type=int, dest="num_replset_nodes", metavar="N",
         help="The number of nodes to initialize per ReplicaSetFixture. This is also "
         "used to indicate the number of replica set members per shard in a "
         "ShardedClusterFixture.")
 
-    parser.add_option("--numShards", type="int", dest="num_shards", metavar="N",
+    parser.add_argument("--numShards", type=int, dest="num_shards", metavar="N",
                       help="The number of shards to use in a ShardedClusterFixture.")
 
-    parser.add_option("--tagFile", dest="tag_file", metavar="OPTIONS",
+    parser.add_argument("--tagFile", dest="tag_file", metavar="OPTIONS",
                       help="A YAML file that associates tests and tags.")
 
-    parser.add_option("--wiredTigerCollectionConfigString", dest="wt_coll_config", metavar="CONFIG",
+    parser.add_argument("--wiredTigerCollectionConfigString", dest="wt_coll_config", metavar="CONFIG",
                       help="Sets the WiredTiger collection configuration setting for all mongod's.")
 
-    parser.add_option("--wiredTigerEngineConfigString", dest="wt_engine_config", metavar="CONFIG",
+    parser.add_argument("--wiredTigerEngineConfigString", dest="wt_engine_config", metavar="CONFIG",
                       help="Sets the WiredTiger engine configuration setting for all mongod's.")
 
-    parser.add_option("--wiredTigerIndexConfigString", dest="wt_index_config", metavar="CONFIG",
+    parser.add_argument("--wiredTigerIndexConfigString", dest="wt_index_config", metavar="CONFIG",
                       help="Sets the WiredTiger index configuration setting for all mongod's.")
 
-    parser.add_option(
+    parser.add_argument(
         "--executor", dest="executor_file",
         help="OBSOLETE: Superceded by --suites; specify --suites=SUITE path/to/test"
         " to run a particular test under a particular suite configuration.")
 
-    parser.add_option(
-        "--mixedBinVersions", type="string", dest="mixed_bin_versions",
+    parser.add_argument(
+        "--mixedBinVersions", type=str, dest="mixed_bin_versions",
         metavar="version1-version2-..-versionN", help="Runs the test with the provided replica set"
         " binary version configuration. Specify 'old-new' to configure a replica set with a"
         " 'last-stable' version primary and 'latest' version secondary. For a sharded cluster"
         " with two shards and two replica set nodes each, specify 'old-new-old-new'.")
 
-    parser.add_option(
-        "--linearChain", type="choice", action="store", dest="linear_chain", choices=("on", "off"),
+    parser.add_argument(
+        "--linearChain", action="store", dest="linear_chain", choices=("on", "off"),
         metavar="ON|OFF", help="Enable or disable linear chaining for tests using "
         "ReplicaSetFixture.")
 
-    evergreen_options = optparse.OptionGroup(
-        parser, title=_EVERGREEN_OPTIONS_TITLE,
+    evergreen_options = parser.add_argument_group(title=_EVERGREEN_ARGUMENT_TITLE,
         description=("Options used to propagate information about the Evergreen task running this"
                      " script."))
-    parser.add_option_group(evergreen_options)
 
-    evergreen_options.add_option("--buildId", dest="build_id", metavar="BUILD_ID",
+    evergreen_options.add_argument("--buildId", dest="build_id", metavar="BUILD_ID",
                                  help="Sets the build ID of the task.")
 
-    evergreen_options.add_option(
+    evergreen_options.add_argument(
         "--distroId", dest="distro_id", metavar="DISTRO_ID",
         help=("Sets the identifier for the Evergreen distro running the"
               " tests."))
 
-    evergreen_options.add_option(
-        "--executionNumber", type="int", dest="execution_number", metavar="EXECUTION_NUMBER",
+    evergreen_options.add_argument(
+        "--executionNumber", type=int, dest="execution_number", metavar="EXECUTION_NUMBER",
         help=("Sets the number for the Evergreen execution running the"
               " tests."))
 
-    evergreen_options.add_option(
+    evergreen_options.add_argument(
         "--gitRevision", dest="git_revision", metavar="GIT_REVISION",
         help=("Sets the git revision for the Evergreen task running the"
               " tests."))
 
     # We intentionally avoid adding a new command line option that starts with --suite so it doesn't
     # become ambiguous with the --suites option and break how engineers run resmoke.py locally.
-    evergreen_options.add_option(
+    evergreen_options.add_argument(
         "--originSuite", dest="origin_suite", metavar="SUITE",
         help=("Indicates the name of the test suite prior to the"
               " evergreen_generate_resmoke_tasks.py script splitting it"
               " up."))
 
-    evergreen_options.add_option(
+    evergreen_options.add_argument(
         "--patchBuild", action="store_true", dest="patch_build",
         help=("Indicates that the Evergreen task running the tests is a"
               " patch build."))
 
-    evergreen_options.add_option("--projectName", dest="project_name", metavar="PROJECT_NAME",
+    evergreen_options.add_argument("--projectName", dest="project_name", metavar="PROJECT_NAME",
                                  help=("Sets the name of the Evergreen project running the tests."))
 
-    evergreen_options.add_option("--revisionOrderId", dest="revision_order_id",
+    evergreen_options.add_argument("--revisionOrderId", dest="revision_order_id",
                                  metavar="REVISION_ORDER_ID",
                                  help="Sets the chronological order number of this commit.")
 
-    evergreen_options.add_option("--taskName", dest="task_name", metavar="TASK_NAME",
+    evergreen_options.add_argument("--taskName", dest="task_name", metavar="TASK_NAME",
                                  help="Sets the name of the Evergreen task running the tests.")
 
-    evergreen_options.add_option("--taskId", dest="task_id", metavar="TASK_ID",
+    evergreen_options.add_argument("--taskId", dest="task_id", metavar="TASK_ID",
                                  help="Sets the Id of the Evergreen task running the tests.")
 
-    evergreen_options.add_option(
+    evergreen_options.add_argument(
         "--variantName", dest="variant_name", metavar="VARIANT_NAME",
         help=("Sets the name of the Evergreen build variant running the"
               " tests."))
 
-    evergreen_options.add_option("--versionId", dest="version_id", metavar="VERSION_ID",
+    evergreen_options.add_argument("--versionId", dest="version_id", metavar="VERSION_ID",
                                  help="Sets the version ID of the task.")
 
-    benchmark_options = optparse.OptionGroup(
-        parser, title="Benchmark/Benchrun test options",
+    benchmark_options = parser.add_argument_group(
+        title="Benchmark/Benchrun test options",
         description="Options for running Benchmark/Benchrun tests")
 
-    parser.add_option_group(benchmark_options)
-
-    benchmark_options.add_option("--benchmarkFilter", type="string", dest="benchmark_filter",
+    benchmark_options.add_argument("--benchmarkFilter", type=str, dest="benchmark_filter",
                                  metavar="BENCHMARK_FILTER",
                                  help="Regex to filter Google benchmark tests to run.")
 
-    benchmark_options.add_option(
+    benchmark_options.add_argument(
         "--benchmarkListTests", dest="benchmark_list_tests", action="store_true",
-        metavar="BENCHMARK_LIST_TESTS",
+        # metavar="BENCHMARK_LIST_TESTS",
         help=("Lists all Google benchmark test configurations in each"
               " test file."))
 
     benchmark_min_time_help = (
         "Minimum time to run each benchmark/benchrun test for. Use this option instead of "
         "--benchmarkRepetitions to make a test run for a longer or shorter duration.")
-    benchmark_options.add_option("--benchmarkMinTimeSecs", type="int",
+    benchmark_options.add_argument("--benchmarkMinTimeSecs", type=int,
                                  dest="benchmark_min_time_secs", metavar="BENCHMARK_MIN_TIME",
                                  help=benchmark_min_time_help)
 
@@ -392,7 +388,7 @@ def _make_parser():  # pylint: disable=too-many-statements
         " By default, each test is run multiple times to provide statistics on the variance"
         " between runs; use --benchmarkMinTimeSecs if you'd like to run a test for a longer or"
         " shorter duration.")
-    benchmark_options.add_option("--benchmarkRepetitions", type="int", dest="benchmark_repetitions",
+    benchmark_options.add_argument("--benchmarkRepetitions", type=int, dest="benchmark_repetitions",
                                  metavar="BENCHMARK_REPETITIONS", help=benchmark_repetitions_help)
 
     parser.set_defaults(dry_run="off", find_suites=False, list_suites=False, logger_file="console",
@@ -497,8 +493,13 @@ def to_local_args(args=None):  # pylint: disable=too-many-branches,too-many-loca
 def parse_command_line():
     """Parse the command line arguments passed to resmoke.py."""
     parser = _make_parser()
-    options, args = parser.parse_args()
+    # args = parser.parse_args()
 
+    print(parser.parse_args(['--help']))
+
+    sys.exit()
+
+    return args
     _validate_options(parser, options, args)
     _update_config_vars(options)
     _validate_config(parser)
