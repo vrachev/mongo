@@ -39,12 +39,17 @@ if __name__ == "__main__" and __package__ is None:
     from buildscripts.resmokelib import core
 
 
-def call(args, logger):
+def call(dbg, argsList, logger):
     """Call subprocess on args list."""
-    logger.info(str(args))
 
+    for args in argsList:
+        cmd = [dbg, "--quiet", "--nx"] + list(
+            itertools.chain.from_iterable([['-ex', b] for b in args]))
+
+        logger.info("VLAD inside call - cmd:")
+        logger.info(str(cmd))
     # Use a common pipe for stdout & stderr for logging.
-    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     logger_pipe = core.pipe.LoggerPipe(logger, logging.INFO, process.stdout)
     logger_pipe.wait_until_started()
 
@@ -53,7 +58,7 @@ def call(args, logger):
 
     if ret != 0:
         logger.error("Bad exit code %d", ret)
-        raise Exception("Bad exit code %d from %s" % (ret, " ".join(args)))
+        raise Exception("Bad exit code %d from %s" % (ret, " ".join(cmd)))
 
 
 def callo(args, logger):
@@ -294,15 +299,16 @@ class GDBDumper(object):
         return find_program(debugger, ['/opt/mongodbtoolchain/gdb/bin', '/usr/bin'])
 
     def dump_info(  # pylint: disable=too-many-arguments,too-many-locals
-            self, root_logger, logger, pid, process_name, take_dump):
+            self, root_logger, logger, take_dump, processes):
         """Dump info."""
         debugger = "gdb"
         dbg = self.__find_debugger(debugger)
 
         if dbg is None:
-            logger.warning("Debugger %s not found, skipping dumping of %d", debugger, pid)
+            # logger.warning("Debugger %s not found, skipping dumping of %d", debugger, pid)
             return
 
+<<<<<<< Updated upstream
         root_logger.info("Debugger %s, analyzing %s process with PID %d", dbg, process_name, pid)
 
         dump_command = ""
@@ -359,11 +365,106 @@ class GDBDumper(object):
                 'set logging on',
                 'thread apply all bt',
                 'set logging off',
-            ]
+=======
+        root_logger.info("VLAD: in main forloop, here are the processes: %s", processes)
+        cmds = []
+        for (pid, process_name) in processes:
+            if process_name != "mongod":
+                logger.info("VLAD: not a mongod process")
+                return
+            root_logger.info("Debugger %s, analyzing %s process with PID %d", dbg, process_name, pid)
+            root_logger.info("VLAD is here")
 
-        cmds = [
+            dump_command = ""
+            if take_dump:
+                # Dump to file, dump_<process name>.<pid>.core
+                dump_file = "dump_%s.%d.%s" % (process_name, pid, self.get_dump_ext())
+                dump_command = "gcore %s" % dump_file
+                root_logger.info("Dumping core to %s", dump_file)
+
+            call([dbg, "--version"], logger)
+
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            root_logger.info("dir %s", script_dir)
+            gdb_dir = os.path.join(script_dir, "gdb")
+            mongo_script = os.path.join(gdb_dir, "mongo.py")
+            mongo_printers_script = os.path.join(gdb_dir, "mongo_printers.py")
+            mongo_lock_script = os.path.join(gdb_dir, "mongo_lock.py")
+
+            source_mongo = "source %s" % mongo_script
+            source_mongo_printers = "source %s" % mongo_printers_script
+            source_mongo_lock = "source %s" % mongo_lock_script
+            mongodb_dump_locks = "mongodb-dump-locks"
+            mongodb_show_locks = "mongodb-show-locks"
+            mongodb_uniqstack = "mongodb-uniqstack mongodb-bt-if-active"
+            mongodb_waitsfor_graph = "mongodb-waitsfor-graph debugger_waitsfor_%s_%d.gv" % \
+                (process_name, pid)
+            mongodb_javascript_stack = "mongodb-javascript-stack"
+            mongod_dump_sessions = "mongod-dump-sessions"
+
+            # The following MongoDB python extensions do not run on Solaris.
+            if sys.platform.startswith("sunos"):
+                source_mongo_lock = ""
+                # SERVER-28234 - GDB frame information not available on Solaris for a templatized
+                # function
+                mongodb_dump_locks = ""
+
+                # SERVER-28373 - GDB thread-local variables not available on Solaris
+                mongodb_show_locks = ""
+                mongodb_waitsfor_graph = ""
+                mongodb_javascript_stack = ""
+                mongod_dump_sessions = ""
+
+            if not logger.mongo_process_filename:
+                raw_stacks_commands = []
+            else:
+                base, ext = os.path.splitext(logger.mongo_process_filename)
+                raw_stacks_filename = base + '_raw_stacks' + ext
+                raw_stacks_commands = [
+                    'echo \\nWriting raw stacks to %s.\\n' % raw_stacks_filename,
+                    # This sends output to log file rather than stdout until we turn logging off.
+                    'set logging redirect on',
+                    'set logging file ' + raw_stacks_filename,
+                    'set logging on',
+                    'thread apply all bt',
+                    'set logging off',
+                ]
+
+            root_logger.info("process_name: %s. PID: %d.", process_name, pid)
+
+            root_logger.info("VLAD: we created cmds with pid: %s", pid)
+            cmd = [
+                "attach %d" % pid,
+                "info sharedlibrary",
+                "info threads",  # Dump a simple list of commands to get the thread name
+                "set python print-stack full",
+            ] + raw_stacks_commands + [
+                source_mongo,
+                source_mongo_printers,
+                source_mongo_lock,
+                mongodb_uniqstack,
+                # Lock the scheduler, before running commands, which execute code in the attached process.
+                "set scheduler-locking on",
+                dump_command,
+                mongodb_dump_locks,
+                mongodb_show_locks,
+                mongodb_waitsfor_graph,
+                mongodb_javascript_stack,
+                mongod_dump_sessions,
+                "set confirm off",
+                "quit",
+>>>>>>> Stashed changes
+            ]
+            cmds.append(cmd)
+
+        root_logger.info("VLAD: got to part before executing commands")
+        root_logger.info("VLAD: cmds.len: %d", len(cmds))
+
+        # set up debugger
+        cmd = [
             "set interactive-mode off",
             "set print thread-events off",  # Suppress GDB messages of threads starting/finishing.
+<<<<<<< Updated upstream
             "file %s" % process_name,  # Solaris must load the process to read the symbols.
             "attach %d" % pid,
             "info sharedlibrary",
@@ -385,12 +486,21 @@ class GDBDumper(object):
             mongodb_dump_mutexes,
             "set confirm off",
             "quit",
+=======
+            "file mongod",  # Solaris must load the process to read the symbols.           
+>>>>>>> Stashed changes
         ]
 
+        root_logger.info("VLAD: running first command to set up debugger")
         call([dbg, "--quiet", "--nx"] + list(
-            itertools.chain.from_iterable([['-ex', b] for b in cmds])), logger)
+            itertools.chain.from_iterable([['-ex', b] for b in cmd])), logger)
 
-        root_logger.info("Done analyzing %s process with PID %d", process_name, pid)
+        call(cmds, logger)
+        # call([dbg, "--quiet", "--nx"] + list(
+        #     itertools.chain.from_iterable([['-ex', b] for b in cmd])), logger)
+
+        for (pid, process_name) in processes:
+            root_logger.info("Done analyzing %s process with PID %d", process_name, pid)
 
     @staticmethod
     def get_dump_ext():
@@ -771,12 +881,11 @@ def main():  # pylint: disable=too-many-branches,too-many-locals,too-many-statem
         process_logger = get_process_logger(options.debugger_output, pid, process_name)
         try:
             dbg.dump_info(
-                root_logger, process_logger, pid, process_name, options.dump_core
-                and check_dump_quota(max_dump_size_bytes, dbg.get_dump_ext()))
+                root_logger, process_logger, options.dump_core, processes)
         except Exception as err:  # pylint: disable=broad-except
             root_logger.info("Error encountered when invoking debugger %s", err)
             trapped_exceptions.append(traceback.format_exc())
-
+        continue
         # Dump java processes using jstack.
     for (pid, process_name) in [(p, pn) for (p, pn) in processes if pn.startswith("java")]:
         process_logger = get_process_logger(options.debugger_output, pid, process_name)
