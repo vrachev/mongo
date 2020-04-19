@@ -104,25 +104,35 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
         # pylint: disable=protected-access
         os._exit(self._exit_code)
 
-    def run(self):
-        """Run resmoke."""
+    def run_subcommand(self):
+        """Run the specified resmoke subcommand."""
         if self._config is None:
-            raise RuntimeError("Resmoke must be configured before calling run()")
+            raise RuntimeError("Resmoke must be configured before calling run_subcommand()")
         self._setup_logging()
 
+        subcommand = self._config.command
         try:
-            if self._config.list_suites:
+            if subcommand == 'run':
+                self.run()
+            elif subcommand == 'list-suites':
                 self.list_suites()
-            elif self._config.find_suites:
+            elif subcommand == 'find-suites':
                 self.find_suites()
-            elif self._config.dry_run == "tests":
-                self.dry_run()
             else:
-                self.run_tests()
+                raise RuntimeError(f"Resmoke configuration has invalid subcommand: {subcommand}")
         finally:
             # self._exit_logging() may never return when the log output is incomplete.
             # Our workaround is to call os._exit().
             self._exit_logging()
+
+
+    def run(self):
+        """Execute the 'run' subcommand."""
+
+        if self._config.dry_run == "tests":
+            self.dry_run()
+        else:
+            self.run_tests()
 
     def list_suites(self):
         """List the suites that are available to execute."""
@@ -403,7 +413,7 @@ def main():
     """Execute Main function for resmoke."""
     resmoke = Resmoke()
     resmoke.configure_from_command_line()
-    resmoke.run()
+    resmoke.run_subcommand()
 
 
 if __name__ == "__main__":

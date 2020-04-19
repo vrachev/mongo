@@ -1,22 +1,38 @@
 """Parser for command line arguments."""
 
-import collections
 import os
 import os.path
 import sys
 import shlex
 import configparser
 
+from typing import NamedTuple
+
 import datetime
+import optparse
 import argparse
 import pymongo.uri_parser
 
 from . import config as _config
 from . import utils
 
-ResmokeConfig = collections.namedtuple(
-    "ResmokeConfig",
-    ["list_suites", "find_suites", "dry_run", "suite_files", "test_files", "logging_config"])
+
+class RunConfig(NamedTuple):
+    command: str
+    test_files: list
+    suite_files: list
+    dry_run: bool
+    logging_config: dict
+
+class ListSuitesConfig(NamedTuple):
+    command: str
+    logging_config: dict
+
+class FindSuitesConfig(NamedTuple):
+    command: str
+    test_files: list
+    suite_files: list
+    logging_config: dict
 
 _EVERGREEN_ARGUMENT_TITLE = "Evergreen options"
 
@@ -24,6 +40,32 @@ _EVERGREEN_ARGUMENT_TITLE = "Evergreen options"
 def _make_parser():  # pylint: disable=too-many-statements
     """Create and return the command line arguments parser."""
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--log", dest="logger_file", metavar="LOGGER",
+        help=("A YAML file that specifies the logging configuration. If the file is"
+              " located in the resmokeconfig/suites/ directory, then the basename"
+              " without the .yml extension can be specified, e.g. 'console'."))
+    parser.set_defaults(logger_file="console")
+    subparsers = parser.add_subparsers(dest="command")
+
+    # Add sub-commands.
+    _add_run(subparsers)
+    _add_list_suites(subparsers)
+    _add_find_suites(subparsers)
+
+    return parser
+
+
+def _add_run(subparsers):
+    """Create and add the parser for the Run subcommand."""
+    parser = subparsers.add_parser("run", help="Runs the specified tests.")
+
+    parser.set_defaults(dry_run="off",
+                        shuffle="auto", stagger_jobs="off", suite_files="with_server",
+                        majority_read_concern="on")
+
+    parser.add_argument(
+        "test_files", metavar="TEST_FILES", nargs="*", help="Explicit test files to run")
 
     parser.add_argument(
         "--suites", dest="suite_files", metavar="SUITE1,SUITE2",
@@ -32,13 +74,7 @@ def _make_parser():  # pylint: disable=too-many-statements
               " directory, then the basename without the .yml extension can be"
               " specified, e.g. 'core'. If a list of files is passed in as"
               " positional arguments, they will be run using the suites'"
-              " configurations"))
-
-    parser.add_argument(
-        "--log", dest="logger_file", metavar="LOGGER",
-        help=("A YAML file that specifies the logging configuration. If the file is"
-              " located in the resmokeconfig/suites/ directory, then the basename"
-              " without the .yml extension can be specified, e.g. 'console'."))
+              " configurations."))
 
     parser.add_argument("--configDir", dest="config_dir", metavar="CONFIG_DIR",
                       help="Directory to search for resmoke configuration files")
@@ -89,9 +125,6 @@ def _make_parser():  # pylint: disable=too-many-statements
               " specified tags will be excluded from any suites that are run."
               " The tag '{}' is implicitly part of this list.".format(_config.EXCLUDED_TAG)))
 
-    parser.add_argument("-f", "--findSuites", action="store_true", dest="find_suites",
-                      help="Lists the names of the suites that will execute the specified tests.")
-
     parser.add_argument("--genny", dest="genny_executable", metavar="PATH",
                       help="The path to the genny executable for resmoke to use.")
 
@@ -123,9 +156,6 @@ def _make_parser():  # pylint: disable=too-many-statements
         "-j", "--jobs", type=int, dest="jobs", metavar="JOBS",
         help=("The number of Job instances to use. Each instance will receive its"
               " own MongoDB deployment to dispatch tests to."))
-
-    parser.add_argument("-l", "--listSuites", action="store_true", dest="list_suites",
-                      help="Lists the names of the suites available to execute.")
 
     parser.add_argument("--mongo", dest="mongo_executable", metavar="PATH",
                       help="The path to the mongo shell executable for resmoke.py to use.")
@@ -268,6 +298,7 @@ def _make_parser():  # pylint: disable=too-many-statements
         help="Sets the storage engine cache size configuration"
         " setting for all mongod's.")
 
+
     parser.add_argument(
         "--numReplSetNodes", type=int, dest="num_replset_nodes", metavar="N",
         help="The number of nodes to initialize per ReplicaSetFixture. This is also "
@@ -391,14 +422,30 @@ def _make_parser():  # pylint: disable=too-many-statements
     benchmark_options.add_argument("--benchmarkRepetitions", type=int, dest="benchmark_repetitions",
                                  metavar="BENCHMARK_REPETITIONS", help=benchmark_repetitions_help)
 
-    parser.set_defaults(dry_run="off", find_suites=False, list_suites=False, logger_file="console",
-                        shuffle="auto", stagger_jobs="off", suite_files="with_server",
-                        majority_read_concern="on")
 
-    return parser
+def _add_list_suites(subparsers):
+    """Create and add the parser for the list-suites subcommand."""
+    subparsers.add_parser("list-suites", help="Lists the names of the suites available to execute.")
 
 
-def to_local_args(args=None):  # pylint: disable=too-many-branches,too-many-locals
+def _add_find_suites(subparsers):
+    """Create and add the parser for the find-suites subcommand."""
+    parser = subparsers.add_parser("find-suites", help="Lists the names of the suites that will execute the specified tests.")
+
+    parser.add_argument(
+        "test_files", metavar="TEST_FILES", nargs="*", help="Explicit test files to run")
+
+    parser.add_argument(
+    "--suites", dest="suite_files", metavar="SUITE1,SUITE2", required=True,
+    help=("Comma separated list of YAML files that each specify the configuration"
+            " of a suite. If the file is located in the resmokeconfig/suites/"
+            " directory, then the basename without the .yml extension can be"
+            " specified, e.g. 'core'. If a list of files is passed in as"
+            " positional arguments, they will be run using the suites'"
+            " configurations."))
+
+
+def to_local_args(input_args=None):  # pylint: disable=too-many-branches,too-many-locals
     """
     Return a command line invocation for resmoke.py suitable for being run outside of Evergreen.
 
@@ -406,27 +453,27 @@ def to_local_args(args=None):  # pylint: disable=too-many-branches,too-many-loca
     options, and returns a new list of command line arguments.
     """
 
-    if args is None:
-        args = sys.argv[1:]
+    if input_args is None:
+        input_args = sys.argv[1:]
 
     parser = _make_parser()
 
-    # We call optparse.OptionParser.parse_args() with a new instance of optparse.Values to avoid
+    # We call argparse.ArgumentParser.parse_args() with a new instance of argparse.Namespace to avoid
     # having the default values filled in. This makes it so 'options' only contains command line
     # options that were explicitly specified.
-    options, extra_args = parser.parse_args(args=args, values=optparse.Values())
+    args = parser.parse_args(args=input_args, namespace=argparse.Namespace())
 
     # If --originSuite was specified, then we replace the value of --suites with it. This is done to
     # avoid needing to have engineers learn about the test suites generated by the
     # evergreen_generate_resmoke_tasks.py script.
-    origin_suite = getattr(options, "origin_suite", None)
+    origin_suite = getattr(args, "origin_suite", None)
     if origin_suite is not None:
-        setattr(options, "suite_files", origin_suite)
+        setattr(args, "suite_files", origin_suite)
 
     # optparse.OptionParser doesn't offer a public and/or documented method for getting all of the
     # options. Given that the optparse module is deprecated, it is unlikely for the
     # _get_all_options() method to ever be removed or renamed.
-    all_options = parser._get_all_options()  # pylint: disable=protected-access
+    all_options = parser._get_args()  # pylint: disable=protected-access
 
     options_by_dest = {}
     for option in all_options:
@@ -456,8 +503,8 @@ def to_local_args(args=None):  # pylint: disable=too-many-branches,too-many-loca
         """
         return "%s=%s" % (option_name, option_value)
 
-    for option_dest in sorted(vars(options)):
-        option_value = getattr(options, option_dest)
+    for option_dest in sorted(vars(args)):
+        option_value = getattr(args, option_dest)
         option = options_by_dest[option_dest]
         option_name = option.get_opt_string()
 
@@ -465,7 +512,7 @@ def to_local_args(args=None):  # pylint: disable=too-many-branches,too-many-loca
             continue
 
         option_group = parser.get_option_group(option_name)
-        if option_group is not None and option_group.title == _EVERGREEN_OPTIONS_TITLE:
+        if option_group is not None and option_group.title == _EVERGREEN_ARGUMENT_TITLE:
             continue
 
         if option.takes_value():
@@ -487,38 +534,41 @@ def to_local_args(args=None):  # pylint: disable=too-many-branches,too-many-loca
             other_local_args.append(option_name)
 
     return [arg for arg in (suites_arg, storage_engine_arg) if arg is not None
-            ] + other_local_args + extra_args
+            ] + other_local_args
 
 
 def parse_command_line():
     """Parse the command line arguments passed to resmoke.py."""
     parser = _make_parser()
-    # args = parser.parse_args()
+    args = parser.parse_args()
 
-    print(parser.parse_args(['--help']))
-
-    sys.exit()
-
-    return args
-    _validate_options(parser, options, args)
-    _update_config_vars(options)
+    subcommand = args.command
+    # print(args.logger_file)
+    # sys.exit()
+    # _validate_options(parser, args)
+    _update_config_vars(args)
     _validate_config(parser)
+    logging_config = _get_logging_config(args.logger_file)
+    if subcommand == 'run':
+        return RunConfig(subcommand, args.test_files, args.suite_files.split(","), logging_config)
+    elif subcommand == 'list-suites':
+        return ListSuitesConfig(subcommand, logging_config)
+    elif subcommand == 'find-suites':
+        return FindSuitesConfig(subcommand, args.test_files, args.suite_files.split(","), logging_config)
+    else:
+        raise RuntimeError(f"Resmoke configuration has invalid subcommand: {subcommand}")
 
-    return ResmokeConfig(list_suites=options.list_suites, find_suites=options.find_suites,
-                         dry_run=options.dry_run, suite_files=options.suite_files.split(","),
-                         test_files=args, logging_config=_get_logging_config(options.logger_file))
 
-
-def _validate_options(parser, options, args):
+def _validate_options(parser, args):
     """Do preliminary validation on the options and error on any invalid options."""
 
-    if options.shell_port is not None and options.shell_conn_string is not None:
+    if args.shell_port is not None and args.shell_conn_string is not None:
         parser.error("Cannot specify both `shellPort` and `shellConnString`")
 
-    if options.executor_file:
+    if args.executor_file:
         parser.error("--executor is superseded by --suites; specify --suites={} {} to run the"
                      " test(s) under those suite configuration(s)".format(
-                         options.executor_file, " ".join(args)))
+                         args.executor_file, " ".join(args.test_files)))
 
 
 def _validate_config(parser):
@@ -735,7 +785,7 @@ def _update_config_vars(values):  # pylint: disable=too-many-statements,too-many
         _config.SHELL_CONN_STRING = conn_string
 
     if config:
-        raise optparse.OptionValueError("Unknown option(s): %s" % (list(config.keys())))
+        raise ValueError(f"Unkown option(s): {list(config.keys())}s")
 
 
 def _get_logging_config(pathname):
@@ -744,6 +794,8 @@ def _get_logging_config(pathname):
         # If the user provides a full valid path to a logging config
         # we don't need to search LOGGER_DIR for the file.
         if os.path.exists(pathname):
+            print(pathname)
+            sys.exit()
             return utils.load_yaml_file(pathname).pop("logging")
 
         root = os.path.abspath(_config.LOGGER_DIR)
@@ -753,11 +805,11 @@ def _get_logging_config(pathname):
             if ext in (".yml", ".yaml") and short_name == pathname:
                 config_file = os.path.join(root, filename)
                 if not os.path.isfile(config_file):
-                    raise optparse.OptionValueError(
+                    raise ValueError(
                         "Expected a logger YAML config, but got '%s'" % pathname)
                 return utils.load_yaml_file(config_file).pop("logging")
 
-        raise optparse.OptionValueError("Unknown logger '%s'" % pathname)
+        raise ValueError("Unknown logger '%s'" % pathname)
     except FileNotFoundError:
         raise IOError("Directory {} does not exist.".format(_config.LOGGER_DIR))
 
