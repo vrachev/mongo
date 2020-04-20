@@ -550,7 +550,7 @@ def parse_command_line():
     _validate_config(parser)
     logging_config = _get_logging_config(args.logger_file)
     if subcommand == 'run':
-        return RunConfig(subcommand, args.test_files, args.suite_files.split(","), logging_config)
+        return RunConfig(subcommand, args.test_files, args.suite_files.split(","), args.dry_run, logging_config)
     elif subcommand == 'list-suites':
         return ListSuitesConfig(subcommand, logging_config)
     elif subcommand == 'find-suites':
