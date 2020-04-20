@@ -547,9 +547,7 @@ def parse_command_line():
     args = parser.parse_args()
 
     subcommand = args.command
-    # print(args.logger_file)
-    # sys.exit()
-    # _validate_options(parser, args)
+    # _validate_options(parser, args) TODO: uncomment for `run` subcommand
     _update_config_vars(args)
     _validate_config(parser)
     logging_config = _get_logging_config(args.logger_file)
@@ -800,8 +798,6 @@ def _get_logging_config(pathname):
         # If the user provides a full valid path to a logging config
         # we don't need to search LOGGER_DIR for the file.
         if os.path.exists(pathname):
-            print(pathname)
-            sys.exit()
             return utils.load_yaml_file(pathname).pop("logging")
 
         root = os.path.abspath(_config.LOGGER_DIR)
