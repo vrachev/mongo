@@ -125,7 +125,6 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
             # Our workaround is to call os._exit().
             self._exit_logging()
 
-
     def run(self):
         """Execute the 'run' subcommand."""
 
