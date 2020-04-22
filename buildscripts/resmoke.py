@@ -23,7 +23,7 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
         """Initialize the Resmoke instance."""
         self.__start_time = time.time()
 
-    def configure_from_command_line(self):
+    def configure_from_command_line(self):  # pylint: disable=no-self-use
         """Configure this instance using the command line arguments."""
         return parser.parse_command_line()
 
@@ -31,7 +31,7 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
         """Run the specified resmoke subcommand."""
 
         subcommand = args.command
-        if subcommand == 'find-suites' or subcommand == 'list-suites' or subcommand == 'run':
+        if subcommand in ('find-suites', 'list-suites', 'run'):
             parser.validate_and_set_options(parser_obj, args)
             if config.EVERGREEN_TASK_ID is not None:
                 test_runner = commands.run.TestRunnerEvg(self.__start_time, subcommand)
@@ -39,7 +39,8 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
                 test_runner = commands.run.TestRunner(self.__start_time, subcommand)
             test_runner.execute()
         else:
-            raise RuntimeError(f"Resmoke configuration has invalid subcommand: {subcommand}")
+            raise RuntimeError(
+                f"Resmoke configuration has invalid subcommand: {subcommand}. Try '--help'")
 
 
 def main():

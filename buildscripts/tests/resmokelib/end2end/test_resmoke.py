@@ -35,8 +35,8 @@ class _ResmokeSelftest(unittest.TestCase):
 
     def execute_resmoke(self, resmoke_args):
         resmoke_process = core.programs.make_process(
-            self.logger, [sys.executable, "buildscripts/resmoke.py"
-                          ] + self.resmoke_const_args + resmoke_args)
+            self.logger,
+            [sys.executable, "buildscripts/resmoke.py"] + self.resmoke_const_args + resmoke_args)
         resmoke_process.start()
 
         return resmoke_process
