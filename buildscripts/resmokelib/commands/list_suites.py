@@ -6,10 +6,10 @@ from buildscripts.resmokelib.commands import interface
 class ListSuites(interface.subcommand):
     """Class for list-suites subcommand."""
 
-    def execute(self):
+    def execute(self, logger):
         """Execute the command."""
-        self._list_suites()
+        self._list_suites(logger)
 
-    def _list_suites(self):
+    def _list_suites(self, logger):
         suite_names = suitesconfig.get_named_suites()
-        self._resmoke_logger.info("Suites available to execute:\n%s", "\n".join(suite_names))
+        logger.info("Suites available to execute:\n%s", "\n".join(suite_names))
