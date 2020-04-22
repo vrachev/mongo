@@ -390,7 +390,9 @@ class TestRunner(interface.Subcommand):  # pylint: disable=too-many-instance-att
         self._resmoke_logger.info("Exiting with code: %d", exit_code)
         sys.exit(exit_code)
 
+
 _TagInfo = collections.namedtuple("_TagInfo", ["tag_name", "evergreen_aware", "suite_options"])
+
 
 class TestRunnerEvg(TestRunner):
     """Execute Main class.

@@ -9,7 +9,6 @@ import argparse
 from . import config as _config
 from . import configure_resmoke
 
-
 _EVERGREEN_ARGUMENT_TITLE = "Evergreen options"
 
 
@@ -521,11 +520,13 @@ def parse_command_line():
 
     return (parser, args)
 
+
 def set_options(argstr=''):
     """Populate the config module variables with the default options."""
     parser = _make_parser()
     args = parser.parse_args(args=shlex.split(argstr))
     configure_resmoke.validate_and_update_config(parser, args)
+
 
 def validate_and_set_options(parser, args):
     """Validate args and set config module variables."""

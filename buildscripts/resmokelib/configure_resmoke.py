@@ -14,11 +14,13 @@ import pymongo.uri_parser
 from . import config as _config
 from . import utils
 
+
 def validate_and_update_config(parser, args):
     """Validate inputs and update config module."""
     _validate_options(parser, args)
     _update_config_vars(args)
     _validate_config(parser)
+
 
 def _validate_options(parser, args):
     """Do preliminary validation on the options and error on any invalid options."""
@@ -75,7 +77,6 @@ def validate_benchmark_options():
             "--jobs=%d cannot be used for benchmark tests. Parallel jobs affect CPU cache access "
             "patterns and cause additional context switching, which lead to inaccurate benchmark "
             "results. Please use --jobs=1" % _config.JOBS)
-
 
 
 def _update_config_vars(values):  # pylint: disable=too-many-statements,too-many-locals,too-many-branches

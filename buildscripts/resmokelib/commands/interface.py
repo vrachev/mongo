@@ -1,5 +1,6 @@
 """Interface for creating a resmoke subcommand."""
 
+
 class Subcommand(object):
     """A resmoke subcommand to execute."""
 
