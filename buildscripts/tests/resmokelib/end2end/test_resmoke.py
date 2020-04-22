@@ -27,7 +27,7 @@ class _ResmokeSelftest(unittest.TestCase):
         cls.logger.addHandler(handler)
 
         cls.test_dir = os.path.normpath("/data/db/selftest")
-        cls.resmoke_const_args = ["--dbpathPrefix={}".format(cls.test_dir)]
+        cls.resmoke_const_args = ["run", "--dbpathPrefix={}".format(cls.test_dir)]
 
     def setUp(self):
         self.logger.info("Cleaning temp directory %s", self.test_dir)
@@ -35,7 +35,7 @@ class _ResmokeSelftest(unittest.TestCase):
 
     def execute_resmoke(self, resmoke_args):
         resmoke_process = core.programs.make_process(
-            self.logger, [sys.executable, "buildscripts/resmoke.py run"
+            self.logger, [sys.executable, "buildscripts/resmoke.py"
                           ] + self.resmoke_const_args + resmoke_args)
         resmoke_process.start()
 

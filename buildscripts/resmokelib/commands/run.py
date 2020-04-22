@@ -159,11 +159,12 @@ class TestRunner(interface.Subcommand):  # pylint: disable=too-many-instance-att
         """Run the suite and tests specified."""
         self._resmoke_logger.info("verbatim resmoke.py invocation: %s", " ".join(sys.argv))
 
-        if config.EVERGREEN_TASK_ID:
-            local_args = parser.to_local_args()
-            self._resmoke_logger.info("resmoke.py invocation for local usage: %s %s",
-                                      os.path.join("buildscripts", "resmoke.py"),
-                                      " ".join(local_args))
+        # TODO: SERVER-47611
+        # if config.EVERGREEN_TASK_ID:
+        #     local_args = parser.to_local_args()
+        #     self._resmoke_logger.info("resmoke.py invocation for local usage: %s %s",
+        #                               os.path.join("buildscripts", "resmoke.py"),
+        #                               " ".join(local_args))
 
         suites = None
         try:
