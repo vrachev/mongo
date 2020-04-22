@@ -90,6 +90,7 @@ DEFAULTS = {
     "majority_read_concern": None,  # Default is set on the commandline.
     "storage_engine": None,
     "storage_engine_cache_size_gb": None,
+    "suite_files": None,
     "tag_file": None,
     "transport_layer": None,
     "mixed_bin_versions": None,
@@ -312,6 +313,9 @@ INTERNAL_PARAMS = []
 # If set, then resmoke.py starts the specified number of Job instances to run tests.
 JOBS = None
 
+# Yaml file that specified logging configuration.
+LOGGER_FILE = None
+
 # Where to find the MONGO*_EXECUTABLE binaries
 INSTALL_DIR = None
 
@@ -424,8 +428,14 @@ STORAGE_ENGINE = None
 # storage engine cache size.
 STORAGE_ENGINE_CACHE_SIZE = None
 
+# Run tests using the configuration in the specified yaml suite files.
+SUITE_FILES = None
+
 # The tag file to use that associates tests with tags.
 TAG_FILE = None
+
+# The test files to execute.
+TEST_FILES = None
 
 # If set, then mongod/mongos's started by resmoke.py will use the specified transport layer.
 TRANSPORT_LAYER = None
@@ -481,5 +491,5 @@ CONFIG_DIR = None
 NAMED_SUITES = None
 LOGGER_DIR = None
 
-LOGGER_FILE = None
+# Generated logging config for the current invocation.
 LOGGING_CONFIG = None
