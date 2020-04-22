@@ -12,6 +12,7 @@ if __name__ == "__main__" and __package__ is None:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # pylint: disable=wrong-import-position
+from buildscripts.resmokelib import config
 from buildscripts.resmokelib import parser
 from buildscripts.resmokelib import commands
 
@@ -33,7 +34,10 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
         subcommand = args.command
         if subcommand == 'find-suites' or subcommand == 'list-suites' or subcommand == 'run':
             parser.validate_and_set_options(parser_obj, args)
-            test_runner = commands.run.TestRunner(self.__start_time, subcommand)
+            if config.EVERGREEN_TASK_ID is not None:
+                test_runner = commands.run.TestRunnerEvg(self.__start_time, subcommand)
+            else:
+                test_runner = commands.run.TestRunner(self.__start_time, subcommand)
             test_runner.execute()
         else:
             raise RuntimeError(f"Resmoke configuration has invalid subcommand: {subcommand}")

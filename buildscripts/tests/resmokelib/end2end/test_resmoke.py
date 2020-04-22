@@ -36,7 +36,7 @@ class _ResmokeSelftest(unittest.TestCase):
     def execute_resmoke(self, resmoke_args):
         resmoke_process = core.programs.make_process(
             self.logger,
-            [sys.executable, "buildscripts/resmoke.py"] + self.resmoke_const_args + resmoke_args)
+            [sys.executable, "buildscripts/resmoke.py run"] + self.resmoke_const_args + resmoke_args)
         resmoke_process.start()
 
         return resmoke_process
@@ -114,7 +114,7 @@ class TestTimeout(_ResmokeSelftest):
         # TODO: replace above with below after SERVER-46691.
         # signal_resmoke_process = core.programs.make_process(
         #     self.logger,
-        #     [sys.executable, "buildscripts/signal_resmoke.py", "--pid", str(resmoke_process.pid)])
+        #     [sys.executable, "buildscripts/signal_resmoke.py run", "--pid", str(resmoke_process.pid)])
         # signal_resmoke_process.start()
 
         # return_code = signal_resmoke_process.wait()
