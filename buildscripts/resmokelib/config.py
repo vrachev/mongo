@@ -62,6 +62,7 @@ DEFAULTS = {
     "include_with_any_tags": None,
     "install_dir": None,
     "jobs": 1,
+    "logger_file": None,
     "mongo_executable": None,
     "mongod_executable": None,
     "mongod_set_parameters": None,
@@ -390,6 +391,9 @@ SPAWN_USING = None
 # If true, the launching of jobs is staggered in resmoke.py.
 STAGGER_JOBS = None
 
+# Yaml suites that specify how tests should be executed.
+SUITE_FILES = None
+
 # If set to true, it enables read concern majority. Else, read concern majority is disabled.
 MAJORITY_READ_CONCERN = None
 
@@ -476,3 +480,6 @@ EXTERNAL_SUITE_SELECTORS = (DEFAULT_BENCHMARK_TEST_LIST, DEFAULT_UNIT_TEST_LIST,
 CONFIG_DIR = None
 NAMED_SUITES = None
 LOGGER_DIR = None
+
+LOGGER_FILE = None
+LOGGING_CONFIG = None

@@ -1,15 +1,16 @@
 """Resmoke subcommand for listing all test suites."""
 
+from buildscripts.resmokelib import config
 from buildscripts.resmokelib import suitesconfig
 from buildscripts.resmokelib.commands import interface
 
-class ListSuites(interface.subcommand):
+class ListSuites(interface.Subcommand):
     """Class for list-suites subcommand."""
 
-    def execute(self, logger):
+    def execute(self):
         """Execute the command."""
-        self._list_suites(logger)
+        self._list_suites()
 
-    def _list_suites(self, logger):
+    def _list_suites(self):
         suite_names = suitesconfig.get_named_suites()
-        logger.info("Suites available to execute:\n%s", "\n".join(suite_names))
+        config.LOGGING_CONFIG.info("Suites available to execute:\n%s", "\n".join(suite_names))

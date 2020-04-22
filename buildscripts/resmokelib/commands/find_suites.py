@@ -3,7 +3,7 @@
 from buildscripts.resmokelib import suitesconfig
 from buildscripts.resmokelib.commands import interface
 
-class FindSuites(interface.subcommand):
+class FindSuites(interface.Subcommand):
     """Class for find-suites subcommand."""
 
     def execute(self):

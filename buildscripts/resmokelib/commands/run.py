@@ -43,7 +43,6 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
     def __init__(self):
         """Initialize the Resmoke instance."""
         self.__start_time = time.time()
-        self._config = None
         self._exec_logger = None
         self._resmoke_logger = None
         self._archive = None
@@ -51,12 +50,8 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
         self._interrupted = False
         self._exit_code = 0
 
-    def configure_from_command_line(self):
-        """Configure this instance using the command line arguments."""
-        self._config = parser.parse_command_line()
-
     def _setup_logging(self):
-        logging.loggers.configure_loggers(self._config.logging_config)
+        logging.loggers.configure_loggers(config.LOGGING_CONFIG)
         logging.flush.start_thread()
         self._exec_logger = logging.loggers.EXECUTOR_LOGGER
         self._resmoke_logger = self._exec_logger.new_resmoke_logger()
@@ -104,34 +99,19 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
         # pylint: disable=protected-access
         os._exit(self._exit_code)
 
-    def run_subcommand(self):
-        """Run the specified resmoke subcommand."""
-        if self._config is None:
-            raise RuntimeError("Resmoke must be configured before calling run_subcommand()")
+    def run(self):
+        """Execute the 'run' subcommand."""
         self._setup_logging()
 
-        subcommand = self._config.command
         try:
-            if subcommand == 'run':
-                self.run()
-            elif subcommand == 'list-suites':
-                self.list_suites()
-            elif subcommand == 'find-suites':
-                self.find_suites()
+            if config.dry_run == "tests":
+                self.dry_run()
             else:
-                raise RuntimeError(f"Resmoke configuration has invalid subcommand: {subcommand}")
+                self.run_tests()
         finally:
             # self._exit_logging() may never return when the log output is incomplete.
             # Our workaround is to call os._exit().
             self._exit_logging()
-
-    def run(self):
-        """Execute the 'run' subcommand."""
-
-        if self._config.dry_run == "tests":
-            self.dry_run()
-        else:
-            self.run_tests()
 
     def list_suites(self):
         """List the suites that are available to execute."""
@@ -280,7 +260,7 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
             utils.dump_yaml({"test_kind": suite.get_test_kind_config()}), "",
             utils.dump_yaml({"selector": suite.get_selector_config()}), "",
             utils.dump_yaml({"executor": suite.get_executor_config()}), "",
-            utils.dump_yaml({"logging": self._config.logging_config})
+            utils.dump_yaml({"logging": config.logging_config})
         ]
         self._resmoke_logger.info("\n".join(sb))
 

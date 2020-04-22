@@ -12,11 +12,19 @@ import datetime
 import pymongo.uri_parser
 
 from . import config as _config
-from . import parser
 from . import utils
 
-def validate_options(parser, args):
+def validate_and_update_config(parser, args):
+    """Validate inputs and update config module."""
+    _validate_options(parser, args)
+    _update_config_vars(args)
+    _validate_config(parser)
+
+def _validate_options(parser, args):
     """Do preliminary validation on the options and error on any invalid options."""
+
+    if not 'shell_port' in args or not 'shell_conn_strin' in args:
+        return
 
     if args.shell_port is not None and args.shell_conn_string is not None:
         parser.error("Cannot specify both `shellPort` and `shellConnString`")
@@ -27,7 +35,7 @@ def validate_options(parser, args):
                          args.executor_file, " ".join(args.test_files)))
 
 
-def validate_config(parser):
+def _validate_config(parser):
     """Do validation on the config settings."""
 
     if _config.REPEAT_TESTS_MAX:
@@ -69,7 +77,8 @@ def validate_benchmark_options():
             "results. Please use --jobs=1" % _config.JOBS)
 
 
-def update_config_vars(values):  # pylint: disable=too-many-statements,too-many-locals,too-many-branches
+
+def _update_config_vars(values):  # pylint: disable=too-many-statements,too-many-locals,too-many-branches
     """Update the variables of the config module."""
 
     config = _config.DEFAULTS.copy()
@@ -239,6 +248,9 @@ def update_config_vars(values):  # pylint: disable=too-many-statements,too-many-
         # connection URI.
         pymongo.uri_parser.parse_uri(conn_string)
         _config.SHELL_CONN_STRING = conn_string
+
+    logger_file = config.pop("logger_file")
+    _config.LOGGING_CONFIG = get_logging_config(logger_file)
 
     if config:
         raise ValueError(f"Unkown option(s): {list(config.keys())}s")

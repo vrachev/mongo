@@ -546,28 +546,26 @@ def parse_command_line():
     parser = _make_parser()
     args = parser.parse_args()
 
-    subcommand = args.command
-    if subcommand == 'run':
-        return RunConfig(subcommand, args.test_files, args.suite_files.split(","), args.dry_run,
-                         logging_config)
-    elif subcommand == 'list-suites':
-        return ListSuitesConfig(subcommand, logging_config)
-    elif subcommand == 'find-suites':
-        return FindSuitesConfig(subcommand, args.test_files, args.suite_files.split(","),
-                                logging_config)
-    else:
-        raise RuntimeError(f"Resmoke configuration has invalid subcommand: {subcommand}")
+    return (parser, args)
+
+    # if subcommand == 'run':
+    #     return RunConfig(subcommand, args.test_files, args.suite_files.split(","), args.dry_run,
+    #                      logging_config)
+    # elif subcommand == 'list-suites':
+    #     return ListSuitesConfig(subcommand, logging_config)
+    # elif subcommand == 'find-suites':
+    #     return FindSuitesConfig(subcommand, args.test_files, args.suite_files.split(","),
+    #                             logging_config)
+    # else:
+    #     raise RuntimeError(f"Resmoke configuration has invalid subcommand: {subcommand}")
 
 def set_options(argstr=''):
     """Populate the config module variables with the default options."""
     parser = _make_parser()
-    options, _args = parser.parse_args(args=shlex.split(argstr))
-    configure_resmoke.update_config_vars(options)
+    args = parser.parse_args(args=shlex.split(argstr))
+    configure_resmoke.validate_and_update_config(parser, args)
 
-def validate_and_set_options(args):
+def validate_and_set_options(parser, args):
     """Validate args and set config module variables."""
-    _validate_options(parser, args)
-    _update_config_vars(args)
-    _validate_config(parser)
-    logging_config = _get_logging_config(args.logger_file)
-
+    configure_resmoke.validate_and_update_config(parser, args)
+    logging_config = configure_resmoke.get_logging_config(args.logger_file)
