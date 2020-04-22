@@ -12,7 +12,7 @@ from . import configure_resmoke
 _EVERGREEN_ARGUMENT_TITLE = "Evergreen options"
 
 
-def _make_parser():  # pylint: disable=too-many-statements
+def _make_parser():
     """Create and return the command line arguments parser."""
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command")
@@ -25,7 +25,7 @@ def _make_parser():  # pylint: disable=too-many-statements
     return parser
 
 
-def _add_run(subparsers):
+def _add_run(subparsers):  # pylint: disable=too-many-statements
     """Create and add the parser for the Run subcommand."""
     parser = subparsers.add_parser("run", help="Runs the specified tests.")
 
@@ -402,7 +402,8 @@ def _add_run(subparsers):
 
 def _add_list_suites(subparsers):
     """Create and add the parser for the list-suites subcommand."""
-    parser = subparsers.add_parser("list-suites", help="Lists the names of the suites available to execute.")
+    parser = subparsers.add_parser("list-suites",
+                                   help="Lists the names of the suites available to execute.")
 
     parser.add_argument(
         "--log", dest="logger_file", metavar="LOGGER",
@@ -410,6 +411,7 @@ def _add_list_suites(subparsers):
               " located in the resmokeconfig/suites/ directory, then the basename"
               " without the .yml extension can be specified, e.g. 'console'."))
     parser.set_defaults(logger_file="console")
+
 
 def _add_find_suites(subparsers):
     """Create and add the parser for the find-suites subcommand."""
