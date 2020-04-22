@@ -15,12 +15,6 @@ _EVERGREEN_ARGUMENT_TITLE = "Evergreen options"
 def _make_parser():  # pylint: disable=too-many-statements
     """Create and return the command line arguments parser."""
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--log", dest="logger_file", metavar="LOGGER",
-        help=("A YAML file that specifies the logging configuration. If the file is"
-              " located in the resmokeconfig/suites/ directory, then the basename"
-              " without the .yml extension can be specified, e.g. 'console'."))
-    parser.set_defaults(logger_file="console")
     subparsers = parser.add_subparsers(dest="command")
 
     # Add sub-commands.
@@ -129,6 +123,13 @@ def _add_run(subparsers):
         "-j", "--jobs", type=int, dest="jobs", metavar="JOBS",
         help=("The number of Job instances to use. Each instance will receive its"
               " own MongoDB deployment to dispatch tests to."))
+
+    parser.add_argument(
+        "--log", dest="logger_file", metavar="LOGGER",
+        help=("A YAML file that specifies the logging configuration. If the file is"
+              " located in the resmokeconfig/suites/ directory, then the basename"
+              " without the .yml extension can be specified, e.g. 'console'."))
+    parser.set_defaults(logger_file="console")
 
     parser.add_argument("--mongo", dest="mongo_executable", metavar="PATH",
                         help="The path to the mongo shell executable for resmoke.py to use.")
@@ -401,8 +402,14 @@ def _add_run(subparsers):
 
 def _add_list_suites(subparsers):
     """Create and add the parser for the list-suites subcommand."""
-    subparsers.add_parser("list-suites", help="Lists the names of the suites available to execute.")
+    parser = subparsers.add_parser("list-suites", help="Lists the names of the suites available to execute.")
 
+    parser.add_argument(
+        "--log", dest="logger_file", metavar="LOGGER",
+        help=("A YAML file that specifies the logging configuration. If the file is"
+              " located in the resmokeconfig/suites/ directory, then the basename"
+              " without the .yml extension can be specified, e.g. 'console'."))
+    parser.set_defaults(logger_file="console")
 
 def _add_find_suites(subparsers):
     """Create and add the parser for the find-suites subcommand."""
@@ -411,6 +418,13 @@ def _add_find_suites(subparsers):
 
     parser.add_argument("test_files", metavar="TEST_FILES", nargs="*",
                         help="Explicit test files to run")
+
+    parser.add_argument(
+        "--log", dest="logger_file", metavar="LOGGER",
+        help=("A YAML file that specifies the logging configuration. If the file is"
+              " located in the resmokeconfig/suites/ directory, then the basename"
+              " without the .yml extension can be specified, e.g. 'console'."))
+    parser.set_defaults(logger_file="console")
 
     parser.add_argument(
         "--suites", dest="suite_files", metavar="SUITE1,SUITE2", required=True,
