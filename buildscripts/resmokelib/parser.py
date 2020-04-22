@@ -1,40 +1,13 @@
 """Parser for command line arguments."""
 
 import os
-import os.path
 import sys
 import shlex
-import configparser
 
-from typing import NamedTuple
-
-import datetime
 import argparse
-import pymongo.uri_parser
 
 from . import config as _config
 from . import configure_resmoke
-from . import utils
-
-
-class RunConfig(NamedTuple):
-    command: str
-    test_files: list
-    suite_files: list
-    dry_run: bool
-    logging_config: dict
-
-
-class ListSuitesConfig(NamedTuple):
-    command: str
-    logging_config: dict
-
-
-class FindSuitesConfig(NamedTuple):
-    command: str
-    test_files: list
-    suite_files: list
-    logging_config: dict
 
 
 _EVERGREEN_ARGUMENT_TITLE = "Evergreen options"
@@ -548,17 +521,6 @@ def parse_command_line():
 
     return (parser, args)
 
-    # if subcommand == 'run':
-    #     return RunConfig(subcommand, args.test_files, args.suite_files.split(","), args.dry_run,
-    #                      logging_config)
-    # elif subcommand == 'list-suites':
-    #     return ListSuitesConfig(subcommand, logging_config)
-    # elif subcommand == 'find-suites':
-    #     return FindSuitesConfig(subcommand, args.test_files, args.suite_files.split(","),
-    #                             logging_config)
-    # else:
-    #     raise RuntimeError(f"Resmoke configuration has invalid subcommand: {subcommand}")
-
 def set_options(argstr=''):
     """Populate the config module variables with the default options."""
     parser = _make_parser()
@@ -568,4 +530,4 @@ def set_options(argstr=''):
 def validate_and_set_options(parser, args):
     """Validate args and set config module variables."""
     configure_resmoke.validate_and_update_config(parser, args)
-    logging_config = configure_resmoke.get_logging_config(args.logger_file)
+    configure_resmoke.set_logging_config()

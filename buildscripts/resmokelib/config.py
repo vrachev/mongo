@@ -92,6 +92,7 @@ DEFAULTS = {
     "storage_engine_cache_size_gb": None,
     "suite_files": None,
     "tag_file": None,
+    "test_files": None,
     "transport_layer": None,
     "mixed_bin_versions": None,
     "linear_chain": None,

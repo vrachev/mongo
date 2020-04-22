@@ -169,7 +169,11 @@ def _update_config_vars(values):  # pylint: disable=too-many-statements,too-many
     _config.STAGGER_JOBS = config.pop("stagger_jobs") == "on"
     _config.STORAGE_ENGINE = config.pop("storage_engine")
     _config.STORAGE_ENGINE_CACHE_SIZE = config.pop("storage_engine_cache_size_gb")
+    _config.SUITE_FILES = config.pop("suite_files")
+    if _config.SUITE_FILES is not None:
+        _config.SUITE_FILES = _config.SUITE_FILES.split(",")
     _config.TAG_FILE = config.pop("tag_file")
+    _config.TEST_FILES = config.pop("test_files")
     _config.TRANSPORT_LAYER = config.pop("transport_layer")
 
     # Internal testing options.
@@ -249,20 +253,21 @@ def _update_config_vars(values):  # pylint: disable=too-many-statements,too-many
         pymongo.uri_parser.parse_uri(conn_string)
         _config.SHELL_CONN_STRING = conn_string
 
-    logger_file = config.pop("logger_file")
-    _config.LOGGING_CONFIG = get_logging_config(logger_file)
+    _config.LOGGER_FILE = config.pop("logger_file")
 
     if config:
         raise ValueError(f"Unkown option(s): {list(config.keys())}s")
 
 
-def get_logging_config(pathname):
+def set_logging_config():
     """Read YAML configuration from 'pathname' how to log tests and fixtures."""
+    pathname = _config.LOGGER_FILE
     try:
         # If the user provides a full valid path to a logging config
         # we don't need to search LOGGER_DIR for the file.
         if os.path.exists(pathname):
-            return utils.load_yaml_file(pathname).pop("logging")
+            _config.LOGGING_CONFIG = utils.load_yaml_file(pathname).pop("logging")
+            return
 
         root = os.path.abspath(_config.LOGGER_DIR)
         files = os.listdir(root)
@@ -272,7 +277,8 @@ def get_logging_config(pathname):
                 config_file = os.path.join(root, filename)
                 if not os.path.isfile(config_file):
                     raise ValueError("Expected a logger YAML config, but got '%s'" % pathname)
-                return utils.load_yaml_file(config_file).pop("logging")
+                _config.LOGGING_CONFIG = utils.load_yaml_file(config_file).pop("logging")
+                return
 
         raise ValueError("Unknown logger '%s'" % pathname)
     except FileNotFoundError:

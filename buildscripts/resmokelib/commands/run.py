@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Command line utility for executing MongoDB tests of all kinds."""
 
 import os
@@ -18,10 +17,6 @@ try:
 except ImportError:
     pass
 
-# Get relative imports to work when the package is not installed on the PYTHONPATH.
-if __name__ == "__main__" and __package__ is None:
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 # pylint: disable=wrong-import-position
 from buildscripts.resmokelib import config
 from buildscripts.resmokelib import errors
@@ -33,16 +28,19 @@ from buildscripts.resmokelib import suitesconfig
 from buildscripts.resmokelib import testing
 from buildscripts.resmokelib import utils
 
+from buildscripts.resmokelib.commands import interface
+
 from buildscripts.resmokelib.core import process
 from buildscripts.resmokelib.core import jasper_process
 
 
-class Resmoke(object):  # pylint: disable=too-many-instance-attributes
+class TestRunner(interface.Subcommand):  # pylint: disable=too-many-instance-attributes
     """The main class to run tests with resmoke."""
 
-    def __init__(self):
+    def __init__(self, start_time, command):
         """Initialize the Resmoke instance."""
-        self.__start_time = time.time()
+        self.__start_time = start_time
+        self.__command = command
         self._exec_logger = None
         self._resmoke_logger = None
         self._archive = None
@@ -99,12 +97,16 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
         # pylint: disable=protected-access
         os._exit(self._exit_code)
 
-    def run(self):
+    def execute(self):
         """Execute the 'run' subcommand."""
         self._setup_logging()
 
         try:
-            if config.dry_run == "tests":
+            if self.__command == "list-suites":
+                self.list_suites()
+            elif self.__command == "find-suites":
+                self.find_suites()
+            elif config.DRY_RUN == "tests":
                 self.dry_run()
             else:
                 self.run_tests()
@@ -200,7 +202,7 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
     def _log_resmoke_summary(self, suites):
         """Log a summary of the resmoke run."""
         time_taken = time.time() - self.__start_time
-        if len(self._config.suite_files) > 1:
+        if len(config.SUITE_FILES) > 1:
             testing.suite.Suite.log_summaries(self._resmoke_logger, suites, time_taken)
 
     def _log_suite_summary(self, suite):
@@ -248,7 +250,7 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
     def _get_suites(self):
         """Return the list of suites for this resmoke invocation."""
         try:
-            return suitesconfig.get_suites(self._config.suite_files, self._config.test_files)
+            return suitesconfig.get_suites(config.SUITE_FILES, config.TEST_FILES)
         except errors.SuiteNotFound as err:
             self._resmoke_logger.error("Failed to parse YAML suite definition: %s", str(err))
             self.list_suites()
@@ -260,7 +262,7 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
             utils.dump_yaml({"test_kind": suite.get_test_kind_config()}), "",
             utils.dump_yaml({"selector": suite.get_selector_config()}), "",
             utils.dump_yaml({"executor": suite.get_executor_config()}), "",
-            utils.dump_yaml({"logging": config.logging_config})
+            utils.dump_yaml({"logging": config.LOGGING_CONFIG})
         ]
         self._resmoke_logger.info("\n".join(sb))
 
@@ -386,14 +388,3 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
         self._exit_code = exit_code
         self._resmoke_logger.info("Exiting with code: %d", exit_code)
         sys.exit(exit_code)
-
-
-def main():
-    """Execute Main function for resmoke."""
-    resmoke = Resmoke()
-    resmoke.configure_from_command_line()
-    resmoke.run_subcommand()
-
-
-if __name__ == "__main__":
-    main()

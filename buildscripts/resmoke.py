@@ -31,16 +31,10 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
         """Run the specified resmoke subcommand."""
 
         subcommand = args.command
-        if subcommand == 'find-suites':
+        if subcommand == 'find-suites' or subcommand == 'list-suites' or subcommand == 'run':
             parser.validate_and_set_options(parser_obj, args)
-            commands.run(self.__start_time)
-        if subcommand == 'list-suites':
-            parser.validate_and_set_options(parser_obj, args)
-            list_suites = commands.list_suites.ListSuites()
-            list_suites.execute()
-        elif subcommand == 'run':
-            parser.validate_and_set_options(parser_obj, args)
-            self.find_suites()
+            test_runner = commands.run.TestRunner(self.__start_time, subcommand)
+            test_runner.execute()
         else:
             raise RuntimeError(f"Resmoke configuration has invalid subcommand: {subcommand}")
 
