@@ -245,3 +245,41 @@ class TestLocalCommandLine(unittest.TestCase):
         ])
 
         self.assertEqual(cmdline, ["--suites=my_suite", "--storageEngine=my_storage_engine"])
+
+
+class TestParseCommandLine(unittest.TestCase):
+    """Unit tests for the parse_command_line() function."""
+
+    def test_fils_at_end(self):
+        _, args = _parser.parse_command_line([
+            "run",
+            "--suites=my_suite1,my_suite2",
+            "test_file1.js",
+            "test_file2.js",
+            "test_file3.js",
+        ])
+
+        self.assertEqual(args.test_files, [
+            "test_file1.js",
+            "test_file2.js",
+            "test_file3.js",
+        ])
+        # suites get split up when config.py gets populated
+        self.assertEqual(args.suite_files, "my_suite1,my_suite2")
+
+    def test_files_in_the_middle(self):
+        _, args = _parser.parse_command_line([
+            "run",
+            "--storageEngine=my_storage_engine",
+            "test_file1.js",
+            "test_file2.js",
+            "test_file3.js",
+            "--suites=my_suite1",
+        ])
+
+        self.assertEqual(args.test_files, [
+            "test_file1.js",
+            "test_file2.js",
+            "test_file3.js",
+        ])
+        self.assertEqual(args.suite_files, "my_suite1")

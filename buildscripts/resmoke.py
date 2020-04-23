@@ -25,7 +25,7 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
 
     def configure_from_command_line(self):  # pylint: disable=no-self-use
         """Configure this instance using the command line arguments."""
-        return parser.parse_command_line()
+        return parser.parse_command_line(sys.argv[1:])
 
     def execute_subcommand(self, parser_obj, args):
         """Run the specified resmoke subcommand."""

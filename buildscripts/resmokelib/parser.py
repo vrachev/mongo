@@ -529,10 +529,10 @@ def to_local_args(input_args=None):  # pylint: disable=too-many-branches,too-man
     return [arg for arg in (suites_arg, storage_engine_arg) if arg is not None] + other_local_args
 
 
-def parse_command_line():
+def parse_command_line(sys_args):
     """Parse the command line arguments passed to resmoke.py."""
     parser = _make_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(sys_args)
 
     return (parser, args)
 
