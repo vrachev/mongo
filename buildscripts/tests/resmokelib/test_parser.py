@@ -7,6 +7,7 @@ from buildscripts.resmokelib import parser as _parser
 # pylint: disable=missing-docstring
 
 
+@unittest.skip("TODO: SERVER-47611")
 class TestLocalCommandLine(unittest.TestCase):
     """Unit tests for the to_local_args() function."""
 
