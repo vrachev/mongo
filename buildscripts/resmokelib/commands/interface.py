@@ -6,4 +6,4 @@ class Subcommand(object):
 
     def execute(self):
         """Execute the subcommand."""
-        raise NotImplementedError("run_test must be implemented by TestCase subclasses")
+        raise NotImplementedError("execue must be implemented by Subcommand subclasses")
