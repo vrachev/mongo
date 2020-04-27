@@ -396,9 +396,6 @@ SPAWN_USING = None
 # If true, the launching of jobs is staggered in resmoke.py.
 STAGGER_JOBS = None
 
-# Yaml suites that specify how tests should be executed.
-SUITE_FILES = None
-
 # If set to true, it enables read concern majority. Else, read concern majority is disabled.
 MAJORITY_READ_CONCERN = None
 
@@ -429,7 +426,7 @@ STORAGE_ENGINE = None
 # storage engine cache size.
 STORAGE_ENGINE_CACHE_SIZE = None
 
-# Run tests using the configuration in the specified yaml suite files.
+# Yaml suites that specify how tests should be executed.
 SUITE_FILES = None
 
 # The tag file to use that associates tests with tags.
