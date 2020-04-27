@@ -8,6 +8,7 @@ import argparse
 
 from . import config as _config
 from . import configure_resmoke
+from . import commands
 
 _EVERGREEN_ARGUMENT_TITLE = "Evergreen options"
 
@@ -529,12 +530,40 @@ def to_local_args(input_args=None):  # pylint: disable=too-many-branches,too-man
     return [arg for arg in (suites_arg, storage_engine_arg) if arg is not None] + other_local_args
 
 
-def parse_command_line(sys_args):
-    """Parse the command line arguments passed to resmoke.py."""
-    parser = _make_parser()
-    args = parser.parse_args(sys_args)
+def parse_command_line(sys_args, **kwargs):
+    """Parse the command line arguments passed to resmoke.py and return the subcommand object to execute."""
+    parser, parsed_args = parse(sys_args)
 
-    return (parser, args)
+    return create_subcommand(parser, parsed_args, **kwargs)
+
+
+def parse(sys_args):
+    """Parse the CLI args."""
+
+    # Split out this function for easier testing.
+    parser = _make_parser()
+    parsed_args = parser.parse_args(sys_args)
+
+    return (parser, parsed_args)
+
+
+def create_subcommand(parser, parsed_args, **kwargs):
+    """Creates a subcommand object based on args passed into resmoke.py."""
+
+    subcommand = parsed_args.command
+    subcommand_obj = None
+    if subcommand in ('find-suites', 'list-suites', 'run'):
+        validate_and_set_options(parser, parsed_args)
+        if _config.EVERGREEN_TASK_ID is not None:
+            subcommand_obj = commands.run.TestRunnerEvg(subcommand, **kwargs)
+        else:
+            subcommand_obj = commands.run.TestRunner(subcommand, **kwargs)
+
+    if subcommand_obj is None:
+        raise RuntimeError(
+            f"Resmoke configuration has invalid subcommand: {subcommand}. Try '--help'")
+
+    return subcommand_obj
 
 
 def set_options(argstr=''):

@@ -13,7 +13,6 @@ if __name__ == "__main__" and __package__ is None:
 # pylint: disable=wrong-import-position
 from buildscripts.resmokelib import config
 from buildscripts.resmokelib import parser
-from buildscripts.resmokelib import commands
 
 
 class Resmoke(object):  # pylint: disable=too-many-instance-attributes
@@ -25,29 +24,18 @@ class Resmoke(object):  # pylint: disable=too-many-instance-attributes
 
     def configure_from_command_line(self):  # pylint: disable=no-self-use
         """Configure this instance using the command line arguments."""
-        return parser.parse_command_line(sys.argv[1:])
+        return parser.parse_command_line(sys.argv[1:], start_time=self.__start_time)
 
-    def execute_subcommand(self, parser_obj, args):
+    def execute_subcommand(self, subcommand):  # pylint: disable=no-self-use
         """Run the specified resmoke subcommand."""
-
-        subcommand = args.command
-        if subcommand in ('find-suites', 'list-suites', 'run'):
-            parser.validate_and_set_options(parser_obj, args)
-            if config.EVERGREEN_TASK_ID is not None:
-                test_runner = commands.run.TestRunnerEvg(self.__start_time, subcommand)
-            else:
-                test_runner = commands.run.TestRunner(self.__start_time, subcommand)
-            test_runner.execute()
-        else:
-            raise RuntimeError(
-                f"Resmoke configuration has invalid subcommand: {subcommand}. Try '--help'")
+        subcommand.execute()
 
 
 def main():
     """Execute Main function for resmoke."""
     resmoke = Resmoke()
-    parser_obj, args = resmoke.configure_from_command_line()
-    resmoke.execute_subcommand(parser_obj, args)
+    subcommand = resmoke.configure_from_command_line()
+    resmoke.execute_subcommand(subcommand)
 
 
 if __name__ == "__main__":

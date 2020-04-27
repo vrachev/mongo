@@ -38,7 +38,7 @@ from buildscripts.resmokelib.core import jasper_process
 class TestRunner(interface.Subcommand):  # pylint: disable=too-many-instance-attributes
     """The main class to run tests with resmoke."""
 
-    def __init__(self, start_time, command):
+    def __init__(self, command, start_time=time.time()):
         """Initialize the Resmoke instance."""
         self.__start_time = start_time
         self.__command = command

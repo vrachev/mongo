@@ -247,11 +247,11 @@ class TestLocalCommandLine(unittest.TestCase):
         self.assertEqual(cmdline, ["--suites=my_suite", "--storageEngine=my_storage_engine"])
 
 
-class TestParseCommandLine(unittest.TestCase):
-    """Unit tests for the parse_command_line() function."""
+class TestParseArgs(unittest.TestCase):
+    """Unit tests for the parse() function."""
 
-    def test_fils_at_end(self):
-        _, args = _parser.parse_command_line([
+    def test_files_at_end(self):
+        _, args = _parser.parse([
             "run",
             "--suites=my_suite1,my_suite2",
             "test_file1.js",
@@ -268,7 +268,7 @@ class TestParseCommandLine(unittest.TestCase):
         self.assertEqual(args.suite_files, "my_suite1,my_suite2")
 
     def test_files_in_the_middle(self):
-        _, args = _parser.parse_command_line([
+        _, args = _parser.parse([
             "run",
             "--storageEngine=my_storage_engine",
             "test_file1.js",
@@ -283,3 +283,19 @@ class TestParseCommandLine(unittest.TestCase):
             "test_file3.js",
         ])
         self.assertEqual(args.suite_files, "my_suite1")
+
+
+class TestParseCommandLine(unittest.TestCase):
+    """Unit tests for the parse_command_line() function."""
+
+    def test_find_suites(self):
+        subcommand_obj = _parser.parse_command_line(['find-suites', '--suites=my_suite'])
+        self.assertTrue(hasattr(subcommand_obj, 'execute'))
+
+    def test_list_suites(self):
+        subcommand_obj = _parser.parse_command_line(['list-suites'])
+        self.assertTrue(hasattr(subcommand_obj, 'execute'))
+
+    def test_run(self):
+        subcommand_obj = _parser.parse_command_line(['run', '--suite=my_suite', 'my_test.js'])
+        self.assertTrue(hasattr(subcommand_obj, 'execute'))
