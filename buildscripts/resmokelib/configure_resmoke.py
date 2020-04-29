@@ -20,6 +20,7 @@ def validate_and_update_config(parser, args):
     _validate_options(parser, args)
     _update_config_vars(args)
     _validate_config(parser)
+    _set_logging_config()
 
 
 def _validate_options(parser, args):
@@ -58,25 +59,6 @@ def _validate_config(parser):
             if version not in set(['old', 'new']):
                 parser.error("Must specify binary versions as 'old' or 'new' in format"
                              " 'version1-version2'")
-
-
-def validate_benchmark_options():
-    """Error out early if any options are incompatible with benchmark test suites.
-
-    :return: None
-    """
-
-    if _config.REPEAT_SUITES > 1 or _config.REPEAT_TESTS > 1 or _config.REPEAT_TESTS_SECS:
-        raise ValueError(
-            "--repeatSuites/--repeatTests cannot be used with benchmark tests. "
-            "Please use --benchmarkMinTimeSecs to increase the runtime of a single benchmark "
-            "configuration.")
-
-    if _config.JOBS > 1:
-        raise ValueError(
-            "--jobs=%d cannot be used for benchmark tests. Parallel jobs affect CPU cache access "
-            "patterns and cause additional context switching, which lead to inaccurate benchmark "
-            "results. Please use --jobs=1" % _config.JOBS)
 
 
 def _update_config_vars(values):  # pylint: disable=too-many-statements,too-many-locals,too-many-branches
@@ -260,7 +242,7 @@ def _update_config_vars(values):  # pylint: disable=too-many-statements,too-many
         raise ValueError(f"Unkown option(s): {list(config.keys())}s")
 
 
-def set_logging_config():
+def _set_logging_config():
     """Read YAML configuration from 'pathname' how to log tests and fixtures."""
     pathname = _config.LOGGER_FILE
     try:
