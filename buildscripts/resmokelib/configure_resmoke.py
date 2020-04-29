@@ -92,6 +92,7 @@ def _update_config_vars(values):  # pylint: disable=too-many-statements,too-many
             config.update(user_config)
 
     _config.ALWAYS_USE_LOG_FILES = config.pop("always_use_log_files")
+    _config.ARCHIVE_FILE = config.pop("archive_file")
     _config.IS_ASAN_BUILD = config.pop("is_asan_build")
     _config.BASE_PORT = int(config.pop("base_port"))
     _config.BUILDLOGGER_URL = config.pop("buildlogger_url")
@@ -158,9 +159,6 @@ def _update_config_vars(values):  # pylint: disable=too-many-statements,too-many
     _config.TAG_FILE = config.pop("tag_file")
     _config.TEST_FILES = config.pop("test_files")
     _config.TRANSPORT_LAYER = config.pop("transport_layer")
-
-    # Internal testing options.
-    _config.INTERNAL_PARAMS = config.pop("internal_params")
 
     # Evergreen options.
     _config.EVERGREEN_BUILD_ID = config.pop("build_id")

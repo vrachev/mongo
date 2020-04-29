@@ -56,7 +56,8 @@ def _add_run(subparsers):  # pylint: disable=too-many-statements
         help=("Logs server output to a file located in the db path and prevents the"
               " cleaning of dbpaths after testing. Note that conflicting options"
               " passed in from test files may cause an error."))
-    parser.add_option(
+
+    parser.add_argument(
         "--archiveFile", dest="archive_file", metavar="ARCHIVE_FILE",
         help=("Sets the archive file name for the Evergreen task running the tests."
               " The archive file is JSON format containing a list of tests that were"
@@ -114,7 +115,7 @@ def _add_run(subparsers):  # pylint: disable=too-many-statements
               " only tests which have at least one of the specified tags will be"
               " run."))
 
-    parser.add_option("-n", action="store_const", const="tests", dest="dry_run",
+    parser.add_argument("-n", action="store_const", const="tests", dest="dry_run",
                       help="Outputs the tests that would be run.")
 
     # TODO: add support for --dryRun=commands
