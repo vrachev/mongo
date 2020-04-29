@@ -116,7 +116,7 @@ def _add_run(subparsers):  # pylint: disable=too-many-statements
               " run."))
 
     parser.add_argument("-n", action="store_const", const="tests", dest="dry_run",
-                      help="Outputs the tests that would be run.")
+                        help="Outputs the tests that would be run.")
 
     # TODO: add support for --dryRun=commands
     parser.add_argument(
