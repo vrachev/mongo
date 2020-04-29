@@ -564,7 +564,7 @@ def parse_command_line(sys_args, **kwargs):
     return create_subcommand(parser, parsed_args, **kwargs)
 
 
-def set_options(argstr=''):
-    """Populate the config module variables with the default options."""
-    parser, parsed_args = _parse(shlex.split(argstr))
+def set_run_options(argstr=''):
+    """Populate the config module variables for the 'run' subcommand with the default options."""
+    parser, parsed_args = _parse(['run'] + shlex.split(argstr))
     configure_resmoke.validate_and_update_config(parser, parsed_args)

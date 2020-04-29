@@ -22,7 +22,7 @@ from buildscripts.ciconfig.evergreen import parse_evergreen_file
 import buildscripts.util.teststats as teststats_utils
 import buildscripts.resmokelib.parser as _parser
 import buildscripts.resmokelib.config as _config
-_parser.set_options()
+_parser.set_run_options()
 
 # pylint: disable=missing-docstring,protected-access,too-many-lines,no-self-use
 
@@ -77,7 +77,7 @@ def get_evergreen_config(config_file_path):
 
 class TestAcceptance(unittest.TestCase):
     def tearDown(self):
-        _parser.set_options()
+        _parser.set_run_options()
 
     @patch(ns("write_file"))
     def test_no_tests_run_if_none_changed(self, write_json_mock):
