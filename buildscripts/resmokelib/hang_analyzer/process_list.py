@@ -4,11 +4,17 @@ import os
 import io
 import sys
 import csv
-from collections import namedtuple
+from typing import List, NamedTuple
 
 from buildscripts.resmokelib.hang_analyzer.process import call, callo, find_program
 
-Pinfo = namedtuple('Pinfo', ['pid', 'name'])
+# Pinfo = namedtuple('Pinfo', ['name', 'pid'])
+# PTypeInfo = namedtuple('PTypeInfo', ['name', 'pids'])
+
+class Pinfo(NamedTuple):
+    """Holds a list of PIDs of the same process type."""
+    name: str
+    pids: List[int]
 
 
 def get_processes(process_ids, interesting_processes, process_match, logger):
@@ -34,10 +40,19 @@ def get_processes(process_ids, interesting_processes, process_match, logger):
     all_processes = [(pid, process_name.lower()) for (pid, process_name) in all_processes]
 
     if process_ids:
+        process_types = {pname for (_, pname) in all_processes}
         processes = [
-            Pinfo(pid=pid, name=pname) for (pid, pname) in all_processes
-            if pid in process_ids and pid != os.getpid()
+            Pinfo(
+                name=ptype, pids=[
+                    pid for (pid, pname) in all_processes
+                    if pname == ptype and pid in process_ids and pid != os.getpid()
+                ]) for ptype in process_types
         ]
+
+        # processes = [
+        #     Pinfo(pid=pid, name=pname) for (pid, pname) in all_processes
+        #     if pid in process_ids and pid != os.getpid()
+        # ]
 
         running_pids = {pid for (pid, pname) in all_processes}
         missing_pids = set(process_ids) - running_pids
@@ -46,9 +61,17 @@ def get_processes(process_ids, interesting_processes, process_match, logger):
                            list(missing_pids))
     else:
         processes = [
-            Pinfo(pid=pid, name=pname) for (pid, pname) in all_processes
-            if _pname_match(process_match, pname, interesting_processes) and pid != os.getpid()
+            Pinfo(
+                name=ptype, pids=[
+                    pid for (pid, pname) in all_processes
+                    if pname == ptype and _pname_match(process_match, pname, interesting_processes)
+                    and pid != os.getpid()
+                ]) for ptype in interesting_processes
         ]
+        # processes = [
+        #     Pinfo(pid=pid, name=pname) for (pid, pname) in all_processes
+        #     if _pname_match(process_match, pname, interesting_processes) and pid != os.getpid()
+        # ]
 
     logger.info("Found %d interesting processes %s", len(processes), processes)
     return processes

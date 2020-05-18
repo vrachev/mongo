@@ -34,7 +34,7 @@ class Dumper(object):
     """Abstract base class for OS-specific dumpers."""
 
     def dump_info(  # pylint: disable=too-many-arguments,too-many-locals
-            self, root_logger, logger, pinfo, take_dump):
+            self, root_logger, logger, p_type_info, take_dump):
         """
         Perform dump for a process.
 
@@ -213,24 +213,16 @@ class GDBDumper(Dumper):
         return find_program(debugger, ['/opt/mongodbtoolchain/gdb/bin', '/usr/bin'])
 
     def dump_info(  # pylint: disable=too-many-arguments,too-many-locals
-            self, root_logger, logger, pinfo, take_dump):
+            self, root_logger, logger, p_type_info, take_dump):
         """Dump info."""
         debugger = "gdb"
         dbg = self.__find_debugger(debugger)
 
         if dbg is None:
-            logger.warning("Debugger %s not found, skipping dumping of %d", debugger, pinfo.pid)
+            logger.warning(f"Debugger {debugger} not found, skipping dumping of {p_type_info.pids}")
             return
 
-        root_logger.info("Debugger %s, analyzing %s process with PID %d", dbg, pinfo.name,
-                         pinfo.pid)
-
-        dump_command = ""
-        if take_dump:
-            # Dump to file, dump_<process name>.<pid>.core
-            dump_file = "dump_%s.%d.%s" % (pinfo.name, pinfo.pid, self.get_dump_ext())
-            dump_command = "gcore %s" % dump_file
-            root_logger.info("Dumping core to %s", dump_file)
+        root_logger.info(f"Debugger {dbg}, analyzing {p_type_info.name} processes with PIDs {p_type_info.pids}")
 
         call([dbg, "--version"], logger)
 
@@ -247,8 +239,6 @@ class GDBDumper(Dumper):
         mongodb_dump_locks = "mongodb-dump-locks"
         mongodb_show_locks = "mongodb-show-locks"
         mongodb_uniqstack = "mongodb-uniqstack mongodb-bt-if-active"
-        mongodb_waitsfor_graph = "mongodb-waitsfor-graph debugger_waitsfor_%s_%d.gv" % \
-            (pinfo.name, pinfo.pid)
         mongodb_javascript_stack = "mongodb-javascript-stack"
         mongod_dump_sessions = "mongod-dump-sessions"
         mongodb_dump_mutexes = "mongodb-dump-mutexes"
@@ -272,33 +262,47 @@ class GDBDumper(Dumper):
         cmds = [
             "set interactive-mode off",
             "set print thread-events off",  # Suppress GDB messages of threads starting/finishing.
-            "attach %d" % pinfo.pid,
-            "info sharedlibrary",
-            "info threads",  # Dump a simple list of commands to get the thread name
             "set python print-stack full",
-        ] + raw_stacks_commands + [
-            source_mongo,
-            source_mongo_printers,
-            source_mongo_lock,
-            mongodb_uniqstack,
-            # Lock the scheduler, before running commands, which execute code in the attached process.
-            "set scheduler-locking on",
-            dump_command,
-            mongodb_dump_locks,
-            mongodb_show_locks,
-            mongodb_waitsfor_graph,
-            mongodb_javascript_stack,
-            mongod_dump_sessions,
-            mongodb_dump_mutexes,
-            mongodb_dump_recovery_units,
-            "set confirm off",
-            "quit",
         ]
+
+        for pid in p_type_info.pids:
+            dump_command = ""
+            if take_dump:
+                # Dump to file, dump_<process name>.<pid>.core
+                dump_file = "dump_%s.%d.%s" % (p_type_info.name, pid, self.get_dump_ext())
+                dump_command = "gcore %s" % dump_file
+                root_logger.info("Dumping core to %s", dump_file)
+
+            mongodb_waitsfor_graph = "mongodb-waitsfor-graph debugger_waitsfor_%s_%d.gv" % \
+                (p_type_info.name, pid)
+
+            cmds += [
+                "attach %d" % pid,
+                "info sharedlibrary",
+                "info threads",  # Dump a simple list of commands to get the thread name
+            ] + raw_stacks_commands + [
+                source_mongo,
+                source_mongo_printers,
+                source_mongo_lock,
+                mongodb_uniqstack,
+                # Lock the scheduler, before running commands, which execute code in the attached process.
+                "set scheduler-locking on",
+                dump_command,
+                mongodb_dump_locks,
+                mongodb_show_locks,
+                mongodb_waitsfor_graph,
+                mongodb_javascript_stack,
+                mongod_dump_sessions,
+                mongodb_dump_mutexes,
+                mongodb_dump_recovery_units,
+            ]
+
+        cmds += ["set confirm off", "quit"]
 
         call([dbg, "--quiet", "--nx"] + list(
             itertools.chain.from_iterable([['-ex', b] for b in cmds])), logger)
 
-        root_logger.info("Done analyzing %s process with PID %d", pinfo.name, pinfo.pid)
+        root_logger.info(f"Done analyzing {p_type_info.name} processes with PIDs {p_type_info.pids}")
 
     @staticmethod
     def get_dump_ext():
