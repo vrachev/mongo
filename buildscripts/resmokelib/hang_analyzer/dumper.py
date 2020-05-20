@@ -41,7 +41,7 @@ class Dumper(object):
 
         :param root_logger: Top-level logger
         :param logger: Logger to output dump info to
-        :param output: 'stdout' or 'file
+        :param output: 'stdout' or 'file'
         :param pinfo: A Pinfo describing the process
         :param take_dump: Whether to take a core dump
         """
