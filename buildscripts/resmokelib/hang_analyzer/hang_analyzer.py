@@ -61,21 +61,30 @@ class HangAnalyzer(Subcommand):
         processes = process_list.get_processes(self.process_ids, self.interesting_processes,
                                                self.options.process_match, self.root_logger)
 
+        print(processes)
+        print("--------")
+        print(self.process_ids)
+        print("--------")
+        print(self.interesting_processes)
+        print("--------")
+        print(self.options.process_match)
+        print("--------")
+
         max_dump_size_bytes = int(self.options.max_core_dumps_size) * 1024 * 1024
 
         # Dump python processes by signalling them. The resmoke.py process will generate
         # the report.json, when signalled, so we do this before attaching to other processes.
         for pinfo in [pinfo for pinfo in processes if pinfo.name.startswith("python")]:
-            signal_python(self.root_logger, pinfo)
+            for pid in pinfo.pids:
+                signal_python(self.root_logger, pinfo.name, pid)
 
         trapped_exceptions = []
 
         # Dump all processes, except python & java.
         for pinfo in [pinfo for pinfo in processes if not re.match("^(java|python)", pinfo.name)]:
-            process_logger = self._get_process_logger(pinfo)
             try:
                 dumpers.dbg.dump_info(
-                    self.root_logger, process_logger, pinfo, self.options.dump_core
+                    self.root_logger, self.options.debugger_output, pinfo, self.options.dump_core
                     and _check_dump_quota(max_dump_size_bytes, dumpers.dbg.get_dump_ext()))
             except Exception as err:  # pylint: disable=broad-except
                 self.root_logger.info("Error encountered when invoking debugger %s", err)
@@ -83,21 +92,22 @@ class HangAnalyzer(Subcommand):
 
         # Dump java processes using jstack.
         for pinfo in [pinfo for pinfo in processes if pinfo.name.startswith("java")]:
-            process_logger = self._get_process_logger(pinfo)
-            try:
-                dumpers.jstack.dump_info(self.root_logger, pinfo.pid)
-            except Exception as err:  # pylint: disable=broad-except
-                self.root_logger.info("Error encountered when invoking debugger %s", err)
-                trapped_exceptions.append(traceback.format_exc())
+            for pid in pinfo.pids:
+                try:
+                    dumpers.jstack.dump_info(self.root_logger, self.options.debugger_output, pinfo.name, pid)
+                except Exception as err:  # pylint: disable=broad-except
+                    self.root_logger.info("Error encountered when invoking debugger %s", err)
+                    trapped_exceptions.append(traceback.format_exc())
 
         # Signal go processes to ensure they print out stack traces, and die on POSIX OSes.
         # On Windows, this will simply kill the process since python emulates SIGABRT as
         # TerminateProcess.
         # Note: The stacktrace output may be captured elsewhere (i.e. resmoke).
         for pinfo in [pinfo for pinfo in processes if pinfo.name in self.go_processes]:
-            self.root_logger.info("Sending signal SIGABRT to go process %s with PID %d", pinfo.name,
-                                  pinfo.pid)
-            signal_process(self.root_logger, pinfo.pid, signal.SIGABRT)
+            for pid in pinfo.pids:
+                self.root_logger.info("Sending signal SIGABRT to go process %s with PID %d", pinfo.name,
+                                    pid)
+                signal_process(self.root_logger, pid, signal.SIGABRT)
 
         self.root_logger.info("Done analyzing all processes for hangs")
 
@@ -154,25 +164,6 @@ class HangAnalyzer(Subcommand):
         except AttributeError:
             self.root_logger.warning(
                 "Cannot determine Unix Current Login, not supported on Windows")
-
-    def _get_process_logger(self, pinfo):
-        """Return the process logger from options specified."""
-        process_logger = logging.Logger("process", level=logging.DEBUG)
-        process_logger.mongo_process_filename = None
-
-        if 'stdout' in self.options.debugger_output:
-            s_handler = logging.StreamHandler(sys.stdout)
-            s_handler.setFormatter(logging.Formatter(fmt="%(message)s"))
-            process_logger.addHandler(s_handler)
-
-        if 'file' in self.options.debugger_output:
-            filename = "debugger_%s_%d.log" % (os.path.splitext(pinfo.name)[0], pinfo.pid)
-            process_logger.mongo_process_filename = filename
-            f_handler = logging.FileHandler(filename=filename, mode="w")
-            f_handler.setFormatter(logging.Formatter(fmt="%(message)s"))
-            process_logger.addHandler(f_handler)
-
-        return process_logger
 
 
 def _check_dump_quota(quota, ext):

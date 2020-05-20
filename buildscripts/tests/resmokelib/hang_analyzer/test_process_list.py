@@ -1,0 +1,121 @@
+"""Unit tests for the buildscripts.resmokelib.hang_analyzer.process_list module."""
+
+import logging
+import unittest
+
+from mock import Mock, patch
+
+from buildscripts.resmokelib.hang_analyzer.process_list import Pinfo, get_processes
+
+# # pylint: disable=missing-docstring
+
+NS = "buildscripts.resmokelib.hang_analyzer.process_list"
+
+def ns(relative_name):  # pylint: disable=invalid-name
+    """Return a full name from a name relative to the test module"s name space."""
+    return NS + "." + relative_name
+
+class TestGetProcesses(unittest.TestCase):
+    """Unit tests for the get_processes method."""
+
+    @patch(ns("os.getpid"))
+    def test_interesting_processes(self, os_mock):
+        os_mock.getpid.return_value = -1
+
+        process_ids = None
+        interesting_processes = ['python', 'mongo', 'mongod']
+        process_match = "exact"
+        logger = Mock()
+        all_processes = [
+            (1, "python"),
+            (2, "mongo"),
+            (3, "python"),
+            (4, "mongod"),
+            (5, "java") # this should be ignored.
+        ]
+
+        processes = get_processes(process_ids, interesting_processes, process_match, logger, all_processes)
+
+        self.assertCountEqual(processes, [
+            Pinfo(name="python", pids=[1, 3]),
+            Pinfo(name="mongo", pids=[2]),
+            Pinfo(name="mongod", pids=[4])
+        ])
+
+    @patch(ns("os.getpid"))
+    def test_interesting_processes_and_process_ids(self, os_mock):
+        os_mock.getpid.return_value = -1
+
+        process_ids = [1, 2, 5]
+        interesting_processes = ['python', 'mongo', 'mongod']
+        process_match = "exact"
+        logger = Mock()
+        all_processes = [
+            (1, "python"),
+            (2, "mongo"),
+            (3, "python"),
+            (4, "mongod"),
+            (5, "java") # this should be ignored.
+        ]
+
+        processes = get_processes(process_ids, interesting_processes, process_match, logger, all_processes)
+
+        self.assertCountEqual(processes, [
+            Pinfo(name="python", pids=[1]),
+            Pinfo(name="mongo", pids=[2]),
+        ])
+
+    @patch(ns("os.getpid"))
+    def test_interesting_processes_contains(self, os_mock):
+        os_mock.getpid.return_value = -1
+
+        process_ids = None
+        interesting_processes = ['python', 'mongo', 'mongod']
+        process_match = "contains"
+        logger = Mock()
+        all_processes = [
+            (1, "python2"),
+            (2, "mongo"),
+            (3, "python3"),
+            (4, "mongod"),
+            (5, "python"),
+            (5, "java") # this should be ignored.
+        ]
+
+        processes = get_processes(process_ids, interesting_processes, process_match, logger, all_processes)
+
+        self.assertCountEqual(processes, [
+            Pinfo(name="python", pids=[5]),
+            Pinfo(name="python2", pids=[1]),
+            Pinfo(name="python3", pids=[3]),
+            Pinfo(name="mongo", pids=[2]),
+            Pinfo(name="mongod", pids=[4])
+        ])
+
+    @patch(ns("os.getpid"))
+    def test_process_ids(self, os_mock):
+        os_mock.getpid.return_value = -1
+
+        process_ids = [1, 2, 3, 4, 5]
+        interesting_processes = []
+        process_match = "exact"
+        logger = Mock()
+        all_processes = [
+            (1, "python"),
+            (2, "mongo"),
+            (3, "python"),
+            (4, "mongod"),
+            (5, "mongod"),
+            (6, "python"), # rest is ignored
+            (7, "mongod"),
+            (8, "mongo"),
+            (9, "java"),
+        ]
+
+        processes = get_processes(process_ids, interesting_processes, process_match, logger, all_processes)
+
+        self.assertCountEqual(processes, [
+            Pinfo(name="python", pids=[1, 3]),
+            Pinfo(name="mongo", pids=[2]),
+            Pinfo(name="mongod", pids=[4, 5])
+        ])

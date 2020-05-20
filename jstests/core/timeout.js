@@ -5,5 +5,9 @@
     rst.startSet();
     rst.initiate();
     
-    assert.soon(() => sleep(1000000), "Force timeout.", 100)
+    assert.soon(() => {
+        print('looping');
+        sleep(10);
+        return false;
+    }, "Force timeout.", 100)
 })();
