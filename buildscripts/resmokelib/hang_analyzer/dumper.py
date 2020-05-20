@@ -191,18 +191,23 @@ class LLDBDumper(Dumper):
                 logger.warning("Debugger lldb is too old, please upgrade to XCode 7.2")
                 return
 
-        dump_command = ""
-        if take_dump:
-            # Dump to file, dump_<process name>.<pid>.core
-            dump_file = "dump_%s.%d.%s" % (pinfo.name, pinfo.pid, self.get_dump_ext())
-            dump_command = "process save-core %s" % dump_file
-            root_logger.info("Dumping core to %s", dump_file)
+        cmds = []
+        for pid in pinfo.pids:
+            dump_command = ""
+            if take_dump:
+                # Dump to file, dump_<process name>.<pid>.core
+                dump_file = "dump_%s.%d.%s" % (pinfo.name, pid, self.get_dump_ext())
+                dump_command = "process save-core %s" % dump_file
+                root_logger.info("Dumping core to %s", dump_file)
 
-        cmds = [
-            "attach -p %d" % pinfo.pid,
-            "target modules list",
-            "thread backtrace all",
-            dump_command,
+            cmds += [
+                "attach -p %d" % pid,
+                "target modules list",
+                "thread backtrace all",
+                dump_command,
+            ]
+
+        cmds += [
             "settings set interpreter.prompt-on-quit false",
             "quit",
         ]
