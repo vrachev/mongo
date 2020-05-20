@@ -61,15 +61,6 @@ class HangAnalyzer(Subcommand):
         processes = process_list.get_processes(self.process_ids, self.interesting_processes,
                                                self.options.process_match, self.root_logger)
 
-        print(processes)
-        print("--------")
-        print(self.process_ids)
-        print("--------")
-        print(self.interesting_processes)
-        print("--------")
-        print(self.options.process_match)
-        print("--------")
-
         max_dump_size_bytes = int(self.options.max_core_dumps_size) * 1024 * 1024
 
         # Dump python processes by signalling them. The resmoke.py process will generate

@@ -90,12 +90,11 @@ class WindowsDumper(Dumper):
         logger = _get_process_logger(dbg_output, pinfo.name)
 
         if dbg is None:
-            root_logger.warning("Debugger %s not found, skipping dumping of %d", debugger,
-                                pinfo.pname)
+            root_logger.warning(f"Debugger {debugger} not found, skipping dumping of {pinfo.pids}")
             return
 
-        root_logger.info("Debugger %s, analyzing %s process with PID %d", dbg, pinfo.name,
-                         pinfo.pname)
+        root_logger.info(f"Debugger {dbg}, analyzing {pinfo.name} processes with PIDs {pinfo.pids}")
+
 
         cmds = [
             ".symfix",  # Fixup symbol path
@@ -144,8 +143,7 @@ class WindowsDumper(Dumper):
         call([dbg, '-c', ";".join(cmds)], logger)
         # call([dbg, '-c', ";".join(cmds), '-p', str(pinfo.pid)], logger)
 
-        #TODO with pids
-        root_logger.info("Done analyzing %s process")
+        root_logger.info(f"Done analyzing {pinfo.name} processes with PIDs {pinfo.pids}")
 
     @staticmethod
     def get_dump_ext():
@@ -170,12 +168,10 @@ class LLDBDumper(Dumper):
         logger = _get_process_logger(dbg_output, pinfo.name)
 
         if dbg is None:
-            root_logger.warning("Debugger %s not found, skipping dumping of %d", debugger,
-                                pinfo.pid)
+            root_logger.warning(f"Debugger {debugger} not found, skipping dumping of {pinfo.pids}")
             return
 
-        root_logger.info("Debugger %s, analyzing %s process with PID %d", dbg, pinfo.name,
-                         pinfo.pid)
+        root_logger.info(f"Debugger {dbg}, analyzing {pinfo.name} processes with PIDs {pinfo.pids}")
 
         lldb_version = callo([dbg, "--version"], logger)
 
@@ -223,7 +219,7 @@ class LLDBDumper(Dumper):
         call(['cat', tf.name], logger)
         call([dbg, '--source', tf.name], logger)
 
-        root_logger.info("Done analyzing %s process with PID %d", pinfo.name, pinfo.pid)
+        root_logger.info(f"Done analyzing {pinfo.name} processes with PIDs {pinfo.pids}")
 
     @staticmethod
     def get_dump_ext():
@@ -248,7 +244,7 @@ class GDBDumper(Dumper):
         logger = _get_process_logger(dbg_output, pinfo.name)
 
         if dbg is None:
-            logger.warning(f"Debugger {debugger} not found, skipping dumping of {pinfo.pids}")
+            root_logger.warning(f"Debugger {debugger} not found, skipping dumping of {pinfo.pids}")
             return
 
         root_logger.info(f"Debugger {dbg}, analyzing {pinfo.name} processes with PIDs {pinfo.pids}")

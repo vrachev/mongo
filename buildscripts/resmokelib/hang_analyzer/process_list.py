@@ -43,8 +43,6 @@ def get_processes(process_ids, interesting_processes, process_match, logger, all
     # process is /System/Library/.../Python on OS X and -p python is specified to the hang analyzer.
     all_processes = [_Process(name=process_name.lower(), pid=pid) for (pid, process_name) in all_processes]
 
-    print("VLAD1")
-    print(all_processes)
     if process_ids:
         running_pids = {pid for (pid, pname) in all_processes}
         missing_pids = set(process_ids) - running_pids
@@ -65,9 +63,6 @@ def get_processes(process_ids, interesting_processes, process_match, logger, all
 
         processes_to_keep.append(process)
 
-    print("VLAD2")
-    print(processes_to_keep)
-
     process_types = {pname for (pname, _) in processes_to_keep}
     processes = [
         Pinfo(
@@ -77,37 +72,6 @@ def get_processes(process_ids, interesting_processes, process_match, logger, all
     ]
 
     return processes
-
-
-    # if process_ids:
-    #     processes = [
-    #         Pinfo(
-    #             name=ptype, pids=[
-    #                 pid for (pid, pname) in all_processes
-    #                 if pname == ptype and pid in process_ids and pid != os.getpid()
-    #             ]) for ptype in process_types
-    #     ]
-    #     for process in processes:
-    #         if not process.pids:
-    #             processes.remove(process)
-
-    #     running_pids = {pid for (pid, pname) in all_processes}
-    #     missing_pids = set(process_ids) - running_pids
-    #     if missing_pids:
-    #         logger.warning("The following requested process ids are not running %s",
-    #                        list(missing_pids))
-    # else:
-    #     processes = [
-    #         Pinfo(
-    #             name=ptype, pids=[
-    #                 pid for (pid, pname) in all_processes
-    #                 if pname == ptype
-    #                 and pid != os.getpid()
-    #             ]) for ptype in process_types if _pname_match(process_match, ptype, interesting_processes)
-    #     ]
-
-    # logger.info("Found %d interesting processes %s", len(processes), processes)
-    # return processes
 
 
 def _get_lister():
