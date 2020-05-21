@@ -113,7 +113,7 @@ class WindowsDumper(Dumper):
                 root_logger.info("Dumping core to %s", dump_file)
 
             cmds += [
-                ".attach" % str(pid),  # Attach to process
+                ".attach %d" % pid,  # Attach to process
                 "!peb",  # Dump current exe, & environment variables
                 "lm",  # Dump loaded modules
                 dump_command,
