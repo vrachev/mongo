@@ -56,6 +56,54 @@ class WindowsDumper(Dumper):
     """WindowsDumper class."""
 
     @staticmethod
+    def _prefix():
+        """The commands to set up a debugger process."""
+        cmds = [
+            ".symfix",  # Fixup symbol path
+            "!sym noisy",  # Enable noisy symbol loading
+            ".symopt +0x10",  # Enable line loading (off by default in CDB, on by default in WinDBG)
+            ".reload",  # Reload symbols
+        ]
+
+        return cmds
+
+    def _process_specific(self, root_logger, pname, pid, take_dump):
+        """
+        The commands that attach to the process, dumps info and detaches.
+
+        :param root_logger: Top-level logger
+        :param pname: The name of the process
+        :param pid: The PID of the process
+        :param take_dump: Whether to take a core dump
+        """
+        dump_command = ""
+        if take_dump:
+            # Dump to file, dump_<process name>.<pid>.mdmp
+            dump_file = "dump_%s.%d.%s" % (os.path.splitext(pname)[0], pid, self.get_dump_ext())
+            dump_command = ".dump /ma %s" % dump_file
+            root_logger.info("Dumping core to %s", dump_file)
+
+        cmds = [
+            "!peb",  # Dump current exe, & environment variables
+            "lm",  # Dump loaded modules
+            dump_command,
+            "!uniqstack -pn",  # Dump All unique Threads with function arguments
+            "!cs -l",  # Dump all locked critical sections
+            ".detach",  # Detach
+        ]
+
+        return cmds
+
+    @staticmethod
+    def _postfix():
+        """The commands to exit the debugger."""
+        cmds = [
+            "q"  # Quit
+        ]
+
+        return cmds
+
+    @staticmethod
     def __find_debugger(logger, debugger):
         """Find the installed debugger."""
         # We are looking for c:\Program Files (x86)\Windows Kits\8.1\Debuggers\x64
@@ -86,7 +134,6 @@ class WindowsDumper(Dumper):
         """Dump useful information to the console."""
         debugger = "cdb.exe"
         dbg = self.__find_debugger(root_logger, debugger)
-        logger = _get_process_logger(dbg_output, pinfo.name)
 
         if dbg is None:
             root_logger.warning(f"Debugger {debugger} not found, skipping dumping of {pinfo.pids}")
@@ -94,54 +141,16 @@ class WindowsDumper(Dumper):
 
         root_logger.info(f"Debugger {dbg}, analyzing {pinfo.name} processes with PIDs {pinfo.pids}")
 
-        cmds = [
-            ".symfix",  # Fixup symbol path
-            "!sym noisy",  # Enable noisy symbol loading
-            ".symopt +0x10",  # Enable line loading (off by default in CDB, on by default in WinDBG)
-            ".reload",  # Reload symbols
-        ]
-
+        # TODO: SERVER-XXXXX
         for pid in pinfo.pids:
-            dump_command = ""
-            if take_dump:
-                # Dump to file, dump_<process name>.<pid>.mdmp
-                dump_file = "dump_%s.%d.%s" % (os.path.splitext(pinfo.name)[0], pid,
-                                               self.get_dump_ext())
-                dump_command = ".dump /ma %s" % dump_file
-                root_logger.info("Dumping core to %s", dump_file)
+            logger = _get_process_logger(dbg_output, pinfo.name, pid)
 
-            cmds += [
-                ".attach %d" % pid,  # Attach to process
-                "!peb",  # Dump current exe, & environment variables
-                "lm",  # Dump loaded modules
-                dump_command,
-                "!uniqstack -pn",  # Dump All unique Threads with function arguments
-                "!cs -l",  # Dump all locked critical sections
-                ".detach",  # Detach
-            ]
+            cmds = self._prefix() + self._process_specific(root_logger, pinfo.name, pid,
+                                                           take_dump) + self._postfix()
 
-        cmds += [
-            "q"  # Quit
-        ]
+            call([dbg, '-c', ";".join(cmds), '-p', str(pinfo.pid)], logger)
 
-        # cmds = [
-        #     ".symfix",  # Fixup symbol path
-        #     "!sym noisy",  # Enable noisy symbol loading
-        #     ".symopt +0x10",  # Enable line loading (off by default in CDB, on by default in WinDBG)
-        #     ".reload",  # Reload symbols
-        #     "!peb",  # Dump current exe, & environment variables
-        #     "lm",  # Dump loaded modules
-        #     dump_command,
-        #     "!uniqstack -pn",  # Dump All unique Threads with function arguments
-        #     "!cs -l",  # Dump all locked critical sections
-        #     ".detach",  # Detach
-        #     "q"  # Quit
-        # ]
-
-        call([dbg, '-c', ";".join(cmds)], logger)
-        # call([dbg, '-c', ";".join(cmds), '-p', str(pinfo.pid)], logger)
-
-        root_logger.info(f"Done analyzing {pinfo.name} processes with PIDs {pinfo.pids}")
+            root_logger.info(f"Done analyzing {pinfo.name} processes with PIDs {pinfo.pids}")
 
     @staticmethod
     def get_dump_ext():
