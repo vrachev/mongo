@@ -20,7 +20,7 @@ class _Process(NamedTuple):
     pid: int
 
 
-def get_processes(process_ids, interesting_processes, process_match, logger, all_processes=None):
+def get_processes(process_ids, interesting_processes, process_match, logger):
     """
     Find all running interesting processes.
 
@@ -35,9 +35,8 @@ def get_processes(process_ids, interesting_processes, process_match, logger, all
 
     :return: A list Pinfo objects for matched processes.
     """
-    if all_processes is None:
-        ps = _get_lister()
-        all_processes = ps.dump_processes(logger)
+    ps = _get_lister()
+    all_processes = ps.dump_processes(logger)
 
     # Canonicalize the process names to lowercase to handle cases where the name of the Python
     # process is /System/Library/.../Python on OS X and -p python is specified to the hang analyzer.
