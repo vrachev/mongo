@@ -56,6 +56,32 @@ class WindowsDumper(Dumper):
     """WindowsDumper class."""
 
     @staticmethod
+    def __find_debugger(logger, debugger):
+        """Find the installed debugger."""
+        # We are looking for c:\Program Files (x86)\Windows Kits\8.1\Debuggers\x64
+        cdb = spawn.find_executable(debugger)
+        if cdb is not None:
+            return cdb
+        from win32com.shell import shell, shellcon
+
+        # Cygwin via sshd does not expose the normal environment variables
+        # Use the shell api to get the variable instead
+        root_dir = shell.SHGetFolderPath(0, shellcon.CSIDL_PROGRAM_FILESX86, None, 0)
+
+        # Construct the debugger search paths in most-recent order
+        debugger_paths = [os.path.join(root_dir, "Windows Kits", "10", "Debuggers", "x64")]
+        for idx in reversed(range(0, 2)):
+            debugger_paths.append(
+                os.path.join(root_dir, "Windows Kits", "8." + str(idx), "Debuggers", "x64"))
+
+        for dbg_path in debugger_paths:
+            logger.info("Checking for debugger in %s", dbg_path)
+            if os.path.exists(dbg_path):
+                return os.path.join(dbg_path, debugger)
+
+        return None
+
+    @staticmethod
     def _prefix():
         """The commands to set up a debugger process."""
         cmds = [
@@ -103,32 +129,6 @@ class WindowsDumper(Dumper):
 
         return cmds
 
-    @staticmethod
-    def __find_debugger(logger, debugger):
-        """Find the installed debugger."""
-        # We are looking for c:\Program Files (x86)\Windows Kits\8.1\Debuggers\x64
-        cdb = spawn.find_executable(debugger)
-        if cdb is not None:
-            return cdb
-        from win32com.shell import shell, shellcon
-
-        # Cygwin via sshd does not expose the normal environment variables
-        # Use the shell api to get the variable instead
-        root_dir = shell.SHGetFolderPath(0, shellcon.CSIDL_PROGRAM_FILESX86, None, 0)
-
-        # Construct the debugger search paths in most-recent order
-        debugger_paths = [os.path.join(root_dir, "Windows Kits", "10", "Debuggers", "x64")]
-        for idx in reversed(range(0, 2)):
-            debugger_paths.append(
-                os.path.join(root_dir, "Windows Kits", "8." + str(idx), "Debuggers", "x64"))
-
-        for dbg_path in debugger_paths:
-            logger.info("Checking for debugger in %s", dbg_path)
-            if os.path.exists(dbg_path):
-                return os.path.join(dbg_path, debugger)
-
-        return None
-
     def dump_info(  # pylint: disable=too-many-arguments
             self, root_logger, dbg_output, pinfo, take_dump):
         """Dump useful information to the console."""
@@ -167,6 +167,42 @@ class LLDBDumper(Dumper):
         """Find the installed debugger."""
         return find_program(debugger, ['/usr/bin'])
 
+    def _process_specific(self, root_logger, pinfo, take_dump):
+        """
+        The commands that attach to each process, dump info and detach.
+
+        :param root_logger: Top-level logger
+        :param pinfo: A Pinfo describing the process
+        :param take_dump: Whether to take a core dump
+        """
+        cmds = []
+        for pid in pinfo.pids:
+            dump_command = ""
+            if take_dump:
+                # Dump to file, dump_<process name>.<pid>.core
+                dump_file = "dump_%s.%d.%s" % (pinfo.name, pid, self.get_dump_ext())
+                dump_command = "process save-core %s" % dump_file
+                root_logger.info("Dumping core to %s", dump_file)
+
+            cmds += [
+                "attach -p %d" % pid,
+                "target modules list",
+                "thread backtrace all",
+                dump_command,
+            ]
+
+        return cmds
+
+    @staticmethod
+    def _postfix():
+        """The commands to exit the debugger."""
+        cmds = [
+            "settings set interpreter.prompt-on-quit false",
+            "quit",
+        ]
+
+        return cmds
+
     def dump_info(  # pylint: disable=too-many-arguments,too-many-locals
             self, root_logger, dbg_output, pinfo, take_dump):
         """Dump info."""
@@ -198,26 +234,7 @@ class LLDBDumper(Dumper):
                 logger.warning("Debugger lldb is too old, please upgrade to XCode 7.2")
                 return
 
-        cmds = []
-        for pid in pinfo.pids:
-            dump_command = ""
-            if take_dump:
-                # Dump to file, dump_<process name>.<pid>.core
-                dump_file = "dump_%s.%d.%s" % (pinfo.name, pid, self.get_dump_ext())
-                dump_command = "process save-core %s" % dump_file
-                root_logger.info("Dumping core to %s", dump_file)
-
-            cmds += [
-                "attach -p %d" % pid,
-                "target modules list",
-                "thread backtrace all",
-                dump_command,
-            ]
-
-        cmds += [
-            "settings set interpreter.prompt-on-quit false",
-            "quit",
-        ]
+        cmds = self._process_specific(root_logger, pinfo, take_dump) + self._postfix()
 
         tf = tempfile.NamedTemporaryFile(mode='w', encoding='utf-8')
 
