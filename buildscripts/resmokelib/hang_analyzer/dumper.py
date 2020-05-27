@@ -40,8 +40,7 @@ class Dumper(object):
         Perform dump for a process.
 
         :param root_logger: Top-level logger
-        :param logger: Logger to output dump info to
-        :param output: 'stdout' or 'file'
+        :param dbg_output: 'stdout' or 'file'
         :param pinfo: A Pinfo describing the process
         :param take_dump: Whether to take a core dump
         """
@@ -95,7 +94,6 @@ class WindowsDumper(Dumper):
 
         root_logger.info(f"Debugger {dbg}, analyzing {pinfo.name} processes with PIDs {pinfo.pids}")
 
-
         cmds = [
             ".symfix",  # Fixup symbol path
             "!sym noisy",  # Enable noisy symbol loading
@@ -108,7 +106,7 @@ class WindowsDumper(Dumper):
             if take_dump:
                 # Dump to file, dump_<process name>.<pid>.mdmp
                 dump_file = "dump_%s.%d.%s" % (os.path.splitext(pinfo.name)[0], pid,
-                                            self.get_dump_ext())
+                                               self.get_dump_ext())
                 dump_command = ".dump /ma %s" % dump_file
                 root_logger.info("Dumping core to %s", dump_file)
 
@@ -241,23 +239,10 @@ class GDBDumper(Dumper):
         """Find the installed debugger."""
         return find_program(debugger, ['/opt/mongodbtoolchain/gdb/bin', '/usr/bin'])
 
-    def dump_info(  # pylint: disable=too-many-arguments,too-many-locals
-            self, root_logger, dbg_output, pinfo, take_dump):
-        """Dump info."""
-        debugger = "gdb"
-        dbg = self.__find_debugger(debugger)
-        logger = _get_process_logger(dbg_output, pinfo.name)
-
-        if dbg is None:
-            root_logger.warning(f"Debugger {debugger} not found, skipping dumping of {pinfo.pids}")
-            return
-
-        root_logger.info(f"Debugger {dbg}, analyzing {pinfo.name} processes with PIDs {pinfo.pids}")
-
-        call([dbg, "--version"], logger)
-
+    @staticmethod
+    def _prefix():
+        """The commands to set up a debugger process."""
         script_dir = "buildscripts"
-        root_logger.info("dir %s", script_dir)
         gdb_dir = os.path.join(script_dir, "gdb")
         mongo_script = os.path.join(gdb_dir, "mongo.py")
         mongo_printers_script = os.path.join(gdb_dir, "mongo_printers.py")
@@ -266,6 +251,26 @@ class GDBDumper(Dumper):
         source_mongo = "source %s" % mongo_script
         source_mongo_printers = "source %s" % mongo_printers_script
         source_mongo_lock = "source %s" % mongo_lock_script
+
+        cmds = [
+            "set interactive-mode off",
+            "set print thread-events off",  # Suppress GDB messages of threads starting/finishing.
+            "set python print-stack full",
+            source_mongo,
+            source_mongo_printers,
+            source_mongo_lock,
+        ]
+        return cmds
+
+    def _process_specific(self, root_logger, logger, pinfo, take_dump):
+        """
+        The commands that attach to each process, dump info and detach.
+
+        :param root_logger: Top-level logger
+        :param logger: Logger to output dump info to
+        :param pinfo: A Pinfo describing the process
+        :param take_dump: Whether to take a core dump
+        """
         mongodb_dump_locks = "mongodb-dump-locks"
         mongodb_show_locks = "mongodb-show-locks"
         mongodb_uniqstack = "mongodb-uniqstack mongodb-bt-if-active"
@@ -289,15 +294,7 @@ class GDBDumper(Dumper):
                 'set logging off',
             ]
 
-        cmds = [
-            "set interactive-mode off",
-            "set print thread-events off",  # Suppress GDB messages of threads starting/finishing.
-            "set python print-stack full",
-            source_mongo,
-            source_mongo_printers,
-            source_mongo_lock,
-        ]
-
+        cmds = []
         for pid in pinfo.pids:
             dump_command = ""
             if take_dump:
@@ -325,9 +322,34 @@ class GDBDumper(Dumper):
                 mongod_dump_sessions,
                 mongodb_dump_mutexes,
                 mongodb_dump_recovery_units,
+                "detach",
             ]
 
-        cmds += ["set confirm off", "quit"]
+        return cmds
+
+    @staticmethod
+    def _postfix():
+        """The commands to exit the debugger."""
+        cmds = ["set confirm off", "quit"]
+        return cmds
+
+    def dump_info(  # pylint: disable=too-many-arguments,too-many-locals
+            self, root_logger, dbg_output, pinfo, take_dump):
+        """Dump info."""
+        debugger = "gdb"
+        dbg = self.__find_debugger(debugger)
+        logger = _get_process_logger(dbg_output, pinfo.name)
+
+        if dbg is None:
+            root_logger.warning(f"Debugger {debugger} not found, skipping dumping of {pinfo.pids}")
+            return
+
+        root_logger.info(f"Debugger {dbg}, analyzing {pinfo.name} processes with PIDs {pinfo.pids}")
+
+        call([dbg, "--version"], logger)
+
+        cmds = self._prefix() + self._process_specific(root_logger, logger, pinfo,
+                                                       take_dump) + self._postfix()
 
         call([dbg, "--quiet", "--nx"] + list(
             itertools.chain.from_iterable([['-ex', b] for b in cmds])), logger)

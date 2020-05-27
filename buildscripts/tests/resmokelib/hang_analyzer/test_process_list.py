@@ -11,9 +11,11 @@ from buildscripts.resmokelib.hang_analyzer.process_list import Pinfo, get_proces
 
 NS = "buildscripts.resmokelib.hang_analyzer.process_list"
 
+
 def ns(relative_name):  # pylint: disable=invalid-name
     """Return a full name from a name relative to the test module"s name space."""
     return NS + "." + relative_name
+
 
 class TestGetProcesses(unittest.TestCase):
     """Unit tests for the get_processes method."""
@@ -27,7 +29,7 @@ class TestGetProcesses(unittest.TestCase):
             (2, "mongo"),
             (3, "python"),
             (4, "mongod"),
-            (5, "java") # this should be ignored.
+            (5, "java")  # this should be ignored.
         ]
 
         process_ids = None
@@ -52,7 +54,7 @@ class TestGetProcesses(unittest.TestCase):
             (2, "mongo"),
             (3, "python"),
             (4, "mongod"),
-            (5, "java") # this should be ignored.
+            (5, "java")  # this should be ignored.
         ]
 
         process_ids = [1, 2, 5]
@@ -77,9 +79,9 @@ class TestGetProcesses(unittest.TestCase):
             (3, "python3"),
             (4, "mongod"),
             (5, "python"),
-            (5, "java") # this should be ignored.
+            (5, "java")  # this should be ignored.
         ]
-        
+
         process_ids = None
         interesting_processes = ['python', 'mongo', 'mongod']
         process_match = "contains"
@@ -105,7 +107,7 @@ class TestGetProcesses(unittest.TestCase):
             (3, "python"),
             (4, "mongod"),
             (5, "mongod"),
-            (6, "python"), # rest is ignored
+            (6, "python"),  # rest is ignored
             (7, "mongod"),
             (8, "mongo"),
             (9, "java"),

@@ -62,12 +62,10 @@ def signal_python(logger, pname, pid):
     # On Windows, we set up an event object to wait on a signal. For Cygwin, we register
     # a signal handler to wait for the signal since it supports POSIX signals.
     if _IS_WINDOWS:
-        logger.info("Calling SetEvent to signal python process %s with PID %d", pname,
-                    pid)
+        logger.info("Calling SetEvent to signal python process %s with PID %d", pname, pid)
         signal_event_object(logger, pid)
     else:
-        logger.info("Sending signal SIGUSR1 to python process %s with PID %d", pname,
-                    pid)
+        logger.info("Sending signal SIGUSR1 to python process %s with PID %d", pname, pid)
         signal_process(logger, pid, signal.SIGUSR1)
 
 

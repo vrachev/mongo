@@ -85,7 +85,8 @@ class HangAnalyzer(Subcommand):
         for pinfo in [pinfo for pinfo in processes if pinfo.name.startswith("java")]:
             for pid in pinfo.pids:
                 try:
-                    dumpers.jstack.dump_info(self.root_logger, self.options.debugger_output, pinfo.name, pid)
+                    dumpers.jstack.dump_info(self.root_logger, self.options.debugger_output,
+                                             pinfo.name, pid)
                 except Exception as err:  # pylint: disable=broad-except
                     self.root_logger.info("Error encountered when invoking debugger %s", err)
                     trapped_exceptions.append(traceback.format_exc())
@@ -96,8 +97,8 @@ class HangAnalyzer(Subcommand):
         # Note: The stacktrace output may be captured elsewhere (i.e. resmoke).
         for pinfo in [pinfo for pinfo in processes if pinfo.name in self.go_processes]:
             for pid in pinfo.pids:
-                self.root_logger.info("Sending signal SIGABRT to go process %s with PID %d", pinfo.name,
-                                    pid)
+                self.root_logger.info("Sending signal SIGABRT to go process %s with PID %d",
+                                      pinfo.name, pid)
                 signal_process(self.root_logger, pid, signal.SIGABRT)
 
         self.root_logger.info("Done analyzing all processes for hangs")

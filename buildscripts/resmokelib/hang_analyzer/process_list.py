@@ -8,6 +8,7 @@ from typing import List, NamedTuple
 
 from buildscripts.resmokelib.hang_analyzer.process import call, callo, find_program
 
+
 class Pinfo(NamedTuple):
     """Holds a list of PIDs of the same process type."""
     name: str
@@ -40,14 +41,16 @@ def get_processes(process_ids, interesting_processes, process_match, logger):
 
     # Canonicalize the process names to lowercase to handle cases where the name of the Python
     # process is /System/Library/.../Python on OS X and -p python is specified to the hang analyzer.
-    all_processes = [_Process(name=process_name.lower(), pid=pid) for (pid, process_name) in all_processes]
+    all_processes = [
+        _Process(name=process_name.lower(), pid=pid) for (pid, process_name) in all_processes
+    ]
 
     if process_ids:
         running_pids = {pid for (pid, pname) in all_processes}
         missing_pids = set(process_ids) - running_pids
         if missing_pids:
             logger.warning("The following requested process ids are not running %s",
-                            list(missing_pids))
+                           list(missing_pids))
 
     processes_to_keep = []
     for process in all_processes:
@@ -57,17 +60,16 @@ def get_processes(process_ids, interesting_processes, process_match, logger):
         if process_ids and process.pid not in process_ids:
             continue
 
-        if interesting_processes and not _pname_match(process_match, process.name, interesting_processes):
+        if interesting_processes and not _pname_match(process_match, process.name,
+                                                      interesting_processes):
             continue
 
         processes_to_keep.append(process)
 
     process_types = {pname for (pname, _) in processes_to_keep}
     processes = [
-        Pinfo(
-            name=ptype, pids=[
-                pid for (pname, pid) in processes_to_keep if pname == ptype
-            ]) for ptype in process_types
+        Pinfo(name=ptype, pids=[pid for (pname, pid) in processes_to_keep if pname == ptype])
+        for ptype in process_types
     ]
 
     return processes
