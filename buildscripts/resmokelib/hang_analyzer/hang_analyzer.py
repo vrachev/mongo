@@ -18,6 +18,11 @@ import signal
 import sys
 import traceback
 
+import psutil
+
+from buildscripts.resmokelib.plugin import PluginInterface, Subcommand
+
+from buildscripts.resmokelib.hang_analyzer import extractor
 from buildscripts.resmokelib.hang_analyzer import dumper
 from buildscripts.resmokelib.hang_analyzer import extractor
 from buildscripts.resmokelib.hang_analyzer import process
@@ -28,7 +33,7 @@ from buildscripts.resmokelib.plugin import PluginInterface, Subcommand
 class HangAnalyzer(Subcommand):
     """Main class for the hang analyzer subcommand."""
 
-    def __init__(self, options):
+    def __init__(self, options, logger=None):
         """
         Configure processe lists based on options.
 
@@ -43,6 +48,7 @@ class HangAnalyzer(Subcommand):
         self.process_ids = []
 
         self._configure_processes()
+        self._setup_logging(logger)
 
     def execute(self):  # pylint: disable=too-many-branches,too-many-locals,too-many-statements
         """
@@ -51,7 +57,7 @@ class HangAnalyzer(Subcommand):
         1. Get a list of interesting processes
         2. Dump useful information or take core dumps
         """
-        self._setup_logging()
+
         self._log_system_info()
 
         extractor.extract_debug_symbols(self.root_logger)
@@ -108,6 +114,7 @@ class HangAnalyzer(Subcommand):
 
         self.root_logger.info("Done analyzing all processes for hangs")
 
+<<<<<<< HEAD
         # Kill processes if "-k" was specified.
         if self.options.kill_processes:
             process.kill_processes(self.root_logger, processes)
@@ -116,6 +123,10 @@ class HangAnalyzer(Subcommand):
             for pinfo in [pinfo for pinfo in processes if not pinfo.name.startswith("python")]:
                 for pid in pinfo.pidv:
                     process.resume_process(self.root_logger, pinfo.name, pid)
+=======
+        if self.options.kill_processes:
+            self._kill_processes(processes)
+>>>>>>> SERVER-46687 Run hang-analyzer from resmoke and integrate with archival
 
         for exception in trapped_exceptions:
             self.root_logger.info(exception)
@@ -138,17 +149,20 @@ class HangAnalyzer(Subcommand):
             self.go_processes = self.options.go_process_names.split(',')
             self.interesting_processes += self.go_processes
 
-    def _setup_logging(self):
-        self.root_logger = logging.Logger("hang_analyzer", level=logging.DEBUG)
+    def _setup_logging(self, logger):
+        if logger is None:
+            self.root_logger = logging.Logger("hang_analyzer", level=logging.DEBUG)
+        else:
+            self.root_logger = logger
 
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(logging.Formatter(fmt="%(message)s"))
         self.root_logger.addHandler(handler)
 
+    def _log_system_info(self):
         self.root_logger.info("Python Version: %s", sys.version)
         self.root_logger.info("OS: %s", platform.platform())
 
-    def _log_system_info(self):
         try:
             if sys.platform == "win32" or sys.platform == "cygwin":
                 distro = platform.win32_ver()
@@ -171,6 +185,17 @@ class HangAnalyzer(Subcommand):
             self.root_logger.warning(
                 "Cannot determine Unix Current Login, not supported on Windows")
 
+    def _kill_processes(self, processes):
+        for pinfo in reversed(processes):
+            for pid in pinfo.pidv:
+                try:
+                    proc = psutil.Process(pid)
+                    self.root_logger.info("Killing process %s with pid %d", pinfo.name, pid)
+                    proc.kill()
+                except psutil.NoSuchProcess:
+                    # Process has already terminated.
+                    pass
+
 
 def _check_dump_quota(quota, ext):
     """Check if sum of the files with ext is within the specified quota in megabytes."""
@@ -190,7 +215,7 @@ class HangAnalyzerPlugin(PluginInterface):
     def parse(self, subcommand, parser, parsed_args, **kwargs):
         """Parse command-line options."""
         if subcommand == 'hang-analyzer':
-            return HangAnalyzer(parsed_args)
+            return HangAnalyzer(parsed_args, **kwargs)
         return None
 
     def add_subcommand(self, subparsers):

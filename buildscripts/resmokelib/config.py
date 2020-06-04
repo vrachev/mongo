@@ -10,6 +10,10 @@ import time
 # by resmoke.py.
 FIXTURE_SUBDIR = "resmoke"
 
+# List of PIDs started by resmoke. PIDs are added when a process is started/terminated. PIDs are not
+# automatically removed when the process has ended.
+PIDS = []
+
 # Subdirectory under the dbpath prefix that contains directories with data files of mongod's started
 # by individual tests.
 MONGO_RUNNER_SUBDIR = "mongorunner"

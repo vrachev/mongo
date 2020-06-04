@@ -3,6 +3,7 @@
 
 import argparse
 import collections
+import json
 import os
 import os.path
 import random
@@ -13,6 +14,7 @@ import tarfile
 import time
 
 import pkg_resources
+import psutil
 import requests
 
 try:
@@ -31,6 +33,7 @@ from buildscripts.resmokelib import sighandler
 from buildscripts.resmokelib import suitesconfig
 from buildscripts.resmokelib import testing
 from buildscripts.resmokelib import utils
+from buildscripts.resmokelib.utils import state
 from buildscripts.resmokelib.core import process
 from buildscripts.resmokelib.core import jasper_process
 from buildscripts.resmokelib.plugin import PluginInterface, Subcommand
@@ -106,6 +109,7 @@ class TestRunner(Subcommand):  # pylint: disable=too-many-instance-attributes
     def execute(self):
         """Execute the 'run' subcommand."""
         self._setup_logging()
+        state.record_pid(self._resmoke_logger)
 
         try:
             if self.__command == "list-suites":
@@ -392,6 +396,7 @@ class TestRunner(Subcommand):  # pylint: disable=too-many-instance-attributes
 
     def exit(self, exit_code):
         """Exit with the provided exit code."""
+        state.cleanup_pid_file()
         self._exit_code = exit_code
         self._resmoke_logger.info("Exiting with code: %d", exit_code)
         sys.exit(exit_code)

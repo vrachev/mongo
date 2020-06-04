@@ -377,6 +377,10 @@ var BackupRestoreTest = function(options) {
         var writeResult = assert.commandWorked(primary.getDB("test").foo.insert(
             {}, {writeConcern: {w: rst.nodes.length, wtimeout: ReplSetTest.kDefaultTimeoutMS}}));
 
+        while(true) {
+            sleep(1000)
+        }
+
         // Stop set.
         jsTestLog('Insert operation successful: ' + tojson(writeResult) +
                   '. Stopping replica set.');

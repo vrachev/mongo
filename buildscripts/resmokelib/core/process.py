@@ -119,6 +119,7 @@ class Process(object):
                 self.args, bufsize=buffer_size, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 close_fds=close_fds, env=self.env, creationflags=creation_flags, cwd=self._cwd)
             self.pid = self._process.pid
+            _config.PIDS.append(self.pid)
 
             if _config.UNDO_RECORDER_PATH is not None and ("mongod" in self.args[0]
                                                            or "mongos" in self.args[0]):
