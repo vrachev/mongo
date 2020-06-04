@@ -150,7 +150,7 @@ function runHangAnalyzer(pids) {
     pids = pids.map(p => p + 0).join(',');
     print(`Running hang analyzer for pids [${pids}]`);
     const scriptPath = pathJoin('.', 'buildscripts', 'resmoke.py');
-    return runProgram('python', scriptPath, 'hang-analyzer', '-c', '-d', pids);
+    return runProgram('python', scriptPath, 'hang-analyzer', '-c', '-o', 'file', '-o', 'stdout', '-d', pids);
 }
 
 MongoRunner.runHangAnalyzer = runHangAnalyzer;
