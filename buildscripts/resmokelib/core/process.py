@@ -12,6 +12,8 @@ import sys
 import threading
 import subprocess
 
+from buildscripts.resmokelib import config
+
 from buildscripts.resmokelib.testing.fixtures import interface as fixture_interface
 from buildscripts.resmokelib import errors
 from . import pipe  # pylint: disable=wrong-import-position
@@ -117,6 +119,7 @@ class Process(object):
                 self.args, bufsize=buffer_size, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 close_fds=close_fds, env=self.env, creationflags=creation_flags, cwd=self._cwd)
             self.pid = self._process.pid
+            config.PIDS.append(self.pid)
 
         self._stdout_pipe = pipe.LoggerPipe(self.logger, logging.INFO, self._process.stdout)
         self._stderr_pipe = pipe.LoggerPipe(self.logger, logging.ERROR, self._process.stderr)

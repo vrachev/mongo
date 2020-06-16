@@ -9,11 +9,13 @@ from . import configure_resmoke
 from .run import RunPlugin
 from .hang_analyzer import HangAnalyzerPlugin
 from .undodb import UndoDbPlugin
+from .run_timeout import RunTimeoutPlugin
 
 _PLUGINS = [
     RunPlugin(),
     HangAnalyzerPlugin(),
     UndoDbPlugin(),
+    RunTimeoutPlugin(),
 ]
 
 

@@ -3567,15 +3567,19 @@ functions:
       script: |
         set -o verbose
 
-        hang_analyzer_option="-o file -o stdout -p ${hang_analyzer_processes|dbtest,java,mongo,mongod,mongos,python,_test}"
+        # hang_analyzer_option="-o file -o stdout -p ${hang_analyzer_processes|dbtest,java,mongo,mongod,mongos,python,_test}"
+        hang_analyzer_option="-o file -o stdout -p python"
+
+
 
         if [ ${is_asan_build|false} = false ]; then
           hang_analyzer_option="-c $hang_analyzer_option"
         fi
 
         ${activate_virtualenv}
-        echo "Calling the hang analyzer: PATH=\"/opt/mongodbtoolchain/gdb/bin:$PATH\" $python buildscripts/resmoke.py hang-analyzer $hang_analyzer_option"
-        PATH="/opt/mongodbtoolchain/gdb/bin:$PATH" $python buildscripts/resmoke.py hang-analyzer $hang_analyzer_option
+        # echo "Calling the hang analyzer: PATH=\"/opt/mongodbtoolchain/gdb/bin:$PATH\" $python buildscripts/resmoke.py hang-analyzer $hang_analyzer_option"
+        # PATH="/opt/mongodbtoolchain/gdb/bin:$PATH" $python buildscripts/resmoke.py hang-analyzer $hang_analyzer_option
+        PATH="/opt/mongodbtoolchain/gdb/bin:$PATH" $python buildscripts/resmoke.py run-timeout
 
         # Call hang analyzer for tasks that are running remote mongo processes
         if [ -n "${private_ip_address}" ]; then
@@ -3629,6 +3633,8 @@ functions:
             --file "$remote_dir/debugger*.*"                 \
             --file "$remote_dir/*.$core_ext"
         fi
+
+        sleep 5m
 
   "tar hang analyzer debugger files": &tar_hang_analyzer_debugger_files
     command: archive.targz_pack
@@ -7654,7 +7660,6 @@ tasks:
   - command: expansions.update
     <<: *powercycle_expansions
   - func: "run powercycle test"
-    timeout_secs: 1800 # 30 minute timeout for no output
     vars:
       <<: *powercycle_test
       client_options: "--numCrudClients=20 --numFsmClients=20 --writeConcern='{\"w\": \"majority\"}'"

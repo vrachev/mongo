@@ -3,6 +3,7 @@
 
 import argparse
 import collections
+import json
 import os
 import os.path
 import random
@@ -13,6 +14,7 @@ import tarfile
 import time
 
 import pkg_resources
+import psutil
 import requests
 
 try:
@@ -54,6 +56,14 @@ class TestRunner(Subcommand):  # pylint: disable=too-many-instance-attributes
         self._jasper_server = None
         self._interrupted = False
         self._exit_code = 0
+
+    def _record_self_pid(self):
+        filename = utils.self_pid_file()
+        pid = psutil.Process().pid
+
+        self._resmoke_logger.info('Recording resmoke\'s own pid %d to %s', pid, filename)
+        with open(filename, 'a+') as fp:
+            fp.write(f"{pid}\n")
 
     def _setup_logging(self):
         logging.loggers.configure_loggers()
@@ -107,6 +117,7 @@ class TestRunner(Subcommand):  # pylint: disable=too-many-instance-attributes
     def execute(self):
         """Execute the 'run' subcommand."""
         self._setup_logging()
+        self._record_self_pid()
 
         try:
             if self.__command == "list-suites":
