@@ -16,6 +16,7 @@ if __name__ == "__main__" and __package__ is None:
 
 _IS_WINDOWS = sys.platform == "win32" or sys.platform == "cygwin"
 
+# TODO: remove this in favor of powercycle.plugins.SSHOperation
 _OPERATIONS = ["shell", "copy_to", "copy_from"]
 
 _SSH_CONNECTION_ERRORS = [
@@ -25,6 +26,12 @@ _SSH_CONNECTION_ERRORS = [
     "System is booting up.",
     "ssh_exchange_identification: read: Connection reset by peer",
 ]
+
+
+class SSHOperation(object):
+    COPY_TO = "copy_to"
+    COPY_FROM = "copy_from"
+    SHELL = "shell"
 
 
 def posix_path(path):
@@ -190,6 +197,9 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
             buff += new_buff
             final_ret = final_ret or ret
 
+        print("Return code: {} for command {}".format(final_ret, sys.argv))
+        print(buff)
+
         return final_ret, buff
 
     def shell(self, operation_param, operation_dir=None):
@@ -309,7 +319,7 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
         parser.print_help()
         parser.error("Missing required option")
 
-    if options.operation == "shell":
+    if options.operation == SSHOperation.SHELL:
         if not getattr(options, "remote_commands", None):
             parser.print_help()
             parser.error("Missing required '{}' option '{}'".format(options.operation,
@@ -321,7 +331,7 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
             parser.print_help()
             parser.error("Missing required '{}' option '{}'".format(options.operation, "--file"))
         operation_param = options.files
-        if options.operation == "copy_to":
+        if options.operation == SSHOperation.COPY_TO:
             operation_dir = options.remote_dir
         else:
             operation_dir = options.local_dir
@@ -346,8 +356,5 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
         ssh_options=ssh_options, scp_options=scp_options, retries=options.retries,
         retry_sleep=options.retry_sleep, debug=options.debug)
     ret_code, buff = remote_op.operation(options.operation, operation_param, operation_dir)
-    if options.verbose:
-        print("Return code: {} for command {}".format(ret_code, sys.argv))
-        print(buff)
 
     sys.exit(ret_code)
