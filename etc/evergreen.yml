@@ -2653,6 +2653,17 @@ functions:
 
     - command: shell.exec
       params:
+      shell: bash
+      working_dir: src
+      script: |
+        set -o errexit
+        ${activate_virtualenv}
+        $python buildscripts/remote_operation.py --expansions-file expansions.yml setUpEC2Instance
+
+        echo "VLAD got here"
+
+    - command: shell.exec
+      params:
         shell: bash
         working_dir: src
         script: |

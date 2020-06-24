@@ -200,7 +200,10 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
         print("Return code: {} for command {}".format(final_ret, sys.argv))
         print(buff)
 
-        return final_ret, buff
+        sys.exit(final_ret)
+
+        if final_ret != 0:
+            raise Exception(buff)
 
     def shell(self, operation_param, operation_dir=None):
         """Provide helper for remote shell operations."""
@@ -355,6 +358,4 @@ def main():  # pylint: disable=too-many-branches,too-many-statements
         user_host=options.user_host, ssh_connection_options=ssh_connection_options,
         ssh_options=ssh_options, scp_options=scp_options, retries=options.retries,
         retry_sleep=options.retry_sleep, debug=options.debug)
-    ret_code, buff = remote_op.operation(options.operation, operation_param, operation_dir)
-
-    sys.exit(ret_code)
+    remote_op.operation(options.operation, operation_param, operation_dir)
