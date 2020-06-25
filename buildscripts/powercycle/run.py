@@ -69,7 +69,7 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
 
     def _call(self, cmd):
         if self.debug:
-            print(cmd)
+            print(f"Executing in subprocess: {cmd}")
         # If use_shell is False we need to split the command up into a list.
         if not self.use_shell:
             cmd = shlex.split(cmd)
@@ -77,7 +77,10 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                    shell=self.use_shell)
         buff_stdout, _ = process.communicate()
-        return process.poll(), buff_stdout.decode("utf-8", "replace")
+        buff = buff_stdout.decode("utf-8", "replace")
+        if self.debug:
+            print(f"Result of cmd: {buff}")
+        return process.poll(), buff
 
     def _remote_access(self):
         """Check if a remote session is possible."""
@@ -97,6 +100,8 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
                 print("Failed remote attempt {}, retrying in {} seconds".format(
                     attempt_num, self.retry_sleep))
             time.sleep(self.retry_sleep)
+        print(ret)
+        print(buff)
         return ret, buff
 
     def _perform_operation(self, cmd):
@@ -199,8 +204,6 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
 
         print("Return code: {} for command {}".format(final_ret, sys.argv))
         print(buff)
-
-        sys.exit(final_ret)
 
         if final_ret != 0:
             raise Exception(buff)
