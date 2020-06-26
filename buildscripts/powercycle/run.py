@@ -52,7 +52,7 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
 
     def __init__(  # pylint: disable=too-many-arguments
             self, user_host, ssh_connection_options=None, ssh_options=None, scp_options=None,
-            retries=0, retry_sleep=0, debug=False, shell_binary="/bin/bash", use_shell=False):
+            retries=0, retry_sleep=10, debug=False, shell_binary="/bin/bash", use_shell=False):
         """Initialize RemoteOperations."""
 
         self.user_host = user_host

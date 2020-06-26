@@ -264,6 +264,16 @@ class SetUpEC2Instance(PowercycleCommand):
 
         print("Got here 9")
 
+        if self.is_windows() and "windows_crash_zip" in self.expansions:
+            windows_crash_zip = self.expansions["windows_crash_zip"]
+            windows_crash_dl = self.expansions["windows_crash_dl"]
+            windows_crash_dir = self.expansions["windows_crash_dir"]
+            # Install NotMyFault, used to crash Windows.
+            cmds = f"curl -s -o {windows_crash_zip} {windows_crash_dl}"
+            cmds = f"{cmds}; unzip -q {windows_crash_zip} -d {windows_crash_dir}"
+            cmds = f"{cmds}; chmod +x {windows_crash_dir}/*.exe"
+            self.remote_op.operation(SSHOperation.SHELL, cmds, None)
+
 
 class TarEC2Artifacts(PowercycleCommand):
     """Interact with UndoDB."""
@@ -284,8 +294,28 @@ class CopyEC2Instance(PowercycleCommand):
 
 
 class GatherRemoteEventLogs(PowercycleCommand):
-    """Interact with UndoDB."""
+    """Gather Remote Event Logs"""
     COMMAND = "gatherRemoteEventLogs"
+
+    def execute(self) -> None:
+        """
+        :return: None
+        """
+        aws_ec2_yml = self.expansions["aws_ec2_yml"]
+        if os.path.exists(aws_ec2_yml) and os.path.isfile(aws_ec2_yml) or "ec2_ssh_failure" in self.expansions:
+            return
+
+        remote_dir = "." if "remote_dir" not in self.expansions else self.expansions["remote_dir"]
+        # Find all core files and move to $remote_dir
+        cmds = "core_files=$(/usr/bin/find -H . ( -name '*.core' -o -name '*.mdmp' ) 2> /dev/null)"
+        cmds = f"{cmds}; if [ -z \"$core_files\" ]; then exit 0; fi"
+        cmds = f"{cmds}; echo Found remote core files $core_files, moving to $(pwd)"
+        cmds = f"{cmds}; for core_file in $core_files"
+        cmds = f"{cmds}; do base_name=$(echo $core_file | sed 's/.*///')"
+        cmds = f"{cmds};   if [ ! -f $base_name ]; then mv $core_file .; fi"
+        cmds = f"{cmds}; done"
+        self.remote_op.operation(SSHOperation.SHELL, cmds, remote_dir)
+
 
 
 class GatherRemoteMongoCoredumps(PowercycleCommand):
