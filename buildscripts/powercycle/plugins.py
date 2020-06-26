@@ -278,14 +278,38 @@ class TarEC2Artifacts(PowercycleCommand):
         self.remote_op.operation(SSHOperation.SHELL, cmd, None)
 
 
-class CopyEC2Instance(PowercycleCommand):
+class CopyEC2Artifacts(PowercycleCommand):
     """Interact with UndoDB."""
-    COMMAND = "copyEC2Instance"
+    COMMAND = "copyEC2Artifacts"
+
+    def execute(self):
+        if "ec2_artifacts" not in self.expansions or "ec2_ssh_failure" in self.expansions:
+            return
+
+        self.remote_op.operation(SSHOperation.COPY_FROM, "ec2_artifacts.tgz", None)
 
 
 class GatherRemoteEventLogs(PowercycleCommand):
-    """Interact with UndoDB."""
+    """
+    The event logs on Windows are a useful diagnostic to have when determining if something bad
+    happened to the remote machine after it was repeatedly crashed during powercycle testing. For
+    example, the Application and System event logs have previously revealed that the mongod.exe
+    process abruptly exited due to not being able to open a file despite the process successfully
+    being restarted and responding to network requests.
+    """
+
     COMMAND = "gatherRemoteEventLogs"
+
+    def execute(self):
+        if not self.is_windows() or not os.path.exists(self.expansions.get("aws_ec2_yml", "")) or self.expansions.get("ec2_ssh_failure", ""):
+            return
+
+        cmds=f"mkdir -p {self.expansions['event_logpath']}"
+        cmds=f"{cmds}; wevtutil qe Application /c:10000 /rd:true /f:Text > {self.expansions['event_logpath']}/application.log"
+        cmds=f"{cmds}; wevtutil qe Security    /c:10000 /rd:true /f:Text > {self.expansions['event_logpath']}/security.log"
+        cmds=f"{cmds}; wevtutil qe System      /c:10000 /rd:true /f:Text > {self.expansions['event_logpath']}/system.log"
+
+        self.remote_op.operation(SSHOperation.SHELL, cmds, None)
 
 
 class GatherRemoteMongoCoredumps(PowercycleCommand):
