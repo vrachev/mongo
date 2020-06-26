@@ -288,14 +288,43 @@ class TarEC2Artifacts(PowercycleCommand):
         self.remote_op.operation(SSHOperation.SHELL, cmd, None)
 
 
-class CopyEC2Instance(PowercycleCommand):
+class CopyEC2Artifacts(PowercycleCommand):
     """Interact with UndoDB."""
-    COMMAND = "copyEC2Instance"
+    COMMAND = "copyEC2Artifacts"
+
+    def execute(self):
+        if "ec2_artifacts" not in self.expansions or "ec2_ssh_failure" in self.expansions:
+            return
+
+        self.remote_op.operation(SSHOperation.COPY_FROM, "ec2_artifacts.tgz", None)
 
 
 class GatherRemoteEventLogs(PowercycleCommand):
-    """Gather Remote Event Logs"""
+    """
+    The event logs on Windows are a useful diagnostic to have when determining if something bad
+    happened to the remote machine after it was repeatedly crashed during powercycle testing. For
+    example, the Application and System event logs have previously revealed that the mongod.exe
+    process abruptly exited due to not being able to open a file despite the process successfully
+    being restarted and responding to network requests.
+    """
+
     COMMAND = "gatherRemoteEventLogs"
+
+    def execute(self):
+        if not self.is_windows() or not os.path.exists(self.expansions.get("aws_ec2_yml", "")) or self.expansions.get("ec2_ssh_failure", ""):
+            return
+
+        cmds = f"mkdir -p {self.expansions['event_logpath']}"
+        cmds = f"{cmds}; wevtutil qe Application /c:10000 /rd:true /f:Text > {self.expansions['event_logpath']}/application.log"
+        cmds = f"{cmds}; wevtutil qe Security    /c:10000 /rd:true /f:Text > {self.expansions['event_logpath']}/security.log"
+        cmds = f"{cmds}; wevtutil qe System      /c:10000 /rd:true /f:Text > {self.expansions['event_logpath']}/system.log"
+
+        self.remote_op.operation(SSHOperation.SHELL, cmds, None)
+
+
+class GatherRemoteMongoCoredumps(PowercycleCommand):
+    """Gather Remote Mongo Coredumps."""
+    COMMAND = "gatherRemoteMongoCoredumps"
 
     def execute(self) -> None:
         """
@@ -314,14 +343,8 @@ class GatherRemoteEventLogs(PowercycleCommand):
         cmds = f"{cmds}; do base_name=$(echo $core_file | sed 's/.*///')"
         cmds = f"{cmds};   if [ ! -f $base_name ]; then mv $core_file .; fi"
         cmds = f"{cmds}; done"
+
         self.remote_op.operation(SSHOperation.SHELL, cmds, remote_dir)
-
-
-
-class GatherRemoteMongoCoredumps(PowercycleCommand):
-    """Interact with UndoDB."""
-    COMMAND = "gatherRemoteMongoCoredumps"
-
 
 class CopyRemoteMongoCoredumps(PowercycleCommand):
     """Interact with UndoDB."""
@@ -331,6 +354,13 @@ class CopyRemoteMongoCoredumps(PowercycleCommand):
 class CopyEC2MonitorFiles(PowercycleCommand):
     """Interact with UndoDB."""
     COMMAND = "copyEC2MonitorFiles"
+
+    def execute(self):
+        tar_cmd = "tar" if "tar" not in self.expansions else self.expansions["tar"]
+        cmd = f"{tar_cmd} czf ec2_monitor_files.tgz {self.expansions['ec2_monitor_files']}"
+
+        self.remote_op.operation(SSHOperation.SHELL, cmd, None)
+        self.remote_op.operation(SSHOperation.COPY_FROM, 'ec2_monitor_files.tgz', None)
 
 
 class PowercyclePlugin(PluginInterface):
@@ -360,8 +390,8 @@ class PowercyclePlugin(PluginInterface):
             return SetUpEC2Instance()
         elif subcommand == TarEC2Artifacts.COMMAND:
             return TarEC2Artifacts()
-        elif subcommand == CopyEC2Instance.COMMAND:
-            return CopyEC2Instance()
+        elif subcommand == CopyEC2Artifacts.COMMAND:
+            return CopyEC2Artifacts()
         elif subcommand == GatherRemoteEventLogs.COMMAND:
             return GatherRemoteEventLogs()
         elif subcommand == GatherRemoteMongoCoredumps.COMMAND:
