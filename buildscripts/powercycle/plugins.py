@@ -10,13 +10,16 @@ from buildscripts.powercycle.run import RemoteOperations, SSHOperation
 from buildscripts.resmokelib.plugin import PluginInterface, Subcommand
 
 
+_EXPANSIONS_FILE = 'expansions.yml'
+
+
 class PowercycleCommand(Subcommand):
     @staticmethod
     def is_windows():
         return sys.platform == "win32" or sys.platform == "cygwin"
 
-    def __init__(self, expansions_file):
-        self.expansions = yaml.safe_load(open(expansions_file))
+    def __init__(self):
+        self.expansions = yaml.safe_load(open(_EXPANSIONS_FILE))
         self.ssh_connection_options = None
 
         # The username on the Windows image that powercycle uses is currently the default user.
@@ -26,13 +29,17 @@ class PowercycleCommand(Subcommand):
         self.sudo = "" if self.is_windows() else "sudo"
         self.exe = ".exe" if self.is_windows() else ""
 
-        self.get_ssh_options()
-
-    def get_ssh_options(self):
         workdir = self.get_posix_workdir()
         ssh_identity = f"-i {'/'.join([workdir, 'powercycle.pem'])}"
         print(ssh_identity)
         self.ssh_connection_options = ssh_identity + " " + self.expansions["ssh_connection_options"]
+
+        self.remote_op = RemoteOperations(
+            user_host=self.user_host,
+            ssh_connection_options=self.ssh_connection_options,
+            retries=self.retries,
+            debug=True,  # TODO: remove debug flag.
+        )
 
     def get_posix_workdir(self):
         workdir = self.expansions['workdir']
@@ -55,26 +62,14 @@ class SetUpEC2Instance(PowercycleCommand):
     """Interact with UndoDB."""
     COMMAND = "setUpEC2Instance"
 
-    def __init__(self, expansions_file):
-        """Constructor."""
-        super().__init__(expansions_file)
-
     def execute(self) -> None:
         """
         :return: None
         """
-
-        remote_op = RemoteOperations(
-            user_host=self.user_host,
-            ssh_connection_options=self.ssh_connection_options,
-            retries=self.retries,
-            debug=True,
-        )
-
         # last arg is "operation_dir", which for the COPY_TO action, is the remote
         # directory. We just have it default to the home directory instead of setting
         # one explicitly.
-        remote_op.operation(SSHOperation.COPY_TO, 'buildscripts/mount_drives.sh', None)
+        self.remote_op.operation(SSHOperation.COPY_TO, 'buildscripts/mount_drives.sh', None)
 
         script_opts = f"-d '{self.expansions['data_device_names']}'"
 
@@ -97,7 +92,7 @@ class SetUpEC2Instance(PowercycleCommand):
         script_opts = f"{script_opts} -u {user_group}"
         data_db = "/data/db"
         cmds = f"{self.sudo} bash mount_drives.sh {script_opts}; mount; ls -ld {data_db} {log}; df"
-        remote_op.operation(SSHOperation.SHELL, cmds, None)
+        self.remote_op.operation(SSHOperation.SHELL, cmds, None)
 
         print("Got here 2")
         if 'remote_dir' not in self.expansions:
@@ -110,7 +105,7 @@ class SetUpEC2Instance(PowercycleCommand):
             if self.is_windows():
                 set_permission = f"setfacl -s user::rwx,group::rwx,other::rwx {remote_dir}"
             cmds = f"{self.sudo} mkdir -p {remote_dir}; {self.sudo} chown {user_group} {remote_dir}; {set_permission}; ls -ld {remote_dir}"
-            remote_op.operation(SSHOperation.SHELL, cmds, None)
+            self.remote_op.operation(SSHOperation.SHELL, cmds, None)
 
         print("Got here 3")
         files = ['etc', 'buildscripts', 'pytests']
@@ -119,7 +114,7 @@ class SetUpEC2Instance(PowercycleCommand):
             files.append(f"dist-test/bin/{executable}{self.exe}")
 
         # Copy buildscripts, pytests and mongoDB executables to the remote host.
-        remote_op.operation(SSHOperation.COPY_TO, files, remote_dir)
+        self.remote_op.operation(SSHOperation.COPY_TO, files, remote_dir)
         print("Got here 4")
 
 
@@ -135,7 +130,7 @@ class SetUpEC2Instance(PowercycleCommand):
         cmds = f"{cmds}; . $activate"
         cmds = f"{cmds}; pip3 install -r $remote_dir/etc/pip/powercycle-requirements.txt"
 
-        remote_op.operation(SSHOperation.SHELL, cmds, None)
+        self.remote_op.operation(SSHOperation.SHELL, cmds, None)
 
         print("Got here 5")
 
@@ -206,7 +201,7 @@ class SetUpEC2Instance(PowercycleCommand):
             cmds = f"{cmds}; crontab -l"
             cmds = f"{cmds}; {{ {self.sudo} $HOME/curator stat system --file {monitor_system_file} > /dev/null 2>&1 & {self.sudo} $HOME/curator stat process-all --file {monitor_proc_file} > /dev/null 2>&1 & }} & disown"
 
-        remote_op.operation(SSHOperation.SHELL, cmds, None)
+        self.remote_op.operation(SSHOperation.SHELL, cmds, None)
 
         print("Got here 8")
 
@@ -271,10 +266,45 @@ class SetUpEC2Instance(PowercycleCommand):
         print("Got here 9")
 
 
+class TarEC2Artifacts(PowercycleCommand):
+    """Interact with UndoDB."""
+    COMMAND = "tarEC2Artifacts"
+
+    def execute(self):
+        if "ec2_artifacts" not in self.expansions or "ec2_ssh_failure" in self.expansions:
+            return
+        tar_cmd = "tar" if "tar" not in self.expansions else self.expansions["tar"]
+        cmd = f"{tar_cmd} czf ec2_artifacts.tgz {self.expansions['ec2_artifacts']}"
+
+        self.remote_op.operation(SSHOperation.SHELL, cmd, None)
 
 
+class CopyEC2Instance(PowercycleCommand):
+    """Interact with UndoDB."""
+    COMMAND = "copyEC2Instance"
 
-class SetUpEC2InstancePlugin(PluginInterface):
+
+class GatherRemoteEventLogs(PowercycleCommand):
+    """Interact with UndoDB."""
+    COMMAND = "gatherRemoteEventLogs"
+
+
+class GatherRemoteMongoCoredumps(PowercycleCommand):
+    """Interact with UndoDB."""
+    COMMAND = "gatherRemoteMongoCoredumps"
+
+
+class CopyRemoteMongoCoredumps(PowercycleCommand):
+    """Interact with UndoDB."""
+    COMMAND = "copyRemoteMongoCoredumps"
+
+
+class CopyEC2MonitorFiles(PowercycleCommand):
+    """Interact with UndoDB."""
+    COMMAND = "copyEC2MonitorFiles"
+
+
+class PowercyclePlugin(PluginInterface):
     """Interact with UndoDB."""
 
     def add_subcommand(self, subparsers):
@@ -297,6 +327,19 @@ class SetUpEC2InstancePlugin(PluginInterface):
         :param kwargs: additional args
         :return: None or a Subcommand
         """
-        if subcommand != SetUpEC2Instance.COMMAND:
+        if subcommand == SetUpEC2Instance.COMMAND:
+            return SetUpEC2Instance()
+        elif subcommand == TarEC2Artifacts.COMMAND:
+            return TarEC2Artifacts()
+        elif subcommand == CopyEC2Instance.COMMAND:
+            return CopyEC2Instance()
+        elif subcommand == GatherRemoteEventLogs.COMMAND:
+            return GatherRemoteEventLogs()
+        elif subcommand == GatherRemoteMongoCoredumps.COMMAND:
+            return GatherRemoteMongoCoredumps()
+        elif subcommand == CopyRemoteMongoCoredumps.COMMAND:
+            return CopyRemoteMongoCoredumps()
+        elif subcommand == CopyEC2MonitorFiles.COMMAND:
+            return CopyEC2MonitorFiles()
+        else:
             return None
-        return SetUpEC2Instance(parsed_args.expansions_file)
