@@ -84,6 +84,7 @@ class SetUpEC2Instance(PowercycleCommand):
         log = "/log"
 
         print("Got here 1")
+
         # Mount /data on the attached drive(s), more than 1 indicates a RAID set.
         group_cmd = f"id -Gn {self.user}"
         _, group = self._call(group_cmd)
@@ -374,7 +375,6 @@ class CopyEC2MonitorFiles(PowercycleCommand):
         self.remote_op.operation(SSHOperation.SHELL, cmd, None)
         self.remote_op.operation(SSHOperation.COPY_FROM, 'ec2_monitor_files.tgz', None)
 
-
 class PowercyclePlugin(PluginInterface):
     """Interact with UndoDB."""
 
@@ -385,7 +385,13 @@ class PowercyclePlugin(PluginInterface):
         :param subparsers: argparse parser to add to
         :return: None
         """
-        parser = subparsers.add_parser(SetUpEC2Instance.COMMAND)
+        subparsers.add_parser(SetUpEC2Instance.COMMAND)
+        subparsers.add_parser(TarEC2Artifacts.COMMAND)
+        subparsers.add_parser(CopyEC2Artifacts.COMMAND)
+        subparsers.add_parser(GatherRemoteEventLogs.COMMAND)
+        subparsers.add_parser(GatherRemoteMongoCoredumps.COMMAND)
+        subparsers.add_parser(CopyRemoteMongoCoredumps.COMMAND)
+        subparsers.add_parser(CopyEC2MonitorFiles.COMMAND)
         # Accept arbitrary args like 'resmoke.py undodb foobar', but ignore them.
 
     def parse(self, subcommand, parser, parsed_args, **kwargs):

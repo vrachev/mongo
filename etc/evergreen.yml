@@ -2646,11 +2646,8 @@ functions:
           set -o errexit
 
           ${activate_virtualenv}
-          echo "VLAD got here"
-
           $python buildscripts/remote_operations.py setUpEC2Instance
 
-          echo "VLAD got here"
     - *copy_ec2_monitor_files
 
   ### Determine & set remote EC2 IP address ###
@@ -2737,27 +2734,8 @@ functions:
       shell: bash
       working_dir: "src"
       script: |
-        if [[ ! -f ${aws_ec2_yml|""} || -n "${ec2_ssh_failure}" ]]; then
-          exit 0
-        fi
-        ssh_connection_options="${ssh_identity} ${ssh_connection_options}"
-        remote_dir=${remote_dir|.}
-        # Find all core files and move to $remote_dir
-        cmds="core_files=\$(/usr/bin/find -H . \( -name '*.core' -o -name '*.mdmp' \) 2> /dev/null)"
-        cmds="$cmds; if [ -z \"\$core_files\" ]; then exit 0; fi"
-        cmds="$cmds; echo Found remote core files \$core_files, moving to \$(pwd)"
-        cmds="$cmds; for core_file in \$core_files"
-        cmds="$cmds; do base_name=\$(echo \$core_file | sed 's/.*\///')"
-        cmds="$cmds;   if [ ! -f \$base_name ]; then mv \$core_file .; fi"
-        cmds="$cmds; done"
         ${activate_virtualenv}
-        $python buildscripts/remote_operations.py          \
-          --verbose                                        \
-          --userHost $USER@${private_ip_address}           \
-          --sshConnectionOptions "$ssh_connection_options" \
-          --retries ${ssh_retries}                         \
-          --commands "$cmds"                               \
-          --commandDir $remote_dir
+        $python buildscripts/remote_operations.py gatherRemoteMongoCoredumps
 
   "copy remote mongo coredumps": &copy_remote_mongo_coredumps
     command: shell.exec
