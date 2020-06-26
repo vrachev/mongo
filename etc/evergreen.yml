@@ -2581,22 +2581,8 @@ functions:
             echo "Cannot determine the IP address for the remote monitor."
             continue
           fi
-          cmd="${tar|tar} czf ec2_monitor_files.tgz ${ec2_monitor_files}"
-          ssh_connection_options="${ssh_identity} ${ssh_connection_options}"
-          ssh_connection_options="$ssh_connection_options -o ConnectionAttempts=3"
-          $python buildscripts/remote_operations.py          \
-            --verbose                                        \
-            --userHost $USER@$private_ip_address             \
-            --sshConnectionOptions "$ssh_connection_options" \
-            --retries ${ssh_retries|0}                       \
-            --commands "$cmd"
-          $python buildscripts/remote_operations.py          \
-            --verbose                                        \
-            --userHost $USER@$private_ip_address             \
-            --operation "copy_from"                          \
-            --sshConnectionOptions "$ssh_connection_options" \
-            --retries ${ssh_retries|0}                       \
-            --file ec2_monitor_files.tgz
+
+          $python buildscripts/remote_operations.py copyEC2MonitorFiles
           sleep 30
         done
 
@@ -3032,19 +3018,8 @@ functions:
       shell: bash
       working_dir: src
       script: |
-        # Tar/zip artifacts on remote host.
-        if [[ -z "${ec2_artifacts}" || -n "${ec2_ssh_failure}" ]]; then
-          exit 0
-        fi
-        cmd="${tar|tar} czf ec2_artifacts.tgz ${ec2_artifacts}"
-        ssh_connection_options="${ssh_identity} ${ssh_connection_options}"
-        ${activate_virtualenv}
-        $python buildscripts/remote_operations.py          \
-          --verbose                                        \
-          --userHost $USER@${private_ip_address}           \
-          --sshConnectionOptions "$ssh_connection_options" \
-          --retries ${ssh_retries|0}                       \
-          --commands "$cmd"
+       ${activate_virtualenv}
+        $python buildscripts/remote_operations.py tarEC2Artifacts
 
   "copy EC2 artifacts": &copy_ec2_artifacts
     command: shell.exec
@@ -3052,19 +3027,8 @@ functions:
       shell: bash
       working_dir: src
       script: |
-        # Copy remote artifacts.
-        if [[ -z "${ec2_artifacts}" || -n "${ec2_ssh_failure}" ]]; then
-          exit 0
-        fi
-        ssh_connection_options="${ssh_identity} ${ssh_connection_options}"
         ${activate_virtualenv}
-        $python buildscripts/remote_operations.py          \
-          --verbose                                        \
-          --userHost $USER@${private_ip_address}           \
-          --operation "copy_from"                          \
-          --sshConnectionOptions "$ssh_connection_options" \
-          --retries ${ssh_retries|0}                       \
-          --file ec2_artifacts.tgz
+        $python buildscripts/remote_operations.py gatherRemoteEventLogs
 
   "cleanup EC2 instance": &cleanup_ec2_instance
     command: shell.exec
@@ -3092,23 +3056,8 @@ functions:
       shell: bash
       working_dir: src
       script: |
-        if [[ "Windows_NT" != "$OS" || ! -f ${aws_ec2_yml|""} || -n "${ec2_ssh_failure}" ]]; then
-          exit 0
-        fi
-
-        cmds="mkdir -p ${event_logpath}"
-        cmds="$cmds; wevtutil qe Application /c:10000 /rd:true /f:Text > ${event_logpath}/application.log"
-        cmds="$cmds; wevtutil qe Security    /c:10000 /rd:true /f:Text > ${event_logpath}/security.log"
-        cmds="$cmds; wevtutil qe System      /c:10000 /rd:true /f:Text > ${event_logpath}/system.log"
-
-        ssh_connection_options="${ssh_identity} ${ssh_connection_options}"
         ${activate_virtualenv}
-        $python buildscripts/remote_operations.py          \
-          --verbose                                        \
-          --userHost $USER@${private_ip_address}           \
-          --sshConnectionOptions "$ssh_connection_options" \
-          --retries ${ssh_retries|0}                       \
-          --commands "$cmds"
+        $python buildscripts/remote_operations.py gatherRemoteEventLogs
 
   "gather remote mongo coredumps": &gather_remote_mongo_coredumps
     command: shell.exec
@@ -3144,24 +3093,8 @@ functions:
       shell: bash
       working_dir: "src"
       script: |
-        if [[ ! -f ${aws_ec2_yml|""} || -n "${ec2_ssh_failure}" ]]; then
-          exit 0
-        fi
-        ssh_connection_options="${ssh_identity} ${ssh_connection_options}"
-        remote_dir=${remote_dir|.}
         ${activate_virtualenv}
-        $python buildscripts/remote_operations.py          \
-          --verbose                                        \
-          --userHost $USER@${private_ip_address}           \
-          --operation "copy_from"                          \
-          --sshConnectionOptions "$ssh_connection_options" \
-          --retries ${ssh_retries}                         \
-          --file "$remote_dir/*.core"                      \
-          --file "$remote_dir/*.mdmp"
-        # Since both type of core files do not exist on the same host, this command
-        # will always return non-zero. As the core file retrieval is optional, we
-        # always exit successfully.
-        exit 0
+        $python buildscripts/remote_operations.py copyRemoteMongoCoredumps
 
   "archive remote EC2 artifacts": &archive_remote_ec2_artifacts
     command: s3.put

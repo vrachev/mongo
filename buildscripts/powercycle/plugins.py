@@ -290,7 +290,7 @@ class TarEC2Artifacts(PowercycleCommand):
 
 class CopyEC2Artifacts(PowercycleCommand):
     """Interact with UndoDB."""
-    COMMAND = "copyEC2Artifacts"
+    COMMAND = "gatherRemoteEventLogs"
 
     def execute(self):
         if "ec2_artifacts" not in self.expansions or "ec2_ssh_failure" in self.expansions:
@@ -359,6 +359,7 @@ class CopyRemoteMongoCoredumps(PowercycleCommand):
         else:
             core_suffix = "core"
 
+        # Core file may not exist so we ignore the return code.
         self.remote_op.operation(SSHOperation.SHELL, f"{self.expansions.get('remote_dir', '.')}/*.{core_suffix}", None, True)
 
 
