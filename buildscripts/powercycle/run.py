@@ -125,7 +125,7 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
         return message.startswith("ssh:")
 
     def operation(  # pylint: disable=too-many-branches
-            self, operation_type, operation_param, operation_dir=None):
+            self, operation_type, operation_param, operation_dir=None, ignore_ret=False):
         """Execute Main entry for remote operations. Returns (code, output).
 
         'operation_type' supports remote shell and copy operations.
@@ -206,6 +206,8 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
         print(buff)
 
         if final_ret != 0:
+            if ignore_ret:
+                print(f"Ignoring return code {final_ret}, exiting with 0.")
             raise Exception(buff)
 
     def shell(self, operation_param, operation_dir=None):

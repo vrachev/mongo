@@ -150,7 +150,7 @@ class SetUpEC2Instance(PowercycleCommand):
             cmds = f"{cmds}; echo \"{self.user} - core unlimited\" | {self.sudo} tee -a /etc/security/limits.conf"
             cmds = f"{cmds}; if [ -f {sysctl_conf} ]"
             cmds = f"{cmds}; then grep ^kernel.core_pattern {sysctl_conf}"
-            cmds = f"{cmds};    if [ \$? -eq  0 ]"
+            cmds = f"{cmds};    if [ $? -eq  0 ]"
             cmds = f"{cmds};    then {self.sudo} sed -i \"s,kernel.core_pattern=.*,kernel.core_pattern=$core_pattern,\" {sysctl_conf}"
             cmds = f"{cmds};    else echo \"kernel.core_pattern={core_pattern}\" | {self.sudo} tee -a {sysctl_conf}"
             cmds = f"{cmds};    fi"
@@ -160,19 +160,115 @@ class SetUpEC2Instance(PowercycleCommand):
             # https://unix.stackexchange.com/a/349558 in order to ensure the ssh client gets a
             # response from the remote machine before it restarts.
             cmds = f"{cmds}; nohup {self.sudo} reboot &>/dev/null & exit"
+            remote_op.operation(SSHOperation.SHELL, cmds, None)
+
+        print("Got here 6")
+
+
+        if not self.is_windows():
+            # Always exit successfully, as this is just informational.
+            # Print the ulimit & kernel.core_pattern
+            cmds = "uptime"
+            cmds = f"{cmds}; ulimit -a"
+            cmds = f"{cmds}; if [ -f /sbin/sysctl ]"
+            cmds = f"{cmds}; then /sbin/sysctl kernel.core_pattern"
+            cmds = f"{cmds}; fi"
+
+            remote_op_special_retry = remote_op if "ssh_retries" in self.expansions else RemoteOperations(
+                user_host=self.user_host,
+                ssh_connection_options=self.ssh_connection_options,
+                retries=3,
+                debug=True)
+            remote_op_special_retry.operation(SSHOperation.SHELL, cmds, None, True)
+
+        print("Got here 7")
+
+        # Set up curator to collect system & process stats on remote.
+        variant = "windows" if self.is_windows() else "ubuntu1604"
+        curator_hash = "117d1a65256ff78b6d15ab79a1c7088443b936d0"
+        curator_url = f"https://s3.amazonaws.com/boxes.10gen.com/build/curator/curator-dist-{variant}-{curator_hash}.tar.gz"
+        cmds = f"curl -s {curator_url} | tar -xzv"
+        monitor_system_file = self.expansions["monitor_system_file"]
+        monitor_proc_file = self.expansions["monitor_proc_file"]
+        if self.is_windows():
+            # Since curator runs as SYSTEM user, ensure the output files can be accessed.
+            cmds = f"{cmds}; touch {monitor_system_file}; chmod 777 {monitor_system_file}"
+            cmds = f"{cmds}; cygrunsrv --install curator_sys --path curator --chdir $HOME --args 'stat system --file {monitor_system_file}'"
+            cmds = f"{cmds}; touch {monitor_proc_file}; chmod 777 {monitor_proc_file}"
+            cmds = f"{cmds}; cygrunsrv --install curator_proc --path curator --chdir $HOME --args 'stat process-all --file {monitor_proc_file}'"
+            cmds = f"{cmds}; cygrunsrv --start curator_sys"
+            cmds = f"{cmds}; cygrunsrv --start curator_proc"
+        else:
+            cmds = f"{cmds}; cmd=\"@reboot cd $HOME && {self.sudo} ./curator stat system >> {monitor_system_file}\""
+            cmds = f"{cmds}; (crontab -l ; echo \"$cmd\") | crontab -"
+            cmds = f"{cmds}; cmd=\"@reboot cd $HOME && $sudo ./curator stat process-all >> {monitor_proc_file}\""
+            cmds = f"{cmds}; (crontab -l ; echo \"$cmd\") | crontab -"
+            cmds = f"{cmds}; crontab -l"
+            cmds = f"{cmds}; {{ {self.sudo} $HOME/curator stat system --file {monitor_system_file} > /dev/null 2>&1 & {self.sudo} $HOME/curator stat process-all --file {monitor_proc_file} > /dev/null 2>&1 & }} & disown"
 
         remote_op.operation(SSHOperation.SHELL, cmds, None)
 
-        # print("Got here 6")
+        print("Got here 8")
 
-        # if not self.is_windows():
-        #     # Always exit successfully, as this is just informational.
-        #     # Print the ulimit & kernel.core_pattern
-        #     cmds = "uptime"
-        #     cmds = f"{cmds}; ulimit -a"
-        #     cmds = f"{cmds}; if [ -f /sbin/sysctl ]"
-        #     cmds = f"{cmds}; then /sbin/sysctl kernel.core_pattern"
-        #     cmds = f"{cmds}; fi"
+        def configure_firewall():
+            # Many systems have the firewall disabled, by default. In case the firewall is
+            # enabled we add rules for the mongod ports on the remote.
+            standard_port = self.expansions["standard_port"]
+            secret_port = self.expansions["secret_port"]
+            # RHEL 7 firewall rules
+            if self._call("which firewall-cmd")[1]:
+                cmds = f"{self.sudo} firewall-cmd --permanent --zone=public --add-port=ssh/tcp"
+                cmds = f"{cmds}; {self.sudo} firewall-cmd --permanent --zone=public --add-port={standard_port}/tcp"
+                cmds = f"{cmds}; {self.sudo} firewall-cmd --permanent --zone=public --add-port={secret_port}/tcp"
+                cmds = f"{cmds}; {self.sudo} firewall-cmd --reload"
+                cmds = f"{cmds}; {self.sudo} firewall-cmd --list-all"
+            elif self._call(f"{self.sudo} iptables --list")[1]:
+                cmds = f"{self.sudo} iptables -I INPUT 1 -p tcp --dport ssh -j ACCEPT"
+                cmds = f"{cmds}; {self.sudo} iptables -I INPUT 1 -p tcp --dport {standard_port} -j ACCEPT"
+                cmds = f"{cmds}; {self.sudo} iptables -I INPUT 1 -p tcp --dport {secret_port} -j ACCEPT"
+                if os.path.exists("/etc/iptables") and os.path.isdir("/etc/iptables"):
+                    rules_file = "/etc/iptables/iptables.rules"
+                elif os.path.exists("/etc/sysconfig/iptables") and os.path.isfile("/etc/sysconfig/iptables"):
+                    rules_file = "/etc/sysconfig/iptables"
+                else:
+                    rules_file = "/etc/iptables.up.rules"
+                cmds = f"{cmds}; {self.sudo} iptables-save | {self.sudo} tee {rules_file}"
+                cmds = f"{cmds}; {self.sudo} iptables --list-rules"
+            elif self._call(f"{self.sudo} service iptables status")[1]:
+                cmds = f"{self.sudo} iptables -I INPUT 1 -p tcp --dport ssh -j ACCEPT"
+                cmds = f"{cmds}; {self.sudo} iptables -I INPUT 1 -p tcp --dport {standard_port} -j ACCEPT"
+                cmds = f"{cmds}; {self.sudo} iptables -I INPUT 1 -p tcp --dport {secret_port} -j ACCEPT"
+                cmds = f"{cmds}; {self.sudo} service iptables save"
+                cmds = f"{cmds}; {self.sudo} service iptables status"
+            # Ubuntu firewall rules
+            elif self._call(f"{self.sudo} ufw status")[1]:
+                cmds = f"{self.sudo} ufw allow ssh/tcp"
+                cmds = f"{cmds}; {self.sudo} ufw allow {standard_port}/tcp"
+                cmds = f"{cmds}; {self.sudo} ufw allow {secret_port}/tcp"
+                cmds = f"{cmds}; {self.sudo} ufw reload"
+                cmds = f"{cmds}; {self.sudo} ufw status"
+            # SuSE firewall rules
+            # TODO: Add firewall rules using SuSEfirewall2
+            elif self._call(f"{self.sudo} /sbin/SuSEfirewall2 help")[1]:
+                cmds = f"{self.sudo} /sbin/SuSEfirewall2 stop"
+                cmds = f"{cmds}; {self.sudo} /sbin/SuSEfirewall2 off"
+            # Windows firewall rules
+            elif self._call(f"netsh advfirewall show store")[1]:
+                add_rule = "netsh advfirewall firewall add rule"
+                cmds = f"{add_rule} name='MongoDB port {standard_port} in' dir=in action=allow protocol=TCP localport={standard_port}"
+                cmds = f"{cmds}; {add_rule} name='MongoDB port {standard_port} out' dir=in action=allow protocol=TCP localport={standard_port}"
+                cmds = f"{cmds}; {add_rule} name='MongoDB port {secret_port} in' dir=in action=allow protocol=TCP localport={secret_port}"
+                cmds = f"{cmds}; {add_rule} name='MongoDB port {secret_port} out' dir=in action=allow protocol=TCP localport={secret_port}"
+                cmds = f"{cmds}; netsh advfirewall firewall show rule name=all | grep -A 13 'MongoDB'"
+            else:
+                print("Firewall not active or unkown firewall command on this platform")
+                return
+
+            remote_op.operation(SSHOperation.SHELL, cmds, None)
+
+        configure_firewall()
+
+        print("Got here 9")
 
 
 
