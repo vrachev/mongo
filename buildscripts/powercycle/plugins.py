@@ -350,6 +350,17 @@ class CopyRemoteMongoCoredumps(PowercycleCommand):
     """Interact with UndoDB."""
     COMMAND = "copyRemoteMongoCoredumps"
 
+    def execute(self):
+        if not os.path.exists(self.expansions.get("aws_ec2_yml", "")) or self.expansions.get("ec2_ssh_failure", ""):
+            return 0
+
+        if self.is_windows():
+            core_suffix = "mdmp"
+        else:
+            core_suffix = "core"
+
+        self.remote_op.operation(SSHOperation.SHELL, f"{self.expansions.get('remote_dir', '.')}/*.{core_suffix}", None, True)
+
 
 class CopyEC2MonitorFiles(PowercycleCommand):
     """Interact with UndoDB."""
