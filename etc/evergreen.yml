@@ -3192,56 +3192,7 @@ functions:
 
         # Call hang analyzer for tasks that are running remote mongo processes
         if [ -n "${private_ip_address}" ]; then
-          core_ext=core
-          if [ "Windows_NT" = "$OS" ]; then
-            core_ext=mdmp
-          fi
-          ssh_connection_options="${ssh_identity} ${ssh_connection_options}"
-          # buildscripts must be installed in ${remote_dir} on the remote host.
-          remote_dir=${remote_dir|.}
-
-          # Copy mongoDB debug symbols to the remote host.
-          debug_files=$(ls *.debug *.dSYM *.pdb 2> /dev/null)
-          for debug_file in $debug_files
-          do
-            file_param="$file_param --file $debug_file"
-          done
-          if [ ! -z "$file_param" ]; then
-            $python buildscripts/remote_operations.py          \
-              --verbose                                        \
-              --userHost $USER@${private_ip_address}           \
-              --operation "copy_to"                            \
-              --sshConnectionOptions "$ssh_connection_options" \
-              --retries ${ssh_retries}                         \
-              $file_param                                      \
-              --remoteDir $remote_dir
-          fi
-
-          # Activate virtualenv on remote host. The virtualenv bin_dir is different for Linux and
-          # Windows.
-          bin_dir=$(find $VIRTUAL_ENV -name activate | sed -e "s,$VIRTUAL_ENV,,;s,activate,,;s,/,,g")
-          cmds=". ${virtualenv_dir|venv}/$bin_dir/activate"
-          # In the 'cmds' variable we pass to remote host, use 'python' instead of '$python' since
-          # we don't want to evaluate the local python variable, but instead pass the python string
-          # so the remote host will use the right python when the virtualenv is sourced.
-          cmds="$cmds; cd ${remote_dir}"
-          cmds="$cmds; PATH=\"/opt/mongodbtoolchain/gdb/bin:\$PATH\" python buildscripts/resmoke.py hang-analyzer $hang_analyzer_option"
-          $python buildscripts/remote_operations.py          \
-            --verbose                                        \
-            --userHost $USER@${private_ip_address}           \
-            --sshConnectionOptions "$ssh_connection_options" \
-            --retries ${ssh_retries}                         \
-            --commands "$cmds"
-
-          $python buildscripts/remote_operations.py          \
-            --verbose                                        \
-            --userHost $USER@${private_ip_address}           \
-            --operation "copy_from"                          \
-            --sshConnectionOptions "$ssh_connection_options" \
-            --retries ${ssh_retries}                         \
-            --file "$remote_dir/debugger*.*"                 \
-            --file "$remote_dir/*.$core_ext"
-        fi
+          $python buildscripts/remote_operations.py runHangAnalyzerOnRemoteInstance
 
   "tar hang analyzer debugger files": &tar_hang_analyzer_debugger_files
     command: archive.targz_pack
