@@ -29,13 +29,17 @@ class PowercycleCommand(Subcommand):
         self.sudo = "" if self.is_windows() else "sudo"
         self.exe = ".exe" if self.is_windows() else ""
 
-        self.get_ssh_options()
-
-    def get_ssh_options(self):
         workdir = self.get_posix_workdir()
         ssh_identity = f"-i {'/'.join([workdir, 'powercycle.pem'])}"
         print(ssh_identity)
         self.ssh_connection_options = ssh_identity + " " + self.expansions["ssh_connection_options"]
+
+        self.remote_op = RemoteOperations(
+            user_host=self.user_host,
+            ssh_connection_options=self.ssh_connection_options,
+            retries=self.retries,
+            debug=True,  # TODO: remove debug flag.
+        )
 
     def get_posix_workdir(self):
         workdir = self.expansions['workdir']
@@ -62,18 +66,10 @@ class SetUpEC2Instance(PowercycleCommand):
         """
         :return: None
         """
-
-        remote_op = RemoteOperations(
-            user_host=self.user_host,
-            ssh_connection_options=self.ssh_connection_options,
-            retries=self.retries,
-            debug=True,
-        )
-
         # last arg is "operation_dir", which for the COPY_TO action, is the remote
         # directory. We just have it default to the home directory instead of setting
         # one explicitly.
-        remote_op.operation(SSHOperation.COPY_TO, 'buildscripts/mount_drives.sh', None)
+        self.remote_op.operation(SSHOperation.COPY_TO, 'buildscripts/mount_drives.sh', None)
 
         script_opts = f"-d '{self.expansions['data_device_names']}'"
 
@@ -96,7 +92,7 @@ class SetUpEC2Instance(PowercycleCommand):
         script_opts = f"{script_opts} -u {user_group}"
         data_db = "/data/db"
         cmds = f"{self.sudo} bash mount_drives.sh {script_opts}; mount; ls -ld {data_db} {log}; df"
-        remote_op.operation(SSHOperation.SHELL, cmds, None)
+        self.remote_op.operation(SSHOperation.SHELL, cmds, None)
 
         print("Got here 2")
         if 'remote_dir' not in self.expansions:
@@ -109,7 +105,7 @@ class SetUpEC2Instance(PowercycleCommand):
             if self.is_windows():
                 set_permission = f"setfacl -s user::rwx,group::rwx,other::rwx {remote_dir}"
             cmds = f"{self.sudo} mkdir -p {remote_dir}; {self.sudo} chown {user_group} {remote_dir}; {set_permission}; ls -ld {remote_dir}"
-            remote_op.operation(SSHOperation.SHELL, cmds, None)
+            self.remote_op.operation(SSHOperation.SHELL, cmds, None)
 
         print("Got here 3")
         files = ['etc', 'buildscripts', 'pytests']
@@ -118,7 +114,7 @@ class SetUpEC2Instance(PowercycleCommand):
             files.append(f"dist-test/bin/{executable}{self.exe}")
 
         # Copy buildscripts, pytests and mongoDB executables to the remote host.
-        remote_op.operation(SSHOperation.COPY_TO, files, remote_dir)
+        self.remote_op.operation(SSHOperation.COPY_TO, files, remote_dir)
         print("Got here 4")
 
 
@@ -134,7 +130,7 @@ class SetUpEC2Instance(PowercycleCommand):
         cmds = f"{cmds}; . $activate"
         cmds = f"{cmds}; pip3 install -r $remote_dir/etc/pip/powercycle-requirements.txt"
 
-        remote_op.operation(SSHOperation.SHELL, cmds, None)
+        self.remote_op.operation(SSHOperation.SHELL, cmds, None)
 
         print("Got here 5")
 
@@ -160,7 +156,7 @@ class SetUpEC2Instance(PowercycleCommand):
             # response from the remote machine before it restarts.
             cmds = f"{cmds}; nohup {self.sudo} reboot &>/dev/null & exit"
 
-        remote_op.operation(SSHOperation.SHELL, cmds, None)
+        self.remote_op.operation(SSHOperation.SHELL, cmds, None)
 
         # print("Got here 6")
 
@@ -174,10 +170,17 @@ class SetUpEC2Instance(PowercycleCommand):
         #     cmds = f"{cmds}; fi"
 
 
-
 class TarEC2Artifacts(PowercycleCommand):
     """Interact with UndoDB."""
     COMMAND = "tarEC2Artifacts"
+
+    def execute(self):
+        if "ec2_artifacts" not in self.expansions or "ec2_ssh_failure" in self.expansions:
+            return
+        tar_cmd = "tar" if "tar" not in self.expansions else self.expansions["tar"]
+        cmd = f"{tar_cmd} czf ec2_artifacts.tgz {self.expansions['ec2_artifacts']}"
+
+        self.remote_op.operation(SSHOperation.SHELL, cmd, None)
 
 
 class CopyEC2Instance(PowercycleCommand):
