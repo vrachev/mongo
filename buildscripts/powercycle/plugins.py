@@ -326,6 +326,13 @@ class CopyEC2MonitorFiles(PowercycleCommand):
     """Interact with UndoDB."""
     COMMAND = "copyEC2MonitorFiles"
 
+    def execute(self):
+        tar_cmd = "tar" if "tar" not in self.expansions else self.expansions["tar"]
+        cmd = f"{tar_cmd} czf ec2_monitor_files.tgz {self.expansions['ec2_monitor_files']}"
+
+        self.remote_op.operation(SSHOperation.SHELL, cmd, None)
+        self.remote_op.operation(SSHOperation.COPY_FROM, 'ec2_monitor_files.tgz', None)
+
 
 class PowercyclePlugin(PluginInterface):
     """Interact with UndoDB."""
