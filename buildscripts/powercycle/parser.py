@@ -23,7 +23,7 @@ def _add_subcommands():
 
 
 def _add_global_arg(parser):
-    """Add arguments that are global to "remote_operations.py."""
+    """Add arguments that are global to "powercycle_operations.py."""
     return
 
 

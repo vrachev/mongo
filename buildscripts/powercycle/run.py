@@ -208,6 +208,7 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
         if final_ret != 0:
             if ignore_ret:
                 print(f"Ignoring return code {final_ret}, exiting with 0.")
+                return
             raise Exception(buff)
 
     def shell(self, operation_param, operation_dir=None):

@@ -1,11 +1,11 @@
-"""Command-line entry-point for remote_operations."""
+"""Command-line entry-point for powercycle_operations."""
 
 from buildscripts.powercycle import parser
 
 
 def main(argv):
     """
-    Execute Main function for remote_operations.
+    Execute Main function for powercycle_operations.
 
     :param argv: sys.argv
     :return: None

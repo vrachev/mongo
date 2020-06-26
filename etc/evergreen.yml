@@ -2582,7 +2582,7 @@ functions:
             continue
           fi
 
-          $python buildscripts/remote_operations.py copyEC2MonitorFiles
+          $python buildscripts/powercycle_operations.py copyEC2MonitorFiles
           sleep 30
         done
 
@@ -2646,7 +2646,7 @@ functions:
           set -o errexit
 
           ${activate_virtualenv}
-          $python buildscripts/remote_operations.py setUpEC2Instance
+          $python buildscripts/powercycle_operations.py setUpEC2Instance
 
     - *copy_ec2_monitor_files
 
@@ -2688,7 +2688,7 @@ functions:
       working_dir: src
       script: |
        ${activate_virtualenv}
-        $python buildscripts/remote_operations.py tarEC2Artifacts
+        $python buildscripts/powercycle_operations.py tarEC2Artifacts
 
   "copy EC2 artifacts": &copy_ec2_artifacts
     command: shell.exec
@@ -2697,7 +2697,7 @@ functions:
       working_dir: src
       script: |
         ${activate_virtualenv}
-        $python buildscripts/remote_operations.py gatherRemoteEventLogs
+        $python buildscripts/powercycle_operations.py copyEC2Artifacts
 
   "cleanup EC2 instance": &cleanup_ec2_instance
     command: shell.exec
@@ -2726,7 +2726,7 @@ functions:
       working_dir: src
       script: |
         ${activate_virtualenv}
-        $python buildscripts/remote_operations.py gatherRemoteEventLogs
+        $python buildscripts/powercycle_operations.py gatherRemoteEventLogs
 
   "gather remote mongo coredumps": &gather_remote_mongo_coredumps
     command: shell.exec
@@ -2735,7 +2735,7 @@ functions:
       working_dir: "src"
       script: |
         ${activate_virtualenv}
-        $python buildscripts/remote_operations.py gatherRemoteMongoCoredumps
+        $python buildscripts/powercycle_operations.py gatherRemoteMongoCoredumps
 
   "copy remote mongo coredumps": &copy_remote_mongo_coredumps
     command: shell.exec
@@ -2744,7 +2744,7 @@ functions:
       working_dir: "src"
       script: |
         ${activate_virtualenv}
-        $python buildscripts/remote_operations.py copyRemoteMongoCoredumps
+        $python buildscripts/powercycle_operations.py copyRemoteMongoCoredumps
 
   "archive remote EC2 artifacts": &archive_remote_ec2_artifacts
     command: s3.put
@@ -3192,7 +3192,7 @@ functions:
 
         # Call hang analyzer for tasks that are running remote mongo processes
         if [ -n "${private_ip_address}" ]; then
-          $python buildscripts/remote_operations.py runHangAnalyzerOnRemoteInstance
+          $python buildscripts/powercycle_operations.py runHangAnalyzerOnRemoteInstance
 
   "tar hang analyzer debugger files": &tar_hang_analyzer_debugger_files
     command: archive.targz_pack

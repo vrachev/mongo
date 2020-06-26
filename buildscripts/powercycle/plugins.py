@@ -291,7 +291,7 @@ class TarEC2Artifacts(PowercycleCommand):
 
 class CopyEC2Artifacts(PowercycleCommand):
     """Interact with UndoDB."""
-    COMMAND = "gatherRemoteEventLogs"
+    COMMAND = "copyEC2Artifacts"
 
     def execute(self):
         if "ec2_artifacts" not in self.expansions or "ec2_ssh_failure" in self.expansions:
