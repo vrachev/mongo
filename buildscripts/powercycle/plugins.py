@@ -10,13 +10,16 @@ from buildscripts.powercycle.run import RemoteOperations, SSHOperation
 from buildscripts.resmokelib.plugin import PluginInterface, Subcommand
 
 
+_EXPANSIONS_FILE = 'expansions.yml'
+
+
 class PowercycleCommand(Subcommand):
     @staticmethod
     def is_windows():
         return sys.platform == "win32" or sys.platform == "cygwin"
 
-    def __init__(self, expansions_file):
-        self.expansions = yaml.safe_load(open(expansions_file))
+    def __init__(self):
+        self.expansions = yaml.safe_load(open(_EXPANSIONS_FILE))
         self.ssh_connection_options = None
 
         # The username on the Windows image that powercycle uses is currently the default user.
@@ -54,10 +57,6 @@ class PowercycleCommand(Subcommand):
 class SetUpEC2Instance(PowercycleCommand):
     """Interact with UndoDB."""
     COMMAND = "setUpEC2Instance"
-
-    def __init__(self, expansions_file):
-        """Constructor."""
-        super().__init__(expansions_file)
 
     def execute(self) -> None:
         """
@@ -176,9 +175,37 @@ class SetUpEC2Instance(PowercycleCommand):
 
 
 
+class TarEC2Artifacts(PowercycleCommand):
+    """Interact with UndoDB."""
+    COMMAND = "tarEC2Artifacts"
 
 
-class SetUpEC2InstancePlugin(PluginInterface):
+class CopyEC2Instance(PowercycleCommand):
+    """Interact with UndoDB."""
+    COMMAND = "copyEC2Instance"
+
+
+class GatherRemoteEventLogs(PowercycleCommand):
+    """Interact with UndoDB."""
+    COMMAND = "gatherRemoteEventLogs"
+
+
+class GatherRemoteMongoCoredumps(PowercycleCommand):
+    """Interact with UndoDB."""
+    COMMAND = "gatherRemoteMongoCoredumps"
+
+
+class CopyRemoteMongoCoredumps(PowercycleCommand):
+    """Interact with UndoDB."""
+    COMMAND = "copyRemoteMongoCoredumps"
+
+
+class CopyEC2MonitorFiles(PowercycleCommand):
+    """Interact with UndoDB."""
+    COMMAND = "copyEC2MonitorFiles"
+
+
+class PowercyclePlugin(PluginInterface):
     """Interact with UndoDB."""
 
     def add_subcommand(self, subparsers):
@@ -201,6 +228,19 @@ class SetUpEC2InstancePlugin(PluginInterface):
         :param kwargs: additional args
         :return: None or a Subcommand
         """
-        if subcommand != SetUpEC2Instance.COMMAND:
+        if subcommand == SetUpEC2Instance.COMMAND:
+            return SetUpEC2Instance()
+        elif subcommand == TarEC2Artifacts.COMMAND:
+            return TarEC2Artifacts()
+        elif subcommand == CopyEC2Instance.COMMAND:
+            return CopyEC2Instance()
+        elif subcommand == GatherRemoteEventLogs.COMMAND:
+            return GatherRemoteEventLogs()
+        elif subcommand == GatherRemoteMongoCoredumps.COMMAND:
+            return GatherRemoteMongoCoredumps()
+        elif subcommand == CopyRemoteMongoCoredumps.COMMAND:
+            return CopyRemoteMongoCoredumps()
+        elif subcommand == CopyEC2MonitorFiles.COMMAND:
+            return CopyEC2MonitorFiles()
+        else:
             return None
-        return SetUpEC2Instance(parsed_args.expansions_file)

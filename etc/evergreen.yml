@@ -2662,7 +2662,7 @@ functions:
           ${activate_virtualenv}
           echo "VLAD got here"
 
-          $python buildscripts/remote_operations.py --expansionsFile expansions.yml setUpEC2Instance
+          $python buildscripts/remote_operations.py setUpEC2Instance
 
           echo "VLAD got here"
 
@@ -3480,6 +3480,7 @@ functions:
         fi
 
         mkdir unittest_binaries || true
+
         # Find all core files
         core_files=$(/usr/bin/find -H . \( -name "dump_*.core" -o -name "*.mdmp" \) 2> /dev/null)
         for core_file in $core_files
