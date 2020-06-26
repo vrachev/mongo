@@ -155,10 +155,9 @@ class SetUpEC2Instance(PowercycleCommand):
             # https://unix.stackexchange.com/a/349558 in order to ensure the ssh client gets a
             # response from the remote machine before it restarts.
             cmds = f"{cmds}; nohup {self.sudo} reboot &>/dev/null & exit"
-            remote_op.operation(SSHOperation.SHELL, cmds, None)
+            self.remote_op.operation(SSHOperation.SHELL, cmds, None)
 
         print("Got here 6")
-
 
         if not self.is_windows():
             # Always exit successfully, as this is just informational.
@@ -169,7 +168,7 @@ class SetUpEC2Instance(PowercycleCommand):
             cmds = f"{cmds}; then /sbin/sysctl kernel.core_pattern"
             cmds = f"{cmds}; fi"
 
-            remote_op_special_retry = remote_op if "ssh_retries" in self.expansions else RemoteOperations(
+            remote_op_special_retry = self.remote_op if "ssh_retries" in self.expansions else RemoteOperations(
                 user_host=self.user_host,
                 ssh_connection_options=self.ssh_connection_options,
                 retries=3,
@@ -259,7 +258,7 @@ class SetUpEC2Instance(PowercycleCommand):
                 print("Firewall not active or unkown firewall command on this platform")
                 return
 
-            remote_op.operation(SSHOperation.SHELL, cmds, None)
+            self.remote_op.operation(SSHOperation.SHELL, cmds, None)
 
         configure_firewall()
 
