@@ -354,8 +354,8 @@ class PowercyclePlugin(PluginInterface):
             return SetUpEC2Instance()
         elif subcommand == TarEC2Artifacts.COMMAND:
             return TarEC2Artifacts()
-        elif subcommand == CopyEC2Instance.COMMAND:
-            return CopyEC2Instance()
+        elif subcommand == CopyEC2Artifacts.COMMAND:
+            return CopyEC2Artifacts()
         elif subcommand == GatherRemoteEventLogs.COMMAND:
             return GatherRemoteEventLogs()
         elif subcommand == GatherRemoteMongoCoredumps.COMMAND:
