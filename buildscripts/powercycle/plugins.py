@@ -21,6 +21,7 @@ class PowercycleCommand(Subcommand):
     def __init__(self):
         self.expansions = yaml.safe_load(open(_EXPANSIONS_FILE))
         self.ssh_connection_options = None
+        self.ssh_identity = self.get_ssh_identity()
 
         # The username on the Windows image that powercycle uses is currently the default user.
         self.user = "Administrator" if self.is_windows() else os.getlogin()
@@ -29,10 +30,8 @@ class PowercycleCommand(Subcommand):
         self.sudo = "" if self.is_windows() else "sudo"
         self.exe = ".exe" if self.is_windows() else ""
 
-        workdir = self.get_posix_workdir()
-        ssh_identity = f"-i {'/'.join([workdir, 'powercycle.pem'])}"
-        print(ssh_identity)
-        self.ssh_connection_options = ssh_identity + " " + self.expansions["ssh_connection_options"]
+        print(self.ssh_identity)
+        self.ssh_connection_options = self.ssh_identity + " " + self.expansions["ssh_connection_options"]
 
         self.remote_op = RemoteOperations(
             user_host=self.user_host,
@@ -46,6 +45,18 @@ class PowercycleCommand(Subcommand):
         if self.is_windows():
             workdir = workdir.replace("\\", "/")
         return workdir
+
+    def get_ssh_identity(self):
+        workdir = self.get_posix_workdir()
+        pem_file = '/'.join([workdir, 'powercycle.pem'])
+        if os.path.exists(pem_file):
+            print(f"{pem_file} - It exists!")
+            with open(pem_file, "r") as fp:
+                print(f"{pem_file} contents: {fp.read()}")
+        else:
+            print(f"{pem_file} - It does not exist")
+
+        return f"-i {pem_file}"
 
     def _call(self, cmd):
         print(f"Executing in subprocess: {cmd}")
