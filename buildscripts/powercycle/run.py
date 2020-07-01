@@ -134,7 +134,8 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
         """
 
         if not self.access_established():
-            print("Return code: {} for command {}".format(self.access_info()[0], self.access_info()[1]))
+            print("Return code: {} for command {}".format(self.access_info()[0],
+                                                          self.access_info()[1]))
 
         # File names with a space must be quoted, since we permit the
         # the file names to be either a string or a list.

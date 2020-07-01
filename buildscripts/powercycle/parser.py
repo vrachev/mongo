@@ -4,9 +4,7 @@ import argparse
 
 import buildscripts.powercycle.plugins as plugins
 
-_PLUGINS = [
-    plugins.PowercyclePlugin()
-]
+_PLUGINS = [plugins.PowercyclePlugin()]
 
 
 def _add_subcommands():

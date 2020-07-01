@@ -9,7 +9,6 @@ import yaml
 from buildscripts.powercycle.run import RemoteOperations, SSHOperation
 from buildscripts.resmokelib.plugin import PluginInterface, Subcommand
 
-
 _EXPANSIONS_FILE = 'expansions.yml'
 
 
@@ -26,12 +25,14 @@ class PowercycleCommand(Subcommand):
         # The username on the Windows image that powercycle uses is currently the default user.
         self.user = "Administrator" if self.is_windows() else os.getlogin()
         self.user_host = self.user + "@" + self.expansions["private_ip_address"]
-        self.retries = 0 if "ssh_retries" not in self.expansions else int(self.expansions["ssh_retries"])
+        self.retries = 0 if "ssh_retries" not in self.expansions else int(
+            self.expansions["ssh_retries"])
         self.sudo = "" if self.is_windows() else "sudo"
         self.exe = ".exe" if self.is_windows() else ""
 
         print(self.ssh_identity)
-        self.ssh_connection_options = self.ssh_identity + " " + self.expansions["ssh_connection_options"]
+        self.ssh_connection_options = self.ssh_identity + " " + self.expansions[
+            "ssh_connection_options"]
 
         self.remote_op = RemoteOperations(
             user_host=self.user_host,
@@ -129,9 +130,10 @@ class SetUpEC2Instance(PowercycleCommand):
         self.remote_op.operation(SSHOperation.COPY_TO, files, remote_dir)
         print("Got here 4")
 
-
-        venv = "venv" if "virtualenv_dir" not in self.expansions else self.expansions["virtualenv_dir"]
-        python = "/opt/mongodbtoolchain/v3/bin/python3" if "python" not in self.expansions else self.expansions["python"]
+        venv = "venv" if "virtualenv_dir" not in self.expansions else self.expansions[
+            "virtualenv_dir"]
+        python = "/opt/mongodbtoolchain/v3/bin/python3" if "python" not in self.expansions else self.expansions[
+            "python"]
 
         # Set up virtualenv on remote.
         cmds = f"python_loc=$(which {python})"
@@ -181,10 +183,8 @@ class SetUpEC2Instance(PowercycleCommand):
             cmds = f"{cmds}; fi"
 
             remote_op_special_retry = self.remote_op if "ssh_retries" in self.expansions else RemoteOperations(
-                user_host=self.user_host,
-                ssh_connection_options=self.ssh_connection_options,
-                retries=3,
-                debug=True)
+                user_host=self.user_host, ssh_connection_options=self.ssh_connection_options,
+                retries=3, debug=True)
             remote_op_special_retry.operation(SSHOperation.SHELL, cmds, None, True)
 
         print("Got here 7")
@@ -234,7 +234,8 @@ class SetUpEC2Instance(PowercycleCommand):
                 cmds = f"{cmds}; {self.sudo} iptables -I INPUT 1 -p tcp --dport {secret_port} -j ACCEPT"
                 if os.path.exists("/etc/iptables") and os.path.isdir("/etc/iptables"):
                     rules_file = "/etc/iptables/iptables.rules"
-                elif os.path.exists("/etc/sysconfig/iptables") and os.path.isfile("/etc/sysconfig/iptables"):
+                elif os.path.exists("/etc/sysconfig/iptables") and os.path.isfile(
+                        "/etc/sysconfig/iptables"):
                     rules_file = "/etc/sysconfig/iptables"
                 else:
                     rules_file = "/etc/iptables.up.rules"
@@ -323,7 +324,8 @@ class GatherRemoteEventLogs(PowercycleCommand):
     COMMAND = "gatherRemoteEventLogs"
 
     def execute(self):
-        if not self.is_windows() or not os.path.exists(self.expansions.get("aws_ec2_yml", "")) or self.expansions.get("ec2_ssh_failure", ""):
+        if not self.is_windows() or not os.path.exists(self.expansions.get(
+                "aws_ec2_yml", "")) or self.expansions.get("ec2_ssh_failure", ""):
             return
 
         cmds = f"mkdir -p {self.expansions['event_logpath']}"
@@ -343,7 +345,8 @@ class GatherRemoteMongoCoredumps(PowercycleCommand):
         :return: None
         """
         aws_ec2_yml = self.expansions["aws_ec2_yml"]
-        if os.path.exists(aws_ec2_yml) and os.path.isfile(aws_ec2_yml) or "ec2_ssh_failure" in self.expansions:
+        if os.path.exists(aws_ec2_yml) and os.path.isfile(
+                aws_ec2_yml) or "ec2_ssh_failure" in self.expansions:
             return
 
         remote_dir = "." if "remote_dir" not in self.expansions else self.expansions["remote_dir"]
@@ -358,12 +361,14 @@ class GatherRemoteMongoCoredumps(PowercycleCommand):
 
         self.remote_op.operation(SSHOperation.SHELL, cmds, remote_dir)
 
+
 class CopyRemoteMongoCoredumps(PowercycleCommand):
     """Interact with UndoDB."""
     COMMAND = "copyRemoteMongoCoredumps"
 
     def execute(self):
-        if not os.path.exists(self.expansions.get("aws_ec2_yml", "")) or self.expansions.get("ec2_ssh_failure", ""):
+        if not os.path.exists(self.expansions.get("aws_ec2_yml", "")) or self.expansions.get(
+                "ec2_ssh_failure", ""):
             return 0
 
         if self.is_windows():
@@ -372,7 +377,9 @@ class CopyRemoteMongoCoredumps(PowercycleCommand):
             core_suffix = "core"
 
         # Core file may not exist so we ignore the return code.
-        self.remote_op.operation(SSHOperation.SHELL, f"{self.expansions.get('remote_dir', '.')}/*.{core_suffix}", None, True)
+        self.remote_op.operation(SSHOperation.SHELL,
+                                 f"{self.expansions.get('remote_dir', '.')}/*.{core_suffix}", None,
+                                 True)
 
 
 class CopyEC2MonitorFiles(PowercycleCommand):
@@ -386,6 +393,7 @@ class CopyEC2MonitorFiles(PowercycleCommand):
         self.remote_op.operation(SSHOperation.SHELL, cmd, None)
         self.remote_op.operation(SSHOperation.COPY_FROM, 'ec2_monitor_files.tgz', None)
 
+
 class RunHangAnalyzerOnRemoteInstance(PowercycleCommand):
     """Run the hang-analyzer on a remote instance."""
     COMMAND = "runHangAnalyzerOnRemoteInstance"
@@ -396,9 +404,11 @@ class RunHangAnalyzerOnRemoteInstance(PowercycleCommand):
         """
         if "private_ip_address" not in self.expansions:
             return
-        hang_analyzer_processes = "dbtest,java,mongo,mongod,mongos,python,_test" if "hang_analyzer_processes" not in self.expansions else self.expansions["hang_analyzer_processes"]
+        hang_analyzer_processes = "dbtest,java,mongo,mongod,mongos,python,_test" if "hang_analyzer_processes" not in self.expansions else self.expansions[
+            "hang_analyzer_processes"]
         hang_analyzer_option = f"-o file -o stdout -p {hang_analyzer_processes}"
-        hang_analyzer_dump_core = True if "hang_analyzer_dump_core" not in self.expansions else self.expansions["hang_analyzer_dump_core"]
+        hang_analyzer_dump_core = True if "hang_analyzer_dump_core" not in self.expansions else self.expansions[
+            "hang_analyzer_dump_core"]
         if hang_analyzer_dump_core:
             hang_analyzer_option = f"-c {hang_analyzer_option}"
 
@@ -415,7 +425,8 @@ class RunHangAnalyzerOnRemoteInstance(PowercycleCommand):
 
         # Activate virtualenv on remote host. The virtualenv bin_dir is different for Linux and
         # Windows.
-        venv = "venv" if "virtualenv_dir" not in self.expansions else self.expansions["virtual_env_dir"]
+        venv = "venv" if "virtualenv_dir" not in self.expansions else self.expansions[
+            "virtual_env_dir"]
         virtual_env = os.environ(["VIRTUAL_ENV"])
         _, activate_loc = self._call(f"find {virtual_env} -name activate")
         _, bin_dir = self.call(f"sed -e \"s,{virtual_env},,;s,activate,,;s,/,,g\" {activate_loc}")
