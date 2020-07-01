@@ -299,6 +299,8 @@ def should_bypass_compile(patch_file, build_variant):
                 if not _check_file_for_bypass(filename, build_variant):
                     log.warning("Compile bypass disabled due to extra checks for file.")
                     return False
+    
+    return True
 
 
 def find_build_for_previous_compile_task(evg_api: EvergreenApi, target: TargetBuild) -> Build:
