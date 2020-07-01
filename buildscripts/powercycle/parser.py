@@ -10,7 +10,6 @@ _PLUGINS = [plugins.PowercyclePlugin()]
 def _add_subcommands():
     """Create and return the command line arguments parser."""
     parser = argparse.ArgumentParser()
-    _add_global_arg(parser)
     subparsers = parser.add_subparsers(dest="command")
 
     # Add sub-commands.
@@ -18,11 +17,6 @@ def _add_subcommands():
         plugin.add_subcommand(subparsers)
 
     return parser
-
-
-def _add_global_arg(parser):
-    """Add arguments that are global to "powercycle_operations.py."""
-    return
 
 
 def parse(sys_args):
@@ -36,7 +30,7 @@ def parse(sys_args):
 
 
 def parse_command_line(sys_args, **kwargs):
-    """Parse the command line arguments passed to resmoke.py and return the subcommand object to execute."""
+    """Parse the command line arguments passed to powercycle_operations.py and return the subcommand object to execute."""
     parser, parsed_args = parse(sys_args)
 
     subcommand = parsed_args.command
@@ -46,4 +40,5 @@ def parse_command_line(sys_args, **kwargs):
         if subcommand_obj is not None:
             return subcommand_obj
 
-    raise RuntimeError(f"Resmoke configuration has invalid subcommand: {subcommand}. Try '--help'")
+    raise RuntimeError(
+        f"Powercycle configuration has invalid subcommand: {subcommand}. Try '--help'")
