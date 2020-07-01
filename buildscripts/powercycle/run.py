@@ -29,6 +29,7 @@ _SSH_CONNECTION_ERRORS = [
 
 
 class SSHOperation(object):
+    """Class to determine which SSH operation to run."""
     COPY_TO = "copy_to"
     COPY_FROM = "copy_from"
     SHELL = "shell"
@@ -100,8 +101,6 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
                 print("Failed remote attempt {}, retrying in {} seconds".format(
                     attempt_num, self.retry_sleep))
             time.sleep(self.retry_sleep)
-        print(ret)
-        print(buff)
         return ret, buff
 
     def _perform_operation(self, cmd):
@@ -203,9 +202,6 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
             buff += new_buff
             final_ret = final_ret or ret
 
-        print("Return code: {} for command {}".format(final_ret, sys.argv))
-        print(buff)
-
         if final_ret != 0:
             if ignore_ret:
                 print(f"Ignoring return code {final_ret}, exiting with 0.")
@@ -226,143 +222,3 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
         """Provide helper for remote copy_from operations."""
         return self.operation(operation_type="copy_from", operation_param=operation_param,
                               operation_dir=operation_dir)
-
-
-def main():  # pylint: disable=too-many-branches,too-many-statements
-    """Execute Main program."""
-
-    parser = optparse.OptionParser(description=__doc__)
-    control_options = optparse.OptionGroup(parser, "Control options")
-    shell_options = optparse.OptionGroup(parser, "Shell options")
-    copy_options = optparse.OptionGroup(parser, "Copy options")
-
-    parser.add_option(
-        "--userHost", dest="user_host", default=None,
-        help=("User and remote host to execute commands on [REQUIRED]."
-              " Examples, 'user@1.2.3.4' or 'user@myhost.com'."))
-
-    parser.add_option(
-        "--operation", dest="operation", default="shell", choices=_OPERATIONS,
-        help=("Remote operation to perform, choose one of '{}',"
-              " defaults to '%default'.".format(", ".join(_OPERATIONS))))
-
-    control_options.add_option(
-        "--sshConnectionOptions", dest="ssh_connection_options", default=None, action="append",
-        help=("SSH connection options which are common to ssh and scp."
-              " More than one option can be specified either"
-              " in one quoted string or by specifying"
-              " this option more than once. Example options:"
-              " '-i $HOME/.ssh/access.pem -o ConnectTimeout=10"
-              " -o ConnectionAttempts=10'"))
-
-    control_options.add_option(
-        "--sshOptions", dest="ssh_options", default=None, action="append",
-        help=("SSH specific options."
-              " More than one option can be specified either"
-              " in one quoted string or by specifying"
-              " this option more than once. Example options:"
-              " '-t' or '-T'"))
-
-    control_options.add_option(
-        "--scpOptions", dest="scp_options", default=None, action="append",
-        help=("SCP specific options."
-              " More than one option can be specified either"
-              " in one quoted string or by specifying"
-              " this option more than once. Example options:"
-              " '-l 5000'"))
-
-    control_options.add_option(
-        "--retries", dest="retries", type=int, default=0,
-        help=("Number of retries to attempt for operation,"
-              " defaults to '%default'."))
-
-    control_options.add_option(
-        "--retrySleep", dest="retry_sleep", type=int, default=10,
-        help=("Number of seconds to wait between retries,"
-              " defaults to '%default'."))
-
-    control_options.add_option("--debug", dest="debug", action="store_true", default=False,
-                               help="Provides debug output.")
-
-    control_options.add_option("--verbose", dest="verbose", action="store_true", default=False,
-                               help="Print exit status and output at end.")
-
-    shell_options.add_option(
-        "--commands", dest="remote_commands", default=None, action="append",
-        help=("Commands to excute on the remote host. The"
-              " commands must be separated by a ';' and can either"
-              " be specifed in a quoted string or by specifying"
-              " this option more than once. A ';' will be added"
-              " between commands when this option is specifed"
-              " more than once."))
-
-    shell_options.add_option(
-        "--commandDir", dest="command_dir", default=None,
-        help=("Working directory on remote to execute commands"
-              " from. Defaults to remote login directory."))
-
-    copy_options.add_option(
-        "--file", dest="files", default=None, action="append",
-        help=("The file to copy to/from remote host. To"
-              " support spaces in the file, each file must be"
-              " specified using this option more than once."))
-
-    copy_options.add_option(
-        "--remoteDir", dest="remote_dir", default=None,
-        help=("Remote directory to copy to, only applies when"
-              " operation is 'copy_to'. Defaults to the login"
-              " directory on the remote host."))
-
-    copy_options.add_option(
-        "--localDir", dest="local_dir", default=".",
-        help=("Local directory to copy to, only applies when"
-              " operation is 'copy_from'. Defaults to the"
-              " current directory, '%default'."))
-
-    parser.add_option_group(control_options)
-    parser.add_option_group(shell_options)
-    parser.add_option_group(copy_options)
-
-    (options, _) = parser.parse_args()
-
-    if not getattr(options, "user_host", None):
-        parser.print_help()
-        parser.error("Missing required option")
-
-    if options.operation == SSHOperation.SHELL:
-        if not getattr(options, "remote_commands", None):
-            parser.print_help()
-            parser.error("Missing required '{}' option '{}'".format(options.operation,
-                                                                    "--commands"))
-        operation_param = ";".join(options.remote_commands)
-        operation_dir = options.command_dir
-    else:
-        if not getattr(options, "files", None):
-            parser.print_help()
-            parser.error("Missing required '{}' option '{}'".format(options.operation, "--file"))
-        operation_param = options.files
-        if options.operation == SSHOperation.COPY_TO:
-            operation_dir = options.remote_dir
-        else:
-            operation_dir = options.local_dir
-
-    if not options.ssh_connection_options:
-        ssh_connection_options = None
-    else:
-        ssh_connection_options = " ".join(options.ssh_connection_options)
-
-    if not options.ssh_options:
-        ssh_options = None
-    else:
-        ssh_options = " ".join(options.ssh_options)
-
-    if not options.scp_options:
-        scp_options = None
-    else:
-        scp_options = " ".join(options.scp_options)
-
-    remote_op = RemoteOperations(
-        user_host=options.user_host, ssh_connection_options=ssh_connection_options,
-        ssh_options=ssh_options, scp_options=scp_options, retries=options.retries,
-        retry_sleep=options.retry_sleep, debug=options.debug)
-    remote_op.operation(options.operation, operation_param, operation_dir)
