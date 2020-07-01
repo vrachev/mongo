@@ -279,28 +279,26 @@ def should_bypass_compile(patch_file, build_variant):
     :param build_variant: Build variant where compile is running.
     :returns: True if compile should be bypassed.
     """
-    # with open(patch_file, "r") as pch:
-    #     for filename in pch:
-    #         filename = filename.rstrip()
-    #         # Skip directories that show up in 'git diff HEAD --name-only'.
-    #         if os.path.isdir(filename):
-    #             continue
+    with open(patch_file, "r") as pch:
+        for filename in pch:
+            filename = filename.rstrip()
+            # Skip directories that show up in 'git diff HEAD --name-only'.
+            if os.path.isdir(filename):
+                continue
 
-    #         log = LOGGER.bind(filename=filename)
-    #         if _file_in_group(filename, BYPASS_BLACKLIST):
-    #             log.warning("Compile bypass disabled due to blacklisted file")
-    #             return False
+            log = LOGGER.bind(filename=filename)
+            if _file_in_group(filename, BYPASS_BLACKLIST):
+                log.warning("Compile bypass disabled due to blacklisted file")
+                return False
 
-    #         if not _file_in_group(filename, BYPASS_WHITELIST):
-    #             log.warning("Compile bypass disabled due to non-whitelisted file")
-    #             return False
+            if not _file_in_group(filename, BYPASS_WHITELIST):
+                log.warning("Compile bypass disabled due to non-whitelisted file")
+                return False
 
-    #         if filename in BYPASS_EXTRA_CHECKS_REQUIRED:
-    #             if not _check_file_for_bypass(filename, build_variant):
-    #                 log.warning("Compile bypass disabled due to extra checks for file.")
-    #                 return False
-
-    return True
+            if filename in BYPASS_EXTRA_CHECKS_REQUIRED:
+                if not _check_file_for_bypass(filename, build_variant):
+                    log.warning("Compile bypass disabled due to extra checks for file.")
+                    return False
 
 
 def find_build_for_previous_compile_task(evg_api: EvergreenApi, target: TargetBuild) -> Build:
