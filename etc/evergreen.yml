@@ -2397,13 +2397,6 @@ functions:
       params:
         shell: bash
         script: |
-          cat src/expansions.yml
-
-    - command: shell.exec
-      type: test
-      params:
-        shell: bash
-        script: |
           # Test exits from here with specified exit_code.
           if [ -n "${exit_code}" ]; then
             # Python program saved exit_code
@@ -2615,12 +2608,10 @@ functions:
             expire_hours="-e ${ec2_expire_hours}"
             # Since Windows hosts are expensive to keep running we'll expire it after 3 hours.
             if [ "Windows_NT" = "$OS" ]; then
-              # Temporarily increase to 24
-              expire_hours="-e 24"
+              expire_hours="-e 3"
             fi
           fi
 
-          echo "printing ssh_key_id - ${ssh_key_id}"
           # Clone another instance of this host in EC2.
           buildscripts/launch_evergreen_ec2_instance.sh \
             $expire_hours                               \
