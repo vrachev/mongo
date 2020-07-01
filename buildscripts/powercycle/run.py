@@ -16,8 +16,6 @@ if __name__ == "__main__" and __package__ is None:
 
 _IS_WINDOWS = sys.platform == "win32" or sys.platform == "cygwin"
 
-# TODO: remove this in favor of powercycle.plugins.SSHOperation
-_OPERATIONS = ["shell", "copy_to", "copy_from"]
 
 _SSH_CONNECTION_ERRORS = [
     "Connection refused",
@@ -133,8 +131,7 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
         """
 
         if not self.access_established():
-            print("Return code: {} for command {}".format(self.access_info()[0],
-                                                          self.access_info()[1]))
+            return self.access_info()
 
         # File names with a space must be quoted, since we permit the
         # the file names to be either a string or a list.
