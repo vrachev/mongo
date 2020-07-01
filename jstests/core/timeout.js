@@ -44,8 +44,10 @@
     // assert.commandWorked(primary.getDB('db').foo.insert(Array.from({length: 10000}, _ => ({a: longString}))))
 
     // rst.awaitReplication()
-
-    sleep(1000000000)
+    while(true) {
+        print("looping")
+        sleep(25)
+    }
     rst.stopSet();
 })();
 

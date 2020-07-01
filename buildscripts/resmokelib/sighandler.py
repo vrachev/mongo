@@ -13,7 +13,7 @@ import psutil
 from buildscripts.resmokelib import config
 from buildscripts.resmokelib.hang_analyzer import hang_analyzer
 from buildscripts.resmokelib import parser
-from buildscripts.resmokelib import utils
+from buildscripts.resmokelib.utils import state
 
 _IS_WINDOWS = (sys.platform == "win32")
 if _IS_WINDOWS:
@@ -120,8 +120,8 @@ def _dump_stacks(logger, header_msg):
 
 def _get_pids():
     """Return all PIDs spawned by the current resmoke process and their child PIDs."""
-    pids = config.PIDS  # All fixture PIDs.
-    spawned_pids = []  # Fixture PIDs + any PIDs spawned by the mongo shell.
+    pids = config.PIDS # All fixture PIDs.
+    spawned_pids = [] # Fixture PIDs + any PIDs spawned by the mongo shell.
     for parent in pids:
         try:
             parent_process = psutil.Process(parent)

@@ -119,11 +119,3 @@ def mkdir_p(path):
             pass
         else:
             raise
-
-
-def self_pid_file():
-    """Returns the name of the file storing the pid of the current `resmoke run` process."""
-    _dir = os.path.normpath('/tmp/')
-    mkdir_p(_dir)
-    _self_pid_file = os.path.join(_dir, 'resmoke.pid')
-    return _self_pid_file

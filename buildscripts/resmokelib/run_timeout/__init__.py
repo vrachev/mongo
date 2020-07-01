@@ -7,7 +7,7 @@ import sys
 import psutil
 
 from buildscripts.resmokelib import config
-from buildscripts.resmokelib import utils
+from buildscripts.resmokelib.utils import state
 from buildscripts.resmokelib import parser as _parser
 from buildscripts.resmokelib.plugin import PluginInterface, Subcommand
 
@@ -26,12 +26,11 @@ class RunTimeout(Subcommand):
 
     def __init__(self, options, **kwargs):  #pylint: disable=unused-argument
         """Constructor."""
-        # self._build_path = utils.build_dir()
-        self._self_pid_file = utils.self_pid_file()
+        pass
 
     def execute(self):
         """Execute run-timeout"""
-        pids = self._get_resmoke_pids()
+        pids = state.read_pids()
         # Call the hang-analyzer on the resmoke pid to signal the timeout.
         base_args = ['hang-analyzer', '-o', 'file', '-o', 'stdout']
         for pid in pids:
@@ -45,7 +44,7 @@ class RunTimeout(Subcommand):
                 # Process ended already.
                 pass
 
-        self._cleanup()
+        state.cleanup_pid_file()
 
     def _get_resmoke_pids(self):
         # resmoke_pid_file = os.path.join(self._build_path, self._self_pid_file)
