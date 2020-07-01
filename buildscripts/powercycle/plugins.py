@@ -1,4 +1,5 @@
 """Interactions with the undodb tool-suite."""
+import getpass
 import os
 import subprocess
 import sys
@@ -28,7 +29,7 @@ class PowercycleCommand(Subcommand):  # pylint: disable=abstract-method, too-man
             "ssh_connection_options"]
         self.sudo = "" if self.is_windows() else "sudo"
         # The username on the Windows image that powercycle uses is currently the default user.
-        self.user = "Administrator" if self.is_windows() else os.getlogin()
+        self.user = "Administrator" if self.is_windows() else getpass.getuser()
         self.user_host = self.user + "@" + self.expansions["private_ip_address"]
 
         self.remote_op = RemoteOperations(
@@ -39,10 +40,17 @@ class PowercycleCommand(Subcommand):  # pylint: disable=abstract-method, too-man
 
     @staticmethod
     def is_windows() -> bool:
-        """
-        :return: True if running on Windows.
-        """
+        """:return: True if running on Windows."""
         return sys.platform == "win32" or sys.platform == "cygwin"
+
+    @staticmethod
+    def _call(cmd):
+        cmd = shlex.split(cmd)
+        # Use a common pipe for stdout & stderr for logging.
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        buff_stdout, _ = process.communicate()
+        buff = buff_stdout.decode("utf-8", "replace")
+        return process.poll(), buff
 
     def _get_posix_workdir(self) -> str:
         workdir = self.expansions['workdir']
@@ -56,23 +64,16 @@ class PowercycleCommand(Subcommand):  # pylint: disable=abstract-method, too-man
 
         return f"-i {pem_file}"
 
-    def _call(self, cmd):
-        cmd = shlex.split(cmd)
-        # Use a common pipe for stdout & stderr for logging.
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        buff_stdout, _ = process.communicate()
-        buff = buff_stdout.decode("utf-8", "replace")
-        return process.poll(), buff
+
 
 
 class SetUpEC2Instance(PowercycleCommand):
     """Set up EC2 instance."""
+
     COMMAND = "setUpEC2Instance"
 
-    def execute(self) -> None:  # pylint: disable=too-many-instance-attributes
-        """
-        :return: None
-        """
+    def execute(self) -> None:  # pylint: disable=too-many-instance-attributes, too-many-locals, too-many-statements
+        """:return: None."""
         # First operation -
         # Copy mount_drives.sh script to remote host.
         # last arg is "operation_dir", which for the COPY_TO action, is the remote
@@ -280,9 +281,11 @@ class SetUpEC2Instance(PowercycleCommand):
 
 class TarEC2Artifacts(PowercycleCommand):
     """Tar EC2 artifacts."""
+
     COMMAND = "tarEC2Artifacts"
 
     def execute(self) -> None:
+        """:return: None."""
         if "ec2_artifacts" not in self.expansions or "ec2_ssh_failure" in self.expansions:
             return
         tar_cmd = "tar" if "tar" not in self.expansions else self.expansions["tar"]
@@ -293,9 +296,11 @@ class TarEC2Artifacts(PowercycleCommand):
 
 class CopyEC2Artifacts(PowercycleCommand):
     """Copy EC2 artifacts."""
+
     COMMAND = "copyEC2Artifacts"
 
     def execute(self) -> None:
+        """:return: None."""
         if "ec2_artifacts" not in self.expansions or "ec2_ssh_failure" in self.expansions:
             return
 
@@ -304,6 +309,8 @@ class CopyEC2Artifacts(PowercycleCommand):
 
 class GatherRemoteEventLogs(PowercycleCommand):
     """
+    Gather remote event logs.
+
     The event logs on Windows are a useful diagnostic to have when determining if something bad
     happened to the remote machine after it was repeatedly crashed during powercycle testing. For
     example, the Application and System event logs have previously revealed that the mongod.exe
@@ -314,6 +321,7 @@ class GatherRemoteEventLogs(PowercycleCommand):
     COMMAND = "gatherRemoteEventLogs"
 
     def execute(self) -> None:
+        """:return: None."""
         if not self.is_windows() or not os.path.exists(self.expansions.get(
                 "aws_ec2_yml", "")) or self.expansions.get("ec2_ssh_failure", ""):
             return
@@ -328,12 +336,11 @@ class GatherRemoteEventLogs(PowercycleCommand):
 
 class GatherRemoteMongoCoredumps(PowercycleCommand):
     """Gather Remote Mongo Coredumps."""
+
     COMMAND = "gatherRemoteMongoCoredumps"
 
     def execute(self) -> None:
-        """
-        :return: None
-        """
+        """:return: None."""
         aws_ec2_yml = self.expansions["aws_ec2_yml"]
         if os.path.exists(aws_ec2_yml) and os.path.isfile(
                 aws_ec2_yml) or "ec2_ssh_failure" in self.expansions:
@@ -354,12 +361,14 @@ class GatherRemoteMongoCoredumps(PowercycleCommand):
 
 class CopyRemoteMongoCoredumps(PowercycleCommand):
     """Copy Remote Mongo Coredumps."""
+
     COMMAND = "copyRemoteMongoCoredumps"
 
     def execute(self) -> None:
+        """:return: None."""
         if not os.path.exists(self.expansions.get("aws_ec2_yml", "")) or self.expansions.get(
                 "ec2_ssh_failure", ""):
-            return 0
+            return
 
         if self.is_windows():
             core_suffix = "mdmp"
@@ -374,9 +383,11 @@ class CopyRemoteMongoCoredumps(PowercycleCommand):
 
 class CopyEC2MonitorFiles(PowercycleCommand):
     """Copy EC2 monitor files."""
+
     COMMAND = "copyEC2MonitorFiles"
 
     def execute(self) -> None:
+        """:return: None."""
         tar_cmd = "tar" if "tar" not in self.expansions else self.expansions["tar"]
         cmd = f"{tar_cmd} czf ec2_monitor_files.tgz {self.expansions['ec2_monitor_files']}"
 
@@ -386,12 +397,11 @@ class CopyEC2MonitorFiles(PowercycleCommand):
 
 class RunHangAnalyzerOnRemoteInstance(PowercycleCommand):
     """Run the hang-analyzer on a remote instance."""
+
     COMMAND = "runHangAnalyzerOnRemoteInstance"
 
     def execute(self) -> None:  # pylint: disable=too-many-locals
-        """
-        :return: None
-        """
+        """:return: None."""
         if "private_ip_address" not in self.expansions:
             return
         hang_analyzer_processes = "dbtest,java,mongo,mongod,mongos,python,_test" if "hang_analyzer_processes" not in self.expansions else self.expansions[
@@ -435,11 +445,11 @@ class RunHangAnalyzerOnRemoteInstance(PowercycleCommand):
 
 
 class PowercyclePlugin(PluginInterface):
-    """Interact with UndoDB."""
+    """Interact with powercycle_operations."""
 
     def add_subcommand(self, subparsers):
         """
-        Add 'undodb' subcommand.
+        Add 'powercycle_operations' subcommand.
 
         :param subparsers: argparse parser to add to
         :return: None
@@ -451,11 +461,11 @@ class PowercyclePlugin(PluginInterface):
         subparsers.add_parser(GatherRemoteMongoCoredumps.COMMAND)
         subparsers.add_parser(CopyRemoteMongoCoredumps.COMMAND)
         subparsers.add_parser(CopyEC2MonitorFiles.COMMAND)
-        # Accept arbitrary args like 'resmoke.py undodb foobar', but ignore them.
+        # Accept arbitrary args like 'powercycle.py undodb foobar', but ignore them.
 
     def parse(self, subcommand, parser, parsed_args, **kwargs):  # pylint: disable=too-many-return-statements
         """
-        Return UndoDb if command is one we recognize.
+        Return powercycle_operation if command is one we recognize.
 
         :param subcommand: equivalent to parsed_args.command
         :param parser: parser used

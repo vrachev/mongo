@@ -16,7 +16,6 @@ if __name__ == "__main__" and __package__ is None:
 
 _IS_WINDOWS = sys.platform == "win32" or sys.platform == "cygwin"
 
-
 _SSH_CONNECTION_ERRORS = [
     "Connection refused",
     "Connection timed out during banner exchange",
@@ -28,6 +27,7 @@ _SSH_CONNECTION_ERRORS = [
 
 class SSHOperation(object):
     """Class to determine which SSH operation to run."""
+
     COPY_TO = "copy_to"
     COPY_FROM = "copy_from"
     SHELL = "shell"
@@ -109,8 +109,9 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
         return not self._access_code
 
     def access_info(self):
-        """Return the return code and output buffer from initial access attempt(s)."""
-        return self._access_code, self._access_buff
+        """Print the return code and output buffer from initial access attempt(s)."""
+        print("Access was not established to the remote machine.")
+        print(f"{self._access_code} - {self._access_buff}")
 
     @staticmethod
     def ssh_error(message):
@@ -130,8 +131,10 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
         'operation_dir' is '.' if unspecified for 'copy_*'.
         """
 
+        print(f"Performing {operation_type} operation: {operation_param}")
         if not self.access_established():
-            return self.access_info()
+            self.access_info()
+            return
 
         # File names with a space must be quoted, since we permit the
         # the file names to be either a string or a list.
@@ -189,8 +192,7 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
                 cmds.append(cmd)
 
         else:
-            raise ValueError("Invalid operation '{}' specified, choose from {}.".format(
-                operation_type, _OPERATIONS))
+            raise ValueError(f"Invalid operation '{operation_type}' specified.")
 
         final_ret = 0
         buff = ""
@@ -199,6 +201,7 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
             buff += new_buff
             final_ret = final_ret or ret
 
+        print(buff)
         if final_ret != 0:
             if ignore_ret:
                 print(f"Ignoring return code {final_ret}, exiting with 0.")
