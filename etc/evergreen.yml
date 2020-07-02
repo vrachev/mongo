@@ -2680,6 +2680,7 @@ functions:
       shell: bash
       working_dir: src
       script: |
+       set -o verbose
        ${activate_virtualenv}
         $python buildscripts/powercycle_operations.py tarEC2Artifacts
 

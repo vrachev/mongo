@@ -104,8 +104,11 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
                                          self.user_host)
         return self._call_retries(cmd)
 
-    def _perform_operation(self, cmd):
-        return self._call_retries(cmd)
+    def _perform_operation(self, cmd, retry):
+        if retry:
+            return self._call_retries(cmd)
+
+        return self._call(cmd)
 
     def access_established(self):
         """Return True if initial access was established."""
@@ -126,7 +129,7 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
         return message.startswith("ssh:")
 
     def operation(  # pylint: disable=too-many-branches
-            self, operation_type, operation_param, operation_dir=None, ignore_ret=False):
+            self, operation_type, operation_param, operation_dir=None, ignore_ret=False, retry=False):
         """Execute Main entry for remote operations. Returns (code, output).
 
         'operation_type' supports remote shell and copy operations.
@@ -200,7 +203,7 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
         final_ret = 0
         buff = ""
         for cmd in cmds:
-            ret, new_buff = self._perform_operation(cmd)
+            ret, new_buff = self._perform_operation(cmd, retry)
             buff += new_buff
             final_ret = final_ret or ret
 

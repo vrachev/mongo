@@ -202,7 +202,7 @@ class SetUpEC2Instance(PowercycleCommand):
             cmds = f"{cmds}; crontab -l"
             cmds = f"{cmds}; {{ {self.sudo} $HOME/curator stat system --file {monitor_system_file} > /dev/null 2>&1 & {self.sudo} $HOME/curator stat process-all --file {monitor_proc_file} > /dev/null 2>&1 & }} & disown"
 
-        self.remote_op.operation(SSHOperation.SHELL, cmds, None)
+        self.remote_op.operation(SSHOperation.SHELL, cmds, retry=True)
 
         # Ninth operation -
         def configure_firewall():
