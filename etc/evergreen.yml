@@ -2458,7 +2458,7 @@ functions:
 
         rm -rf src /data/db/* mongo-diskstats* mongo-*.tgz ~/.aws ~/.boto venv
         exit 0
-    
+
   "kill processes":
     command: shell.exec
     params:
