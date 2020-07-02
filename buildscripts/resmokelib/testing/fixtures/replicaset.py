@@ -106,7 +106,7 @@ class ReplicaSetFixture(interface.ReplFixture):  # pylint: disable=too-many-inst
         self.initial_sync_node = None
         self.initial_sync_node_idx = -1
 
-    def setup(self):  # pylint: disable=too-many-branches,too-many-statements
+    def setup(self):  # pylint: disable=too-many-branches,too-many-statements,too-many-locals
         """Set up the replica set."""
         self.replset_name = self.mongod_options.get("replSet", "rs")
         if not self.nodes:

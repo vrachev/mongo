@@ -81,10 +81,7 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
             print(f"Result of cmd: {buff}")
         return process.poll(), buff
 
-    def _remote_access(self):
-        """Check if a remote session is possible."""
-        cmd = "ssh {} {} {} date".format(self.ssh_connection_options, self.ssh_options,
-                                         self.user_host)
+    def _call_retries(self, cmd):
         attempt_num = 0
         buff = ""
         while True:
@@ -101,8 +98,14 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
             time.sleep(self.retry_sleep)
         return ret, buff
 
+    def _remote_access(self):
+        """Check if a remote session is possible."""
+        cmd = "ssh {} {} {} date".format(self.ssh_connection_options, self.ssh_options,
+                                         self.user_host)
+        return self._call_retries(cmd)
+
     def _perform_operation(self, cmd):
-        return self._call(cmd)
+        return self._call_retries(cmd)
 
     def access_established(self):
         """Return True if initial access was established."""

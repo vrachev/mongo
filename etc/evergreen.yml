@@ -2458,7 +2458,7 @@ functions:
 
         rm -rf src /data/db/* mongo-diskstats* mongo-*.tgz ~/.aws ~/.boto venv
         exit 0
-
+    
   "kill processes":
     command: shell.exec
     params:
@@ -3186,6 +3186,7 @@ functions:
         # Call hang analyzer for tasks that are running remote mongo processes
         if [ -n "${private_ip_address}" ]; then
           $python buildscripts/powercycle_operations.py runHangAnalyzerOnRemoteInstance
+        fi
 
   "tar hang analyzer debugger files": &tar_hang_analyzer_debugger_files
     command: archive.targz_pack

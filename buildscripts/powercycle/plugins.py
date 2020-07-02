@@ -65,8 +65,6 @@ class PowercycleCommand(Subcommand):  # pylint: disable=abstract-method, too-man
         return f"-i {pem_file}"
 
 
-
-
 class SetUpEC2Instance(PowercycleCommand):
     """Set up EC2 instance."""
 
@@ -213,7 +211,8 @@ class SetUpEC2Instance(PowercycleCommand):
             standard_port = self.expansions["standard_port"]
             secret_port = self.expansions["secret_port"]
             # RHEL 7 firewall rules
-            if self._call("which firewall-cmd")[1]:
+            firewall_cmd = self._call("which firewall-cmd")
+            if firewall_cmd[1] and "no firewall-cmd in" not in firewall_cmd[1]:
                 cmds = f"{self.sudo} firewall-cmd --permanent --zone=public --add-port=ssh/tcp"
                 cmds = f"{cmds}; {self.sudo} firewall-cmd --permanent --zone=public --add-port={standard_port}/tcp"
                 cmds = f"{cmds}; {self.sudo} firewall-cmd --permanent --zone=public --add-port={secret_port}/tcp"
@@ -444,6 +443,14 @@ class RunHangAnalyzerOnRemoteInstance(PowercycleCommand):
         self.remote_op.operation(SSHOperation.COPY_TO, file_param, None)
 
 
+class NoOp(Subcommand):
+    """No op."""
+
+    def execute(self) -> None:
+        """:return: None."""
+        pass
+
+
 class PowercyclePlugin(PluginInterface):
     """Interact with powercycle_operations."""
 
@@ -473,6 +480,11 @@ class PowercyclePlugin(PluginInterface):
         :param kwargs: additional args
         :return: None or a Subcommand
         """
+        # Only return subcommand if expansion file has been written.
+        if not os.path.exists(_EXPANSIONS_FILE):
+            print(f"Did not find {_EXPANSIONS_FILE}, skipping {subcommand}.")
+            return NoOp()
+
         if subcommand == SetUpEC2Instance.COMMAND:
             return SetUpEC2Instance()
         elif subcommand == TarEC2Artifacts.COMMAND:
