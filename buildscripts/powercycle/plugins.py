@@ -468,6 +468,7 @@ class PowercyclePlugin(PluginInterface):
         subparsers.add_parser(GatherRemoteMongoCoredumps.COMMAND)
         subparsers.add_parser(CopyRemoteMongoCoredumps.COMMAND)
         subparsers.add_parser(CopyEC2MonitorFiles.COMMAND)
+        subparsers.add_parser(RunHangAnalyzerOnRemoteInstance.COMMAND)
         # Accept arbitrary args like 'powercycle.py undodb foobar', but ignore them.
 
     def parse(self, subcommand, parser, parsed_args, **kwargs):  # pylint: disable=too-many-return-statements
@@ -499,5 +500,7 @@ class PowercyclePlugin(PluginInterface):
             return CopyRemoteMongoCoredumps()
         elif subcommand == CopyEC2MonitorFiles.COMMAND:
             return CopyEC2MonitorFiles()
+        elif subcommand == RunHangAnalyzerOnRemoteInstance.COMMAND:
+            return RunHangAnalyzerOnRemoteInstance()
         else:
             return None
