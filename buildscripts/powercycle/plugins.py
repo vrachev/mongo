@@ -1,6 +1,7 @@
 """Interactions with the undodb tool-suite."""
 import getpass
 import os
+import re
 import subprocess
 import sys
 
@@ -415,7 +416,9 @@ class RunHangAnalyzerOnRemoteInstance(PowercycleCommand):
         if self.is_windows():
             core_ext = "mdmp"
         remote_dir = "." if "remote_dir" not in self.expansions else self.expansions["remote_dir"]
-        debug_files = self._call("ls *.debug *.dSYM *.pdb")[1].split("\n")
+        files = self._call("ls")[1].split("\n")
+        dbg_regex = re.compile(r"(\.debug$)|(\.dSYM$)|(\.pdb$)")
+        debug_files = [f for f in files if dbg_regex.match(f)]
         file_param = []
         for debug_file in debug_files:
             file_param.append(debug_file)
@@ -425,10 +428,11 @@ class RunHangAnalyzerOnRemoteInstance(PowercycleCommand):
         # Activate virtualenv on remote host. The virtualenv bin_dir is different for Linux and
         # Windows.
         venv = "venv" if "virtualenv_dir" not in self.expansions else self.expansions[
-            "virtual_env_dir"]
-        virtual_env = os.environ(["VIRTUAL_ENV"])
+            "virtualenv_dir"]
+        virtual_env = os.environ["VIRTUAL_ENV"]
         _, activate_loc = self._call(f"find {virtual_env} -name activate")
-        _, bin_dir = self.call(f"sed -e \"s,{virtual_env},,;s,activate,,;s,/,,g\" {activate_loc}")
+        bin_dir_regex = re.compile(f"{re.escape(virtual_env)}/(.*)/activate")
+        bin_dir = bin_dir_regex.match(activate_loc)[1]
         cmds = f". {venv}/{bin_dir}/activate"
         # In the 'cmds' variable we pass to remote host, use 'python' instead of '$python' since
         # we don't want to evaluate the local python variable, but instead pass the python string
@@ -440,7 +444,7 @@ class RunHangAnalyzerOnRemoteInstance(PowercycleCommand):
         file_param = []
         file_param.append(f"{remote_dir}/debugger*.*")
         file_param.append(f"{remote_dir}/*.{core_ext}")
-        self.remote_op.operation(SSHOperation.COPY_TO, file_param, None)
+        self.remote_op.operation(SSHOperation.COPY_FROM, file_param, None)
 
 
 class NoOp(Subcommand):
