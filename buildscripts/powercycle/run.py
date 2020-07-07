@@ -128,7 +128,7 @@ class RemoteOperations(object):  # pylint: disable=too-many-instance-attributes
         """
         return message.startswith("ssh:")
 
-    def operation(  # pylint: disable=too-many-branches
+    def operation(  # pylint: disable=too-many-branches,too-many-arguments,too-many-locals
             self, operation_type, operation_param, operation_dir=None, ignore_ret=False,
             retry=False):
         """Execute Main entry for remote operations. Returns (code, output).
