@@ -4,6 +4,7 @@ import json
 import os
 import sys
 
+import time
 import psutil
 
 from buildscripts.resmokelib import config
@@ -15,7 +16,7 @@ _HELP = """
 Utility to handle `resmoke.py run` invocations that have timed out. The caller of this script
 is responsible for determining when a timeout has occured. 
 
-This script will signal the resmoke python process, which in turn will call the hang-aanlyzer
+This script will signal the resmoke python process, which in turn will call the hang-analyzer
 on all of the pids spawned by it or by tests it is running. It will then terminate its processes
 and finish execution. This script will block until the resmoke process has shutdown.
 """
@@ -30,7 +31,10 @@ class RunTimeout(Subcommand):
 
     def execute(self):
         """Execute run-timeout"""
-        pids = state.read_pids()
+        # Signal pids from latest to earliest started.
+        # This will ensure that resmoke processes which were started by other resmoke processes
+        # will be analyzed and shutdown before the parent resmoke process.
+        pids = reversed(state.read_pids())
         # Call the hang-analyzer on the resmoke pid to signal the timeout.
         base_args = ['hang-analyzer', '-o', 'file', '-o', 'stdout']
         for pid in pids:
@@ -39,26 +43,18 @@ class RunTimeout(Subcommand):
             try:
                 # Wait until the resmoke process finishes.
                 resmoke_process = psutil.Process(pid)
-                resmoke_process.wait()
+                while True:
+                    if resmoke_process.status() in ['zombie', 'dead']:
+                        break
+                    print("here1")
+                    time.sleep(.1)
+                    print(f"Status {resmoke_process.status()}")
+                    print("here2")
             except psutil.NoSuchProcess:
                 # Process ended already.
                 pass
 
         state.cleanup_pid_file()
-
-    def _get_resmoke_pids(self):
-        # resmoke_pid_file = os.path.join(self._build_path, self._self_pid_file)
-        with open(self._self_pid_file, 'r') as pfile:
-            pids = []
-            for line in pfile:
-                pids.append(int(line.strip('\n')))
-
-        return pids
-
-    def _cleanup(self):
-        """Delete the resmoke.pid file"""
-        if os.path.isfile(self._self_pid_file):
-            os.remove(self._self_pid_file)
 
 
 class RunTimeoutPlugin(PluginInterface):

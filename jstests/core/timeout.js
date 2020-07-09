@@ -1,37 +1,3 @@
-// 'use strict';
-
-// var coll = "coll";
-// var t = db.getCollection(coll);
-// t.drop();
-
-// db.createCollection(coll);
-
-// while(true) {
-//     sleep(1000);
-// }
-
-// (function() {
-//         'use strict';
-    
-//         const rst = new ReplSetTest({nodes: 2});
-//         rst.startSet();
-//         rst.initiate();
-    
-//         var primary = rst.getPrimary();
-//         var longString = "x".repeat(1000)
-//         assert.commandWorked(primary.getDB('db').foo.insert(Array.from({length: 10000}, _ => ({a: longString}))))
-    
-//         rst.awaitReplication()
-    
-//         assert.soon(() => {
-//             print('looping');
-//             sleep(10);
-//             return false;
-//         }, "Force timeout.", 1000000)
-
-//         rst.stopSet();
-//     })();
-
 (function() {
     'use strict';
 
@@ -39,14 +5,23 @@
     rst.startSet();
     rst.initiate();
 
-    // var primary = rst.getPrimary();
-    // var longString = "x".repeat(1000)
-    // assert.commandWorked(primary.getDB('db').foo.insert(Array.from({length: 10000}, _ => ({a: longString}))))
+    function start() {
+        const resmokeCmd = 'python3 buildscripts/resmoke.py run ' +
+        '--storageEngineCacheSizeGB=1 --dbpathPrefix=/data/db/resmoke ' +
+        '--internalParam=test_archival --taskId=123 ' +
+        '--basePort=20020 ' +
+        '--suites=no_passthrough1' 
 
-    // rst.awaitReplication()
+        // Start a new resmoke test
+        return _startMongoProgram({args: resmokeCmd.split(' ')});
+    }
+
+    const pid = start()
+
     while(true) {
+        checkProgram(pid)
         print("looping")
-        sleep(25)
+        sleep(1000)
     }
     rst.stopSet();
 })();

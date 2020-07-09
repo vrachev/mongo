@@ -7,13 +7,14 @@ from typing import List
 import psutil
 
 _DIR = tempfile.gettempdir()
-_PID_FILE = os.path.join('resmoke.pid')
+_PID_FILE = os.path.join(_DIR, 'resmoke.pid')
 
 def record_pid(logger) -> None:
     """
     Write out the pid of the current process.
 
-    Only 'run' invocations should write out the pid. Appends the current pid if file exists.
+    Only 'run' invocations should write out the pid.
+    Appends the current pid if file exists.
     """
 
     pid_file = _PID_FILE
