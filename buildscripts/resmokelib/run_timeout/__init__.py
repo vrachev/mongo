@@ -14,7 +14,8 @@ from buildscripts.resmokelib.plugin import PluginInterface, Subcommand
 
 _HELP = """
 Utility to handle `resmoke.py run` invocations that have timed out. The caller of this script
-is responsible for determining when a timeout has occured. 
+is responsible for determining when a timeout has occured. It will signal and shutdown all
+`remsoke.py run` processes running.
 
 This script will signal the resmoke python process, which in turn will call the hang-analyzer
 on all of the pids spawned by it or by tests it is running. It will then terminate its processes
@@ -31,10 +32,17 @@ class RunTimeout(Subcommand):
 
     def execute(self):
         """Execute run-timeout"""
-        # Signal pids from latest to earliest started.
-        # This will ensure that resmoke processes which were started by other resmoke processes
-        # will be analyzed and shutdown before the parent resmoke process.
-        pids = reversed(state.read_pids())
+        # Pids will be read and signalled in order of start time. This is important because we
+        # should only signal top-level resmoke processes. In the edge case where a resmoke process
+        # starts another resmoke process (eg: resmoke.py -> mongo -> resmoke.py in
+        # https://github.com/mongodb/mongo/blob/master/jstests/noPassthrough/libs/backup_restore.js#L119-L131)
+        # if we signal+kill the inner resmoke process it may become a zombie process and we will get stuck
+        # waiting for it to shutdown.
+        #
+        # When we signal the top-level resmoke process, the sighandler will then call the
+        # hang-analyzer on all non-resmoke child processes, so we will also obtain the stacktraces
+        # for the processes started by the inner resmoke process.
+        pids = state.read_pids()
         # Call the hang-analyzer on the resmoke pid to signal the timeout.
         base_args = ['hang-analyzer', '-o', 'file', '-o', 'stdout']
         for pid in pids:
@@ -43,15 +51,13 @@ class RunTimeout(Subcommand):
             try:
                 # Wait until the resmoke process finishes.
                 resmoke_process = psutil.Process(pid)
-                while True:
-                    if resmoke_process.status() in ['zombie', 'dead']:
-                        break
-                    print("here1")
-                    time.sleep(.1)
-                    print(f"Status {resmoke_process.status()}")
-                    print("here2")
+                resmoke_process.wait()
             except psutil.NoSuchProcess:
                 # Process ended already.
+                # This may happen for inner resmoke processes, as its underlying processes
+                # will be shutdown when the outer resmoke process is signalled, and it will be able
+                # to shut itself down. We will reach this point if the resmoke process had enough
+                # time for shutdown.
                 pass
 
         state.cleanup_pid_file()

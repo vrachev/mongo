@@ -122,6 +122,7 @@ def _get_pids():
     """Return all PIDs spawned by the current resmoke process and their child PIDs."""
     pids = config.PIDS # All fixture PIDs.
     spawned_pids = [] # Fixture PIDs + any PIDs spawned by the mongo shell.
+    resmoke_pids = state.read_pids()
     for parent in pids:
         try:
             parent_process = psutil.Process(parent)
@@ -131,7 +132,11 @@ def _get_pids():
 
         spawned_pids.append(parent)
         for child in parent_process.children(recursive=True):
-            spawned_pids.append(child.pid)
+            # Do not signal inner resmoke processes.
+            # Doing so would cause us to do hang-analysis on the processes it spawns multiple times,
+            # both in here and in the sighandler for the inner process.
+            if child.pid not in resmoke_pids:
+                spawned_pids.append(child.pid)
 
     return spawned_pids
 
