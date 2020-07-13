@@ -15,7 +15,7 @@ from buildscripts.resmokelib.plugin import PluginInterface, Subcommand
 _HELP = """
 Utility to handle `resmoke.py run` invocations that have timed out. The caller of this script
 is responsible for determining when a timeout has occured. It will signal and shutdown all
-`remsoke.py run` processes running.
+`resmoke.py run` processes running.
 
 This script will signal the resmoke python process, which in turn will call the hang-analyzer
 on all of the pids spawned by it or by tests it is running. It will then terminate its processes
@@ -59,8 +59,6 @@ class RunTimeout(Subcommand):
                 # to shut itself down. We will reach this point if the resmoke process had enough
                 # time for shutdown.
                 pass
-
-        state.cleanup_pid_file()
 
 
 class RunTimeoutPlugin(PluginInterface):

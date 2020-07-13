@@ -397,6 +397,7 @@ class TestRunner(Subcommand):  # pylint: disable=too-many-instance-attributes
 
     def exit(self, exit_code):
         """Exit with the provided exit code."""
+        state.cleanup_pid_file()
         self._exit_code = exit_code
         self._resmoke_logger.info("Exiting with code: %d", exit_code)
         sys.exit(exit_code)

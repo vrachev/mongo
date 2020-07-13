@@ -1,4 +1,4 @@
-"""Test resmoke's handling of test/task timeouts."""
+"""Test resmoke's handling of test/task timeouts and archival."""
 
 import logging
 import os
@@ -41,8 +41,6 @@ class _ResmokeSelftest(unittest.TestCase):
             [sys.executable, "buildscripts/resmoke.py"] + self.resmoke_const_args + resmoke_args)
         resmoke_process.start()
         self.resmoke_process = resmoke_process
-
-        return resmoke_process
 
     def wait(self):
         self.resmoke_process.wait()
@@ -113,7 +111,14 @@ class TestTimeout(_ResmokeSelftest):
         super(TestTimeout, cls).setUpClass()
 
         cls.archival_file = "test_archival.txt"
-        cls.analysis_file = "test_analysis.txt"
+        cls.analysis_files = ["debugger_mongo.log", "debugger_mongod.log"]
+
+    def setUp(self):
+        super(TestTimeout, self).setUp()
+        self.logger.info("Cleaning hang analyzer files %s", str(self.analysis_files))
+        for filename in self.analysis_files:
+            if os.path.exists(filename):
+                os.remove(filename)
 
     def signal_resmoke(self):
         signal_resmoke_process = core.programs.make_process(
@@ -150,8 +155,8 @@ class TestTimeout(_ResmokeSelftest):
         archival_dirs_to_expect = 4  # 2 tests * 2 nodes
         self.assert_dir_file_count(self.archival_file, archival_dirs_to_expect)
 
-        # analysis_files_to_expect = 6  # 2 tests * (2 mongod + 1 mongo)
-        # self.assert_dir_file_count(self.analysis_file, analysis_files_to_expect)
+        for filename in self.analysis_files:
+            self.assertTrue(os.path.exists(os.path.join(os.getcwd(), filename)))
 
     def test_task_timeout_no_passthrough(self):
         resmoke_args = [
@@ -166,5 +171,8 @@ class TestTimeout(_ResmokeSelftest):
         archival_dirs_to_expect = 4  # 2 tests * 2 nodes
         self.assert_dir_file_count(self.archival_file, archival_dirs_to_expect)
 
-        # analysis_files_to_expect = 6  # 2 tests * (2 mongod + 1 mongo)
-        # self.assert_dir_file_count(self.analysis_file, analysis_files_to_expect)
+        for filename in self.analysis_files:
+            self.assertTrue(os.path.exists(os.path.join(os.getcwd(), filename)))
+
+    # Test
+    # def test_recursive_timeout(self):
