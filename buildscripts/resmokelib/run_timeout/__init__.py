@@ -31,7 +31,7 @@ class RunTimeout(Subcommand):
         pass
 
     def execute(self):
-        """Execute run-timeout"""
+        """Execute run-timeout."""
         # Pids will be read and signalled in order of start time. This is important because we
         # should only signal top-level resmoke processes. In the edge case where a resmoke process
         # starts another resmoke process (eg: resmoke.py -> mongo -> resmoke.py in

@@ -139,8 +139,8 @@ class TestTimeout(_ResmokeSelftest):
     def execute_resmoke(self, resmoke_args, sleep_secs=10, **kwargs):
         super(TestTimeout, self).execute_resmoke(resmoke_args, **kwargs)
 
-        time.sleep(
-            sleep_secs)  # TODO: Change to more durable way of ensuring the fixtures have been set up.
+        time.sleep(sleep_secs
+                   )  # TODO: Change to more durable way of ensuring the fixtures have been set up.
 
         self.signal_resmoke()
 

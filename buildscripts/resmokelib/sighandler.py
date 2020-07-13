@@ -120,8 +120,8 @@ def _dump_stacks(logger, header_msg):
 
 def _get_pids():
     """Return all PIDs spawned by the current resmoke process and their child PIDs."""
-    pids = config.PIDS # All fixture PIDs.
-    spawned_pids = [] # Fixture PIDs + any PIDs spawned by the mongo shell.
+    pids = config.PIDS  # All fixture PIDs.
+    spawned_pids = []  # Fixture PIDs + any PIDs spawned by the mongo shell.
     resmoke_pids = state.read_pids()
     for parent in pids:
         try:

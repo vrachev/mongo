@@ -9,6 +9,7 @@ import psutil
 _DIR = tempfile.gettempdir()
 _PID_FILE = os.path.join(_DIR, 'resmoke.pid')
 
+
 def record_pid(logger) -> None:
     """
     Write out the pid of the current process.
@@ -24,6 +25,7 @@ def record_pid(logger) -> None:
     with open(pid_file, 'a+') as fp:
         fp.write(f"{pid}\n")
 
+
 def read_pids() -> List[int]:
     """Read the pid of the currnet 'resmoke run' process."""
     with open(_PID_FILE, 'r') as pfile:
@@ -33,6 +35,7 @@ def read_pids() -> List[int]:
 
     # logger.info(f"Read {_PID_FILE} for resmoke pids. Returned {pids}")
     return pids
+
 
 def cleanup_pid_file() -> None:
     """Delete the resmoke.pid file"""
