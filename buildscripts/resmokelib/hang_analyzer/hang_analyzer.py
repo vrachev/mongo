@@ -114,7 +114,6 @@ class HangAnalyzer(Subcommand):
 
         self.root_logger.info("Done analyzing all processes for hangs")
 
-<<<<<<< HEAD
         # Kill processes if "-k" was specified.
         if self.options.kill_processes:
             process.kill_processes(self.root_logger, processes)
@@ -123,10 +122,6 @@ class HangAnalyzer(Subcommand):
             for pinfo in [pinfo for pinfo in processes if not pinfo.name.startswith("python")]:
                 for pid in pinfo.pidv:
                     process.resume_process(self.root_logger, pinfo.name, pid)
-=======
-        if self.options.kill_processes:
-            self._kill_processes(processes)
->>>>>>> SERVER-46687 Run hang-analyzer from resmoke and integrate with archival
 
         for exception in trapped_exceptions:
             self.root_logger.info(exception)

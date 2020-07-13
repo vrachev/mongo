@@ -60,7 +60,6 @@ class TestArchivalOnFailure(_ResmokeSelftest):
 
         cls.archival_file = "test_archival.txt"
 
-    @unittest.skip("Requires compile. SERVER-48969 tracks re-enabling.")
     def test_archival_on_task_failure(self):
         resmoke_args = [
             "--suites=buildscripts/tests/resmoke_end2end/suites/resmoke_selftest_task_failure.yml",
@@ -76,10 +75,9 @@ class TestArchivalOnFailure(_ResmokeSelftest):
         archival_dirs_to_expect = 4  # 2 tests * 2 nodes
         self.assert_dir_file_count(self.test_dir, self.archival_file, archival_dirs_to_expect)
 
-    @unittest.skip("Requires compile. SERVER-48969 tracks re-enabling.")
     def test_archival_on_task_failure_no_passthrough(self):
         resmoke_args = [
-            "--suites=buildscripts/tests/resmokelib/resmoke_end2end/suites/resmoke_selftest_task_failure_no_passthrough.yml",
+            "--suites=buildscripts/tests/resmoke_end2end/suites/resmoke_selftest_task_failure_no_passthrough.yml",
             "--taskId=123",
             "--internalParam=test_archival",
             "--repeatTests=2",
@@ -143,7 +141,6 @@ class TestTimeout(_ResmokeSelftest):
 
         self.signal_resmoke()
 
-    @unittest.skip("Requires compile. SERVER-48969 tracks re-enabling.")
     def test_task_timeout(self):
         resmoke_args = [
             "--suites=buildscripts/tests/resmoke_end2end/suites/resmoke_selftest_task_timeout.yml",
@@ -161,7 +158,6 @@ class TestTimeout(_ResmokeSelftest):
         for filename in self.analysis_files:
             self.assertTrue(os.path.exists(os.path.join(os.getcwd(), filename)))
 
-    @unittest.skip("Requires compile. SERVER-48969 tracks re-enabling.")
     def test_task_timeout_no_passthrough(self):
         resmoke_args = [
             "--suites=buildscripts/tests/resmoke_end2end/suites/resmoke_selftest_task_timeout_no_passthrough.yml",
@@ -181,7 +177,7 @@ class TestTimeout(_ResmokeSelftest):
     # Test scenarios where an resmoke-launched process launches resmoke.
     def test_nested_timeout(self):
         resmoke_args = [
-            "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_nested_timeout.yml",
+            "--suites=buildscripts/tests/end2end/suites/resmoke_selftest_nested_timeout.yml",
             "--taskId=123",
             "--internalParam=test_archival",
             "jstests/resmoke_selftest/end2end/timeout/nested/top_level_timeout.js",
