@@ -33,7 +33,7 @@ class _ResmokeSelftest(unittest.TestCase):
         self.logger.info("Cleaning temp directory %s", self.test_dir)
         rmtree(self.test_dir, ignore_errors=True)
         self.logger.info("Cleaning temp directory %s", self.test_dir_inner)
-        rmtree(self.test_dir, ignore_errors=True)
+        rmtree(self.test_dir_inner, ignore_errors=True)
 
     def execute_resmoke(self, resmoke_args, **kwargs):  # pylint: disable=unused-argument
         resmoke_process = core.programs.make_process(
@@ -133,7 +133,7 @@ class TestTimeout(_ResmokeSelftest):
             self.resmoke_process.stop()
         self.assertEqual(return_code, 0)
 
-    def execute_resmoke(self, resmoke_args, sleep_secs=10, **kwargs):
+    def execute_resmoke(self, resmoke_args, sleep_secs=10, **kwargs):  # pylint: disable=arguments-differ
         super(TestTimeout, self).execute_resmoke(resmoke_args, **kwargs)
 
         time.sleep(sleep_secs
@@ -177,7 +177,7 @@ class TestTimeout(_ResmokeSelftest):
     # Test scenarios where an resmoke-launched process launches resmoke.
     def test_nested_timeout(self):
         resmoke_args = [
-            "--suites=buildscripts/tests/end2end/suites/resmoke_selftest_nested_timeout.yml",
+            "--suites=buildscripts/tests/resmoke_end2end/suites/resmoke_selftest_nested_timeout.yml",
             "--taskId=123",
             "--internalParam=test_archival",
             "jstests/resmoke_selftest/end2end/timeout/nested/top_level_timeout.js",
