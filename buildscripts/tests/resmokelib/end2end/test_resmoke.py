@@ -27,6 +27,7 @@ class _ResmokeSelftest(unittest.TestCase):
         cls.logger.addHandler(handler)
 
         cls.test_dir = os.path.normpath("/data/db/selftest")
+        cls.test_dir_inner = os.path.normpath("/data/db/selftest_inner")
         cls.resmoke_const_args = ["run", "--dbpathPrefix={}".format(cls.test_dir)]
 
         cls.resmoke_process = None
@@ -34,8 +35,10 @@ class _ResmokeSelftest(unittest.TestCase):
     def setUp(self):
         self.logger.info("Cleaning temp directory %s", self.test_dir)
         rmtree(self.test_dir, ignore_errors=True)
+        self.logger.info("Cleaning temp directory %s", self.test_dir_inner)
+        rmtree(self.test_dir, ignore_errors=True)
 
-    def execute_resmoke(self, resmoke_args):
+    def execute_resmoke(self, resmoke_args, **kwargs):  # pylint: disable=unused-argument
         resmoke_process = core.programs.make_process(
             self.logger,
             [sys.executable, "buildscripts/resmoke.py"] + self.resmoke_const_args + resmoke_args)
@@ -45,8 +48,8 @@ class _ResmokeSelftest(unittest.TestCase):
     def wait(self):
         self.resmoke_process.wait()
 
-    def assert_dir_file_count(self, test_file, num_entries):
-        file_path = os.path.join(self.test_dir, test_file)
+    def assert_dir_file_count(self, test_dir, test_file, num_entries):
+        file_path = os.path.join(test_dir, test_file)
         count = 0
         with open(file_path) as file:
             count = sum(1 for _ in file)
@@ -73,7 +76,7 @@ class TestArchivalOnFailure(_ResmokeSelftest):
 
         # test archival
         archival_dirs_to_expect = 4  # 2 tests * 2 nodes
-        self.assert_dir_file_count(self.archival_file, archival_dirs_to_expect)
+        self.assert_dir_file_count(self.test_dir, self.archival_file, archival_dirs_to_expect)
 
     def test_archival_on_task_failure_no_passthrough(self):
         resmoke_args = [
@@ -88,7 +91,7 @@ class TestArchivalOnFailure(_ResmokeSelftest):
 
         # test archival
         archival_dirs_to_expect = 4  # 2 tests * 2 nodes
-        self.assert_dir_file_count(self.archival_file, archival_dirs_to_expect)
+        self.assert_dir_file_count(self.test_dir, self.archival_file, archival_dirs_to_expect)
 
     def test_no_archival_locally(self):
         # archival should not happen if --taskId is not set.
@@ -133,11 +136,11 @@ class TestTimeout(_ResmokeSelftest):
             self.resmoke_process.stop()
         self.assertEqual(return_code, 0)
 
-    def execute_resmoke(self, resmoke_args):
-        _ResmokeSelftest.execute_resmoke(self, resmoke_args)
+    def execute_resmoke(self, resmoke_args, sleep_secs=10, **kwargs):
+        super(TestTimeout, self).execute_resmoke(resmoke_args, **kwargs)
 
         time.sleep(
-            10)  # TODO: Change to more durable way of ensuring the fixtures have been set up.
+            sleep_secs)  # TODO: Change to more durable way of ensuring the fixtures have been set up.
 
         self.signal_resmoke()
 
@@ -153,7 +156,7 @@ class TestTimeout(_ResmokeSelftest):
         self.execute_resmoke(resmoke_args)
 
         archival_dirs_to_expect = 4  # 2 tests * 2 nodes
-        self.assert_dir_file_count(self.archival_file, archival_dirs_to_expect)
+        self.assert_dir_file_count(self.test_dir, self.archival_file, archival_dirs_to_expect)
 
         for filename in self.analysis_files:
             self.assertTrue(os.path.exists(os.path.join(os.getcwd(), filename)))
@@ -169,10 +172,25 @@ class TestTimeout(_ResmokeSelftest):
         self.execute_resmoke(resmoke_args)
 
         archival_dirs_to_expect = 4  # 2 tests * 2 nodes
-        self.assert_dir_file_count(self.archival_file, archival_dirs_to_expect)
+        self.assert_dir_file_count(self.test_dir, self.archival_file, archival_dirs_to_expect)
 
         for filename in self.analysis_files:
             self.assertTrue(os.path.exists(os.path.join(os.getcwd(), filename)))
 
-    # Test
-    # def test_recursive_timeout(self):
+    # Test scenarios where an resmoke-launched process launches resmoke.
+    def test_nested_timeout(self):
+        resmoke_args = [
+            "--suites=buildscripts/tests/resmokelib/end2end/suites/resmoke_selftest_nested_timeout.yml",
+            "--taskId=123",
+            "--internalParam=test_archival",
+            "jstests/resmoke_selftest/end2end/timeout/nested/top_level_timeout.js",
+        ]
+
+        self.execute_resmoke(resmoke_args, sleep_secs=25)
+
+        archival_dirs_to_expect = 2  # 2 tests * 2 nodes / 2 data_file directories
+        self.assert_dir_file_count(self.test_dir, self.archival_file, archival_dirs_to_expect)
+        self.assert_dir_file_count(self.test_dir_inner, self.archival_file, archival_dirs_to_expect)
+
+        for filename in self.analysis_files:
+            self.assertTrue(os.path.exists(os.path.join(os.getcwd(), filename)))
