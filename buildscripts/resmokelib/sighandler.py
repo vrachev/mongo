@@ -37,9 +37,9 @@ def register(logger, suites, start_time):
 
         _dump_and_log(header_msg)
 
+        # Gather and analyze pids of all subprocesses.
         pids_to_analyze = _get_pids()
-        print(pids_to_analyze)
-        _signal_pids(logger, pids_to_analyze)
+        _analyze_pids(logger, pids_to_analyze)
 
     def _handle_set_event(event_handle):
         """Event object handler for Windows.
@@ -120,7 +120,7 @@ def _dump_stacks(logger, header_msg):
 def _get_pids():
     """Return all PIDs spawned by the current resmoke process and their child PIDs."""
     pids = config.PIDS  # All fixture PIDs.
-    spawned_pids = []  # Fixture PIDs + any PIDs spawned by the mongo shell.
+    spawned_pids = []  # Gather fixture PIDs + any PIDs spawned by the fixtures.
     resmoke_pids = state.read_pids()
     for parent in pids:
         try:
@@ -132,7 +132,7 @@ def _get_pids():
         spawned_pids.append(parent)
         for child in parent_process.children(recursive=True):
             # Do not signal inner resmoke processes.
-            # Doing so would cause us to do hang-analysis on the processes it spawns multiple times,
+            # Doing so would cause us to perform analysis on the processes multiple times,
             # both in here and in the sighandler for the inner process.
             if child.pid not in resmoke_pids:
                 spawned_pids.append(child.pid)
@@ -140,10 +140,13 @@ def _get_pids():
     return spawned_pids
 
 
-def _signal_pids(logger, pids):
-    """Signal the PIDs spawned by the current resmoke process."""
+def _analyze_pids(logger, pids):
+    """Analyze the PIDs spawned by the current resmoke process."""
     hang_analyzer_args = [
-        'hang-analyzer', '-o', 'file', '-o', 'stdout', '-k', '-d', ",".join([str(p) for p in pids])
+        'hang-analyzer', '-o', 'file', '-o', 'stdout', '-k', '-d', ','.join([str(p) for p in pids])
     ]
+
+    if not os.getenv('ASAN_OPTIONS'):
+        hang_analyzer_args.push('-c')
     _hang_analyzer = parser.parse_command_line(hang_analyzer_args, logger=logger)
     _hang_analyzer.execute()
