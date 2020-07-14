@@ -147,6 +147,6 @@ def _analyze_pids(logger, pids):
     ]
 
     if not os.getenv('ASAN_OPTIONS'):
-        hang_analyzer_args.push('-c')
+        hang_analyzer_args.append('-c')
     _hang_analyzer = parser.parse_command_line(hang_analyzer_args, logger=logger)
     _hang_analyzer.execute()
