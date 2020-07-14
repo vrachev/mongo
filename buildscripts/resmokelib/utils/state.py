@@ -38,6 +38,6 @@ def read_pids() -> List[int]:
 
 
 def cleanup_pid_file() -> None:
-    """Delete the resmoke.pid file"""
+    """Delete the resmoke.pid file."""
     if os.path.isfile(_PID_FILE):
         os.remove(_PID_FILE)

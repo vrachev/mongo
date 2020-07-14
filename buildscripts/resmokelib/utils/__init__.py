@@ -109,7 +109,8 @@ def load_yaml(value):
 
 def mkdir_p(path):
     """
-    Make the directory and all missing parents (like mkdir -p)
+    Make the directory and all missing parents (like mkdir -p).
+
     :type path: string the directory path
     """
     try:

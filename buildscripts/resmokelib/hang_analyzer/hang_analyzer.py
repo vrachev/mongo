@@ -20,11 +20,8 @@ import traceback
 
 import psutil
 
-from buildscripts.resmokelib.plugin import PluginInterface, Subcommand
-
 from buildscripts.resmokelib.hang_analyzer import extractor
 from buildscripts.resmokelib.hang_analyzer import dumper
-from buildscripts.resmokelib.hang_analyzer import extractor
 from buildscripts.resmokelib.hang_analyzer import process
 from buildscripts.resmokelib.hang_analyzer import process_list
 from buildscripts.resmokelib.plugin import PluginInterface, Subcommand
