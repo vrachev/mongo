@@ -180,17 +180,6 @@ class HangAnalyzer(Subcommand):
             self.root_logger.warning(
                 "Cannot determine Unix Current Login, not supported on Windows")
 
-    def _kill_processes(self, processes):
-        for pinfo in reversed(processes):
-            for pid in pinfo.pidv:
-                try:
-                    proc = psutil.Process(pid)
-                    self.root_logger.info("Killing process %s with pid %d", pinfo.name, pid)
-                    proc.kill()
-                except psutil.NoSuchProcess:
-                    # Process has already terminated.
-                    pass
-
 
 def _check_dump_quota(quota, ext):
     """Check if sum of the files with ext is within the specified quota in megabytes."""

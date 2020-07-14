@@ -125,7 +125,7 @@ class TestTimeout(_ResmokeSelftest):
             self.logger, [sys.executable, "buildscripts/resmoke.py", "run-timeout"])
         signal_resmoke_process.start()
 
-        # Wait for resmoke_process to be killed by 'run-timeout' to avoid deadlocks.
+        # Wait for resmoke_process to be killed by 'run-timeout' so this doesn't hang.
         self.resmoke_process.wait()
 
         return_code = signal_resmoke_process.wait()

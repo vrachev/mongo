@@ -3,7 +3,6 @@
 
 import argparse
 import collections
-import json
 import os
 import os.path
 import random
@@ -14,7 +13,6 @@ import tarfile
 import time
 
 import pkg_resources
-import psutil
 import requests
 
 try:

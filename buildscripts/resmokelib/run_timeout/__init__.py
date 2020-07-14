@@ -1,13 +1,7 @@
 """Run-timeout module."""
 
-import json
-import os
-import sys
-
-import time
 import psutil
 
-from buildscripts.resmokelib import config
 from buildscripts.resmokelib.utils import state
 from buildscripts.resmokelib import parser as _parser
 from buildscripts.resmokelib.plugin import PluginInterface, Subcommand

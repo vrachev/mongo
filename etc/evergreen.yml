@@ -23,7 +23,6 @@ stepback: true
 command_type: system
 pre_error_fails_task: true
 oom_tracker: true
-exec_timeout_secs: 800
 
 
 # Files that match an ignore-list pattern will not trigger a build, if they're the only modified
@@ -3175,22 +3174,17 @@ functions:
       script: |
         set -o verbose
 
-        # hang_analyzer_option="-o file -o stdout -p ${hang_analyzer_processes|dbtest,java,mongo,mongod,mongos,python,_test}"
-        hang_analyzer_option="-o file -o stdout -p python"
-
-
-
-        if [ ${hang_analyzer_dump_core|true} = true ]; then
-          hang_analyzer_option="-c $hang_analyzer_option"
-        fi
-
         ${activate_virtualenv}
-        # echo "Calling the hang analyzer: PATH=\"/opt/mongodbtoolchain/gdb/bin:$PATH\" $python buildscripts/resmoke.py hang-analyzer $hang_analyzer_option"
-        # PATH="/opt/mongodbtoolchain/gdb/bin:$PATH" $python buildscripts/resmoke.py hang-analyzer $hang_analyzer_option
+        # echo "Calling the hang analyzer: PATH=\"/opt/mongodbtoolchain/gdb/bin:$PATH\" $python buildscripts/resmoke.py run-timeout"
         PATH="/opt/mongodbtoolchain/gdb/bin:$PATH" $python buildscripts/resmoke.py run-timeout
 
         # Call hang analyzer for tasks that are running remote mongo processes
         if [ -n "${private_ip_address}" ]; then
+          hang_analyzer_option="-o file -o stdout -p ${hang_analyzer_processes|dbtest,java,mongo,mongod,mongos,python,_test}"
+
+          if [ ${hang_analyzer_dump_core|true} = true ]; then
+            hang_analyzer_option="-c $hang_analyzer_option"
+          fi
           $python buildscripts/powercycle_operations.py runHangAnalyzerOnRemoteInstance
         fi
 
