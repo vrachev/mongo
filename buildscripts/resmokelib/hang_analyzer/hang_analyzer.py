@@ -30,7 +30,7 @@ from buildscripts.resmokelib.plugin import PluginInterface, Subcommand
 class HangAnalyzer(Subcommand):
     """Main class for the hang analyzer subcommand."""
 
-    def __init__(self, options, logger=None):
+    def __init__(self, options, logger=None, **kwargs):  # pylint: disable=unused-argument
         """
         Configure processe lists based on options.
 
