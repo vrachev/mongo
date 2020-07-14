@@ -2,25 +2,23 @@ test_kind: js_test
 
 selector:
   roots:
-  # - jstests/noPassthrough/*.js
-  # - src/mongo/db/modules/*/jstests/hot_backups/*.js
+  - jstests/noPassthrough/*.js
+  - src/mongo/db/modules/*/jstests/hot_backups/*.js
 
-  # # Self-tests for the Concurrency testing framework are run as part of this test suite.
-  # - jstests/concurrency/*.js
-  # exclude_files:
-  # # Disable inmem_full as per SERVER-27014
-  # - jstests/noPassthrough/inmem_full.js
-  # # Multiversion backup-restore tests must run in the multiversion suite.
-  # - src/mongo/db/modules/*/jstests/hot_backups/*last_stable*.js
-  # # TODO SERVER-49359 Enable sharded_backup_restore_add_remove_shard_while_backup.js from noPassthrough suite
-  # - src/mongo/db/modules/*/jstests/hot_backups/sharded_backup_restore_add_remove_shard_while_backup.js
-  - jstests/core/timeout.js
+  # Self-tests for the Concurrency testing framework are run as part of this test suite.
+  - jstests/concurrency/*.js
+  exclude_files:
+  # Disable inmem_full as per SERVER-27014
+  - jstests/noPassthrough/inmem_full.js
+  # Multiversion backup-restore tests must run in the multiversion suite.
+  - src/mongo/db/modules/*/jstests/hot_backups/*last_stable*.js
+  # TODO SERVER-49359 Enable sharded_backup_restore_add_remove_shard_while_backup.js from noPassthrough suite
+  - src/mongo/db/modules/*/jstests/hot_backups/sharded_backup_restore_add_remove_shard_while_backup.js
 
 # noPassthrough tests start their own mongod's.
 executor:
   archive:
     tests:
-      - jstests/core/timeout.js
       - jstests/noPassthrough/backup*.js
       - jstests/noPassthrough/wt_unclean_shutdown.js
       - src/mongo/db/modules/enterprise/jstests/hot_backups/*.js
