@@ -10,8 +10,6 @@ selector:
   - jstests/core/txns/**/*.js
 executor:
   archive:
-    tests:
-      - jstests/core/timeout.js
     hooks:
       - ValidateCollections
   config:
