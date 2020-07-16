@@ -24,7 +24,6 @@ class _ResmokeSelftest(unittest.TestCase):
         cls.logger.addHandler(handler)
 
         cls.test_dir = os.path.normpath("/data/db/selftest")
-        cls.test_dir_inner = os.path.normpath("/data/db/selftest_inner")
         cls.resmoke_const_args = ["run", "--dbpathPrefix={}".format(cls.test_dir)]
 
         cls.resmoke_process = None
@@ -32,8 +31,6 @@ class _ResmokeSelftest(unittest.TestCase):
     def setUp(self):
         self.logger.info("Cleaning temp directory %s", self.test_dir)
         rmtree(self.test_dir, ignore_errors=True)
-        self.logger.info("Cleaning temp directory %s", self.test_dir_inner)
-        rmtree(self.test_dir_inner, ignore_errors=True)
 
     def execute_resmoke(self, resmoke_args, **kwargs):  # pylint: disable=unused-argument
         resmoke_process = core.programs.make_process(
@@ -110,11 +107,14 @@ class TestTimeout(_ResmokeSelftest):
     def setUpClass(cls):
         super(TestTimeout, cls).setUpClass()
 
+        cls.test_dir_inner = os.path.normpath("/data/db/selftest_inner")
         cls.archival_file = "test_archival.txt"
         cls.analysis_files = ["debugger_mongo.log", "debugger_mongod.log"]
 
     def setUp(self):
         super(TestTimeout, self).setUp()
+        self.logger.info("Cleaning temp directory %s", self.test_dir_inner)
+        rmtree(self.test_dir_inner, ignore_errors=True)
         self.logger.info("Cleaning hang analyzer files %s", str(self.analysis_files))
         for filename in self.analysis_files:
             if os.path.exists(filename):
