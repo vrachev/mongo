@@ -38,7 +38,7 @@ def register(logger, suites, start_time):
 
         if not config.INNER_LEVEL:
             # Gather and analyze pids of all subprocesses.
-            # Do nothing for child resmoke processe, as their child process will be analyzed by the
+            # Do nothing for child resmoke processes, as their child process will be analyzed by the
             # top-level process.
             pids_to_analyze = _get_pids()
             _analyze_pids(logger, pids_to_analyze)
