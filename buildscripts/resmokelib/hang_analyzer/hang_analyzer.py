@@ -35,6 +35,8 @@ class HangAnalyzer(Subcommand):
         Configure processe lists based on options.
 
         :param options: Options as parsed by parser.py
+        :param logger: Logger to be used. If not specified, one will be created.
+        :param kwargs: additional args
         """
         self.options = options
         self.root_logger = None
