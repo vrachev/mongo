@@ -635,8 +635,7 @@ class RunPlugin(PluginInterface):
             "--innerLevel", action="store_true", dest="inner_level",
             help=("Marks the resmoke process as a child of a parent resmoke process, meaning that"
                   "it was started by a shell process which itself was started by a top-level"
-                  "resmoke process. This is used to ensure the hang-analyzer is called properly.")
-        )
+                  "resmoke process. This is used to ensure the hang-analyzer is called properly."))
 
         parser.add_argument("-n", action="store_const", const="tests", dest="dry_run",
                             help="Outputs the tests that would be run.")

@@ -123,7 +123,8 @@ class TestTimeout(_ResmokeSelftest):
     def signal_resmoke(self):
         hang_analyzer_options = f"-o=file -o=stdout -m=contains -d={self.resmoke_process.pid}"
         signal_resmoke_process = core.programs.make_process(
-            self.logger, [sys.executable, "buildscripts/resmoke.py", "hang-analyzer"] + hang_analyzer_options.split())
+            self.logger, [sys.executable, "buildscripts/resmoke.py", "hang-analyzer"
+                          ] + hang_analyzer_options.split())
         signal_resmoke_process.start()
 
         # Wait for resmoke_process to be killed by 'run-timeout' so this doesn't hang.

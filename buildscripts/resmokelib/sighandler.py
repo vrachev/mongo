@@ -122,7 +122,7 @@ def _dump_stacks(logger, header_msg):
 def _get_pids():
     """Return all PIDs spawned by the current resmoke process and their child PIDs."""
     pids = []  # Gather fixture PIDs + any PIDs spawned by the fixtures.
-    parent = psutil.Process() # current process
+    parent = psutil.Process()  # current process
     for child in parent.children(recursive=True):
         # Don't signal python threads. They have already been signalled in the evergreen timeout
         # section.
