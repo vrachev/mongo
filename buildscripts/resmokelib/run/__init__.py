@@ -31,7 +31,6 @@ from buildscripts.resmokelib import sighandler
 from buildscripts.resmokelib import suitesconfig
 from buildscripts.resmokelib import testing
 from buildscripts.resmokelib import utils
-from buildscripts.resmokelib.utils import state
 from buildscripts.resmokelib.core import process
 from buildscripts.resmokelib.core import jasper_process
 from buildscripts.resmokelib.plugin import PluginInterface, Subcommand
@@ -107,7 +106,6 @@ class TestRunner(Subcommand):  # pylint: disable=too-many-instance-attributes
     def execute(self):
         """Execute the 'run' subcommand."""
         self._setup_logging()
-        state.record_pid(self._resmoke_logger)
 
         try:
             if self.__command == "list-suites":
@@ -394,7 +392,6 @@ class TestRunner(Subcommand):  # pylint: disable=too-many-instance-attributes
 
     def exit(self, exit_code):
         """Exit with the provided exit code."""
-        state.cleanup_pid_file()
         self._exit_code = exit_code
         self._resmoke_logger.info("Exiting with code: %d", exit_code)
         sys.exit(exit_code)
@@ -633,6 +630,13 @@ class RunPlugin(PluginInterface):
             help=("Comma separated list of tags. For the jstest portion of the suite(s),"
                   " only tests which have at least one of the specified tags will be"
                   " run."))
+
+        parser.add_argument(
+            "--innerLevel", action="store_true", dest="inner_level",
+            help=("Marks the resmoke process as a child of a parent resmoke process, meaning that"
+                  "it was started by a shell process which itself was started by a top-level"
+                  "resmoke process. This is used to ensure the hang-analyzer is called properly.")
+        )
 
         parser.add_argument("-n", action="store_const", const="tests", dest="dry_run",
                             help="Outputs the tests that would be run.")

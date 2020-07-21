@@ -7,13 +7,11 @@ from buildscripts.resmokelib import configure_resmoke
 from buildscripts.resmokelib.hang_analyzer import HangAnalyzerPlugin
 from buildscripts.resmokelib.run import RunPlugin
 from buildscripts.resmokelib.undodb import UndoDbPlugin
-from buildscripts.resmokelib.run_timeout import RunTimeoutPlugin
 
 _PLUGINS = [
     RunPlugin(),
     HangAnalyzerPlugin(),
     UndoDbPlugin(),
-    RunTimeoutPlugin(),
 ]
 
 

@@ -10,10 +10,6 @@ import time
 # by resmoke.py.
 FIXTURE_SUBDIR = "resmoke"
 
-# List of PIDs started by resmoke. PIDs are added when a process is started/terminated. PIDs are not
-# automatically removed when the process has ended.
-PIDS = []
-
 # Subdirectory under the dbpath prefix that contains directories with data files of mongod's started
 # by individual tests.
 MONGO_RUNNER_SUBDIR = "mongorunner"
@@ -64,6 +60,7 @@ DEFAULTS = {
     "flow_control_tickets": None,
     "genny_executable": None,
     "include_with_any_tags": None,
+    "inner_level": False,
     "install_dir": None,
     "jobs": 1,
     "logger_file": None,
@@ -310,6 +307,12 @@ GENNY_EXECUTABLE = None
 # If set, then only jstests that have at least one of the specified tags will be run during the
 # jstest portion of the suite(s).
 INCLUDE_WITH_ANY_TAGS = None
+
+# If set, marks the current resmoke process as a child of a parent resmoke process.
+# The hang-analyzer is called on all children of the top-level resmoke process.
+# This value is needed to ensure the hang-analyzer is not called again on the children of the
+# child resmoke process.
+INNER_LEVEL = False
 
 # Params that can be set to change internal resmoke behavior. Used to test resmoke and should
 # not be set by the user.

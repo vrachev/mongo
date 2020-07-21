@@ -15,7 +15,6 @@ from buildscripts.resmokelib import testing
 from buildscripts.resmokelib import config
 from buildscripts.resmokelib.hang_analyzer import hang_analyzer
 from buildscripts.resmokelib import parser
-from buildscripts.resmokelib.utils import state
 
 _IS_WINDOWS = (sys.platform == "win32")
 if _IS_WINDOWS:
@@ -37,9 +36,12 @@ def register(logger, suites, start_time):
 
         _dump_and_log(header_msg)
 
-        # Gather and analyze pids of all subprocesses.
-        pids_to_analyze = _get_pids()
-        _analyze_pids(logger, pids_to_analyze)
+        if not config.INNER_LEVEL:
+            # Gather and analyze pids of all subprocesses.
+            # Do nothing for child resmoke processe, as their child process will be analyzed by the
+            # top-level process.
+            pids_to_analyze = _get_pids()
+            _analyze_pids(logger, pids_to_analyze)
 
     def _handle_set_event(event_handle):
         """Event object handler for Windows.
@@ -119,25 +121,15 @@ def _dump_stacks(logger, header_msg):
 
 def _get_pids():
     """Return all PIDs spawned by the current resmoke process and their child PIDs."""
-    pids = config.PIDS  # All fixture PIDs.
-    spawned_pids = []  # Gather fixture PIDs + any PIDs spawned by the fixtures.
-    resmoke_pids = state.read_pids()
-    for parent in pids:
-        try:
-            parent_process = psutil.Process(parent)
-        except psutil.NoSuchProcess:
-            # PIDs are not removed when they are terminated. Only analyze living processes.
-            continue
+    pids = []  # Gather fixture PIDs + any PIDs spawned by the fixtures.
+    parent = psutil.Process() # current process
+    for child in parent.children(recursive=True):
+        # Don't signal python threads. They have already been signalled in the evergreen timeout
+        # section.
+        if 'python' not in child.name().lower():
+            pids.append(child.pid)
 
-        spawned_pids.append(parent)
-        for child in parent_process.children(recursive=True):
-            # Do not signal inner resmoke processes.
-            # Doing so would cause us to perform analysis on the processes multiple times,
-            # both in here and in the sighandler for the inner process.
-            if child.pid not in resmoke_pids:
-                spawned_pids.append(child.pid)
-
-    return spawned_pids
+    return pids
 
 
 def _analyze_pids(logger, pids):
