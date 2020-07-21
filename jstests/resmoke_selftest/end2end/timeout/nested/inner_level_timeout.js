@@ -6,8 +6,8 @@
     rst.initiate();
 
     while(true) {
-        print("looping")
-        sleep(1000)
+        print("looping");
+        sleep(1000);
     }
     rst.stopSet();
 })();

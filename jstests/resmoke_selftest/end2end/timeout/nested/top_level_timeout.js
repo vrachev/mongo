@@ -12,18 +12,18 @@
         '--innerLevel ' +
         '--basePort=20020 ' +
         '--suites=buildscripts/tests/resmoke_end2end/suites/resmoke_selftest_nested_timeout.yml ' +
-        'jstests/resmoke_selftest/end2end/timeout/nested/inner_level_timeout.js'
+        'jstests/resmoke_selftest/end2end/timeout/nested/inner_level_timeout.js';
 
         // Start a new resmoke test
         return _startMongoProgram({args: resmokeCmd.split(' ')});
     }
 
-    const pid = start()
+    const pid = start();
 
     while(true) {
-        checkProgram(pid)
-        print("looping")
-        sleep(1000)
+        checkProgram(pid);
+        print("looping");
+        sleep(1000);
     }
     rst.stopSet();
 })();
