@@ -3174,7 +3174,13 @@ functions:
       script: |
         set -o verbose
 
-        hang_analyzer_option="-o file -o stdout -m contains -p python"
+        # Set what processes to look for. For most tasks, we rely on resmoke to figure out its subprocesses
+        # and run the hang analyzer on those. For non-resmoke tasks, we enumerate the process list here.
+        if [[ ${task_name} == *"jepsen"* ]]; then
+          hang_analyzer_option="-o file -o stdout -p dbtest,java,mongo,mongod,mongos,python,_test";
+        else
+          hang_analyzer_option="-o file -o stdout -m contains -p python"
+        fi
 
         ${activate_virtualenv}
         # echo "Calling the hang analyzer: PATH=\"/opt/mongodbtoolchain/gdb/bin:$PATH\" $python buildscripts/resmoke.py hang-analyzer $hang_analyzer_option"

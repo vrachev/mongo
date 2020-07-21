@@ -36,10 +36,12 @@ def register(logger, suites, start_time):
 
         _dump_and_log(header_msg)
 
-        if not config.INNER_LEVEL:
+        if 'is_inner_level' not in config.INTERNAL_PARAMS:
             # Gather and analyze pids of all subprocesses.
-            # Do nothing for child resmoke processes, as their child process will be analyzed by the
-            # top-level process.
+            # Do nothing for child resmoke process started by another resmoke process
+            # (e.g. backup_restore.js) The child processes of the child resmoke will be
+            # analyzed by the signal handler of the top-level resmoke process.
+            # i.e. the next few lines of code.
             pids_to_analyze = _get_pids()
             _analyze_pids(logger, pids_to_analyze)
 
