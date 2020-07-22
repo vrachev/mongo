@@ -3191,6 +3191,33 @@ functions:
           $python buildscripts/powercycle_operations.py runHangAnalyzerOnRemoteInstance
         fi
 
+  "wait for resmoke to shutdown"
+    command: shell.exec
+    params:
+      working_dir: src
+      script: |
+        proc="resmoke.py"
+        if [ "Windows_NT" = "$OS" ]; then
+          get_pids() {
+            proc_pids=$(tasklist /fo:csv |
+                        awk -F'","' '{x=$1; gsub("\"","",x); print $2, x}' |
+                        grep -iE $1 |
+                        cut -f1 -d ' ');
+          }
+        else
+          get_pids() { proc_pids=$(pgrep -f $1); }
+        fi
+
+        while [ 1 ]
+        do
+          get_pids $proc_list
+          if [ -z "$proc_pids" ]; then
+            break
+          fi
+          sleep 5
+        done
+
+
   "tar hang analyzer debugger files": &tar_hang_analyzer_debugger_files
     command: archive.targz_pack
     params:
@@ -3361,6 +3388,7 @@ timeout:
   - func: "get EC2 address"
   - func: "update EC2 address"
   - func: "run hang analyzer"
+  - func: "wait for resmoke to shutdown"
 
 
 #######################################

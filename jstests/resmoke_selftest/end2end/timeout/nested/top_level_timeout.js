@@ -9,7 +9,7 @@
         const resmokeCmd = 'python3 buildscripts/resmoke.py run ' +
         '--storageEngineCacheSizeGB=1 --dbpathPrefix=/data/db/selftest_inner ' +
         '--internalParam=test_archival --taskId=123 ' +
-        '--innerLevel ' +
+        '--internalParam=is_inner_level ' +
         '--basePort=20020 ' +
         '--suites=buildscripts/tests/resmoke_end2end/suites/resmoke_selftest_nested_timeout.yml ' +
         'jstests/resmoke_selftest/end2end/timeout/nested/inner_level_timeout.js';
