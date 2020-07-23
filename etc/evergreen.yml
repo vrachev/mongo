@@ -3191,31 +3191,35 @@ functions:
           $python buildscripts/powercycle_operations.py runHangAnalyzerOnRemoteInstance
         fi
 
-  "wait for resmoke to shutdown"
+  "wait for resmoke to shutdown":
     command: shell.exec
     params:
       working_dir: src
       script: |
         proc="resmoke.py"
         if [ "Windows_NT" = "$OS" ]; then
-          get_pids() {
-            proc_pids=$(tasklist /fo:csv |
-                        awk -F'","' '{x=$1; gsub("\"","",x); print $2, x}' |
-                        grep -iE $1 |
-                        cut -f1 -d ' ');
+          check_resmoke() {
+            resmoke_info=$(wmic process | grep resmoke.py)
           }
+          while [ 1 ]
+          do
+            check_resmoke
+            if ! [[ "$resmoke_info" =~ .*"$proc".* ]]; then
+              break
+            fi
+            sleep 5
+          done
         else
           get_pids() { proc_pids=$(pgrep -f $1); }
+          while [ 1 ]
+          do
+            get_pids $proc
+            if [ -z "$proc_pids" ]; then
+              break
+            fi
+            sleep 5
+          done
         fi
-
-        while [ 1 ]
-        do
-          get_pids $proc_list
-          if [ -z "$proc_pids" ]; then
-            break
-          fi
-          sleep 5
-        done
 
 
   "tar hang analyzer debugger files": &tar_hang_analyzer_debugger_files
