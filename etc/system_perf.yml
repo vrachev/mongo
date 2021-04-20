@@ -373,147 +373,147 @@ functions:
 
 
 tasks:
-###
-# Same in every DSI project
-- name: schedule_global_auto_tasks
-  priority: 5
-  commands:
-    - func: f_schedule_tasks
-      vars:
-        tasks: all_tasks
-- name: schedule_variant_auto_tasks
-  priority: 5
-  commands:
-    - func: f_schedule_tasks
-      vars:
-        tasks: variant_tasks
-- name: schedule_patch_auto_tasks
-  priority: 5
-  commands:
-    - func: f_schedule_tasks
-      vars:
-        tasks: patch_tasks
-- name: smoke_test
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: short
-- name: smoke_test_ssl
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: short
-        mongodb_setup: replica-ssl
-        infrastructure_provisioning: replica
-- name: smoke_test_standalone_auth
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: short
-        mongodb_setup: standalone-auth
-        infrastructure_provisioning: single
-- name: smoke_test_replset_auth
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: short
-        mongodb_setup: replica-auth
-        infrastructure_provisioning: replica
-- name: smoke_test_shard_lite_auth
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: short
-        mongodb_setup: shard-lite-auth
-        infrastructure_provisioning: shard-lite
-- name: dsi_integ_test_run_command_simple
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: run_command_simple
-###
+  ###
+  # Same in every DSI project
+  - name: schedule_global_auto_tasks
+    priority: 5
+    commands:
+      - func: f_schedule_tasks
+        vars:
+          tasks: all_tasks
+  - name: schedule_variant_auto_tasks
+    priority: 5
+    commands:
+      - func: f_schedule_tasks
+        vars:
+          tasks: variant_tasks
+  - name: schedule_patch_auto_tasks
+    priority: 5
+    commands:
+      - func: f_schedule_tasks
+        vars:
+          tasks: patch_tasks
+  - name: smoke_test
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: short
+  - name: smoke_test_ssl
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: short
+          mongodb_setup: replica-ssl
+          infrastructure_provisioning: replica
+  - name: smoke_test_standalone_auth
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: short
+          mongodb_setup: standalone-auth
+          infrastructure_provisioning: single
+  - name: smoke_test_replset_auth
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: short
+          mongodb_setup: replica-auth
+          infrastructure_provisioning: replica
+  - name: smoke_test_shard_lite_auth
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: short
+          mongodb_setup: shard-lite-auth
+          infrastructure_provisioning: shard-lite
+  - name: dsi_integ_test_run_command_simple
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: run_command_simple
+  ###
 
-- name: compile
-  commands:
-    - command: manifest.load
-    - command: git.get_project
-      params:
-        directory: src
-        revisions:
-          enterprise: ${enterprise_rev}
-          mongo-tools: ${mongo-tools_rev}
-    - func: "compile mongodb"
+  - name: compile
+    commands:
+      - command: manifest.load
+      - command: git.get_project
+        params:
+          directory: src
+          revisions:
+            enterprise: ${enterprise_rev}
+            mongo-tools: ${mongo-tools_rev}
+      - func: "compile mongodb"
 
-- name: renew_ssl_cert
-  commands:
-    - command: git.get_project
-      params:
-        directory: *src_dir
-        revisions:
-          dsi: ${dsi_rev}
-    # Run the script to generate ssl cert files
-    - command: shell.exec
-      params:
-        script: AWS_ACCESS_KEY_ID=${terraform_key} AWS_SECRET_ACCESS_KEY=${terraform_secret} ./src/dsi/run-dsi generate_ssl_cert
-    # Upload files for further DSI usage
-    - command: s3.put
-      params:
-        aws_key: ${aws_key}
-        aws_secret: ${aws_secret}
-        local_file: member.pem
-        # path to the remote file is intended to be static
-        remote_file: dsi/ssl/member.pem
-        bucket: mciuploads
-        # the visibility has to be public for consumption by DSI
-        permissions: public-read
-        content_type: text/plain
-        display_name: member.pem
-    - command: s3.put
-      params:
-        aws_key: ${aws_key}
-        aws_secret: ${aws_secret}
-        local_file: root.crt
-        # path to the remote file is intended to be static
-        remote_file: dsi/ssl/root.crt
-        bucket: mciuploads
-        # the visibility has to be public for consumption by DSI
-        permissions: public-read
-        content_type: text/plain
-        display_name: root.crt
+  - name: renew_ssl_cert
+    commands:
+      - command: git.get_project
+        params:
+          directory: *src_dir
+          revisions:
+            dsi: ${dsi_rev}
+      # Run the script to generate ssl cert files
+      - command: shell.exec
+        params:
+          script: AWS_ACCESS_KEY_ID=${terraform_key} AWS_SECRET_ACCESS_KEY=${terraform_secret} ./src/dsi/run-dsi generate_ssl_cert
+      # Upload files for further DSI usage
+      - command: s3.put
+        params:
+          aws_key: ${aws_key}
+          aws_secret: ${aws_secret}
+          local_file: member.pem
+          # path to the remote file is intended to be static
+          remote_file: dsi/ssl/member.pem
+          bucket: mciuploads
+          # the visibility has to be public for consumption by DSI
+          permissions: public-read
+          content_type: text/plain
+          display_name: member.pem
+      - command: s3.put
+        params:
+          aws_key: ${aws_key}
+          aws_secret: ${aws_secret}
+          local_file: root.crt
+          # path to the remote file is intended to be static
+          remote_file: dsi/ssl/root.crt
+          bucket: mciuploads
+          # the visibility has to be public for consumption by DSI
+          permissions: public-read
+          content_type: text/plain
+          display_name: root.crt
 
-- name: linkbench
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "linkbench"
+  - name: linkbench
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "linkbench"
 
-- name: linkbench_stepdowns
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "linkbench_stepdowns"
+  - name: linkbench_stepdowns
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "linkbench_stepdowns"
 
-- name: linkbench_rolling_restarts
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "linkbench_rolling_restarts"
+  - name: linkbench_rolling_restarts
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "linkbench_rolling_restarts"
 
-- name: linkbench_non_retryable_writes_stepdowns
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "linkbench_non_retryable_writes_stepdowns"
+  - name: linkbench_non_retryable_writes_stepdowns
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "linkbench_non_retryable_writes_stepdowns"
 
 - name: linkbench_non_retryable_writes_rolling_restarts
   priority: 5
