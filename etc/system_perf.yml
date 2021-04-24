@@ -36,9 +36,9 @@ variables:
   _skip_expansions: &_expansion_updates
       # This is the normal (amazon2) "compile" artifact from https://evergreen.mongodb.com/task/sys_perf_4.2_compile_amazon2_compile_54e29d8dcca0b3d73898a384b57c516728edbcd2_21_04_02_18_14_59
       - key: mdb_binary_for_client
-        value: https://mciuploads.s3.amazonaws.com/dsi/sys_perf_4.2_54e29d8dcca0b3d73898a384b57c516728edbcd2/54e29d8dcca0b3d73898a384b57c516728edbcd2/linux/mongodb-enterprise-sys_perf_4.2_54e29d8dcca0b3d73898a384b57c516728edbcd2.tar.gz
+        value: https://mciuploads.s3.amazonaws.com/dsi/sys_perf_4.0_9df1b3a80f39cf7e7ccd6264a207518426a524f6/9df1b3a80f39cf7e7ccd6264a207518426a524f6/linux/mongodb-enterprise-sys_perf_4.0_9df1b3a80f39cf7e7ccd6264a207518426a524f6.tar.gz
       - key: mdb_binary_for_server
-        value: https://mciuploads.s3.amazonaws.com/dsi/sys_perf_4.2_54e29d8dcca0b3d73898a384b57c516728edbcd2/54e29d8dcca0b3d73898a384b57c516728edbcd2/linux/mongodb-enterprise-sys_perf_4.2_54e29d8dcca0b3d73898a384b57c516728edbcd2.tar.gz
+        value: https://mciuploads.s3.amazonaws.com/dsi/sys_perf_4.0_9df1b3a80f39cf7e7ccd6264a207518426a524f6/9df1b3a80f39cf7e7ccd6264a207518426a524f6/linux/mongodb-enterprise-sys_perf_4.0_9df1b3a80f39cf7e7ccd6264a207518426a524f6.tar.gz
 ###
 
   _src_dir: &src_dir src/mongo
