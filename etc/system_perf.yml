@@ -11,34 +11,34 @@ parameters:
 variables:
   ###
   # Leave this section uncommented to enable compile.
-#  _real_compile_amazon2: &_compile_amazon2
-#      - name: compile
-#        variant: compile-amazon2
-#      - name: schedule_global_auto_tasks
-#        variant: task_generation
-#  _real_compile_rhel70: &_compile_rhel70
-#      - name: compile
-#        variant: compile-rhel70
-#      - name: schedule_global_auto_tasks
-#        variant: task_generation
-#  _real_expansions: &_expansion_updates
-#    []
+  _real_compile_amazon2: &_compile_amazon2
+      - name: compile
+        variant: compile-amazon2
+      - name: schedule_global_auto_tasks
+        variant: task_generation
+  _real_compile_rhel70: &_compile_rhel70
+      - name: compile
+        variant: compile-rhel70
+      - name: schedule_global_auto_tasks
+        variant: task_generation
+  _real_expansions: &_expansion_updates
+    []
   ###
 
 ###
 # **Or**: Leave this section uncommented to bypass/skip compile.
-  _skip_compile_amazon2: &_compile_amazon2
-      - name: schedule_global_auto_tasks
-        variant: task_generation
-  _skip_compile_rhel70: &_compile_rhel70
-      - name: schedule_global_auto_tasks
-        variant: task_generation
-  _skip_expansions: &_expansion_updates
-      # This is the normal (amazon2) "compile" artifact from https://evergreen.mongodb.com/task/sys_perf_4.2_compile_amazon2_compile_54e29d8dcca0b3d73898a384b57c516728edbcd2_21_04_02_18_14_59
-      - key: mdb_binary_for_client
-        value: https://mciuploads.s3.amazonaws.com/dsi/sys_perf_4.0_9df1b3a80f39cf7e7ccd6264a207518426a524f6/9df1b3a80f39cf7e7ccd6264a207518426a524f6/linux/mongodb-enterprise-sys_perf_4.0_9df1b3a80f39cf7e7ccd6264a207518426a524f6.tar.gz
-      - key: mdb_binary_for_server
-        value: https://mciuploads.s3.amazonaws.com/dsi/sys_perf_4.0_9df1b3a80f39cf7e7ccd6264a207518426a524f6/9df1b3a80f39cf7e7ccd6264a207518426a524f6/linux/mongodb-enterprise-sys_perf_4.0_9df1b3a80f39cf7e7ccd6264a207518426a524f6.tar.gz
+#  _skip_compile_amazon2: &_compile_amazon2
+#      - name: schedule_global_auto_tasks
+#        variant: task_generation
+#  _skip_compile_rhel70: &_compile_rhel70
+#      - name: schedule_global_auto_tasks
+#        variant: task_generation
+#  _skip_expansions: &_expansion_updates
+#      # This is the normal (amazon2) "compile" artifact from https://evergreen.mongodb.com/task/sys_perf_4.2_compile_amazon2_compile_54e29d8dcca0b3d73898a384b57c516728edbcd2_21_04_02_18_14_59
+#      - key: mdb_binary_for_client
+#        value: https://mciuploads.s3.amazonaws.com/dsi/sys_perf_4.0_9df1b3a80f39cf7e7ccd6264a207518426a524f6/9df1b3a80f39cf7e7ccd6264a207518426a524f6/linux/mongodb-enterprise-sys_perf_4.0_9df1b3a80f39cf7e7ccd6264a207518426a524f6.tar.gz
+#      - key: mdb_binary_for_server
+#        value: https://mciuploads.s3.amazonaws.com/dsi/sys_perf_4.0_9df1b3a80f39cf7e7ccd6264a207518426a524f6/9df1b3a80f39cf7e7ccd6264a207518426a524f6/linux/mongodb-enterprise-sys_perf_4.0_9df1b3a80f39cf7e7ccd6264a207518426a524f6.tar.gz
 ###
 
   _src_dir: &src_dir src/mongo
@@ -236,19 +236,7 @@ functions:
 
   ###
   # Compile
-  compile mongodb:
-    # We create a virtual environment with the Python dependencies for compiling the server
-    # installed.
-    - command: shell.exec
-      params:
-        working_dir: src
-        script: |
-          set -o errexit
-          set -o verbose
-          /opt/mongodbtoolchain/v3/bin/virtualenv --python /opt/mongodbtoolchain/v3/bin/python3 "${workdir}/compile_venv"
-          /opt/mongodbtoolchain/v3/bin/virtualenv --python /opt/mongodbtoolchain/v3/bin/python2 "${workdir}/venv"
-          source "${workdir}/compile_venv/bin/activate"
-          python -m pip install -r etc/pip/compile-requirements.txt
+  "compile mongodb":
     - command: shell.exec
       params:
         working_dir: src
@@ -308,10 +296,8 @@ functions:
           then
             echo "Fetching JS test DB correctness checks from directory jstests"
             cp -a jstests/* mongodb/jstests
-
             echo "Now adding our own special run_validate_collections.js wrapper"
             mv mongodb/jstests/hooks/run_validate_collections.js mongodb/jstests/hooks/run_validate_collections.actual.js
-
             cat << EOF > mongodb/jstests/hooks/run_validate_collections.js
             print("NOTE: run_validate_collections.js will skip the oplog!");
             TestData = { skipValidationNamespaces: ['local.oplog.rs'] };
