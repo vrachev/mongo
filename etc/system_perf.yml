@@ -236,7 +236,7 @@ functions:
 
   ###
   # Compile
-  "compile mongodb":
+  compile mongodb:
     - command: shell.exec
       params:
         working_dir: src
