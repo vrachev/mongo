@@ -228,18 +228,6 @@ functions:
   ###
   # Compile
   compile mongodb:
-    # We create a virtual environment with the Python dependencies for compiling the server
-    # installed.
-    - command: shell.exec
-      params:
-        working_dir: src
-        script: |
-          set -o errexit
-          set -o verbose
-          /opt/mongodbtoolchain/v3/bin/virtualenv --python /opt/mongodbtoolchain/v3/bin/python3 "${workdir}/compile_venv"
-          /opt/mongodbtoolchain/v3/bin/virtualenv --python /opt/mongodbtoolchain/v3/bin/python2 "${workdir}/venv"
-          source "${workdir}/compile_venv/bin/activate"
-          python -m pip install -r etc/pip/compile-requirements.txt
     - command: shell.exec
       params:
         working_dir: src
@@ -255,8 +243,7 @@ functions:
           fi
           # This script converts the generated version string into a sanitized version string for
           # use by scons and uploading artifacts as well as information about for the scons cache.
-          source "${workdir}/compile_venv/bin/activate"
-          MONGO_VERSION=$MONGO_VERSION USE_SCONS_CACHE=${use_scons_cache|false} python buildscripts/generate_compile_expansions.py --out compile_expansions.yml
+          MONGO_VERSION=$MONGO_VERSION USE_SCONS_CACHE=${use_scons_cache|false} ${python|/opt/mongodbtoolchain/v2/bin/python2} buildscripts/generate_compile_expansions.py --out compile_expansions.yml
     # Then we load the generated version data into the agent so we can use it in task definitions
     - command: expansions.update
       params:
@@ -267,8 +254,7 @@ functions:
         script: |
           set -o errexit
           set -o verbose
-          source "${workdir}/compile_venv/bin/activate"
-          python ./buildscripts/scons.py ${compile_flags|} ${scons_cache_args|} mongo mongod
+          ${python|/opt/mongodbtoolchain/v2/bin/python2} ./buildscripts/scons.py ${compile_flags|} ${scons_cache_args|} mongo mongod
     - command: s3.put
       params:
         aws_key: ${aws_key}
