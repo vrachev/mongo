@@ -44,7 +44,7 @@ variables:
   _src_dir: &src_dir src/mongo
   _modules: &modules
     - enterprise
-    - mongo-tools
+    # - mongo-tools
     # - mongo
     - dsi
     - genny
@@ -110,15 +110,15 @@ modules:
 #    repo: git@github.com:mongodb/mongo.git
 #    prefix: ../../src
 #    branch: master
+#  - name: mongo-tools
+#    repo: git@github.com:mongodb/mongo-tools.git
+#    prefix: mongo-tools/src/github.com/mongodb
+#    branch: master
   ###
   - name: enterprise
     repo: git@github.com:10gen/mongo-enterprise-modules.git
     prefix: src/mongo/db/modules
-    branch: master
-  - name: mongo-tools
-    repo: git@github.com:mongodb/mongo-tools.git
-    prefix: mongo-tools/src/github.com/mongodb
-    branch: master
+    branch: v4.0
 
 
 ###
@@ -347,505 +347,505 @@ functions:
 
 
 tasks:
-###
-# Same in every DSI project
-- name: schedule_global_auto_tasks
-  priority: 5
-  commands:
-    - func: f_schedule_tasks
-      vars:
-        tasks: all_tasks
-- name: schedule_variant_auto_tasks
-  priority: 5
-  commands:
-    - func: f_schedule_tasks
-      vars:
-        tasks: variant_tasks
-- name: schedule_patch_auto_tasks
-  priority: 5
-  commands:
-    - func: f_schedule_tasks
-      vars:
-        tasks: patch_tasks
-- name: smoke_test
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: short
-- name: smoke_test_ssl
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: short
-        mongodb_setup: replica-ssl
-        infrastructure_provisioning: replica
-- name: smoke_test_standalone_auth
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: short
-        mongodb_setup: standalone-auth
-        infrastructure_provisioning: single
-- name: smoke_test_replset_auth
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: short
-        mongodb_setup: replica-auth
-        infrastructure_provisioning: replica
-- name: smoke_test_shard_lite_auth
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: short
-        mongodb_setup: shard-lite-auth
-        infrastructure_provisioning: shard-lite
-- name: dsi_integ_test_run_command_simple
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: run_command_simple
-###
+  ###
+  # Same in every DSI project
+  - name: schedule_global_auto_tasks
+    priority: 5
+    commands:
+      - func: f_schedule_tasks
+        vars:
+          tasks: all_tasks
+  - name: schedule_variant_auto_tasks
+    priority: 5
+    commands:
+      - func: f_schedule_tasks
+        vars:
+          tasks: variant_tasks
+  - name: schedule_patch_auto_tasks
+    priority: 5
+    commands:
+      - func: f_schedule_tasks
+        vars:
+          tasks: patch_tasks
+  - name: smoke_test
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: short
+  - name: smoke_test_ssl
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: short
+          mongodb_setup: replica-ssl
+          infrastructure_provisioning: replica
+  - name: smoke_test_standalone_auth
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: short
+          mongodb_setup: standalone-auth
+          infrastructure_provisioning: single
+  - name: smoke_test_replset_auth
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: short
+          mongodb_setup: replica-auth
+          infrastructure_provisioning: replica
+  - name: smoke_test_shard_lite_auth
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: short
+          mongodb_setup: shard-lite-auth
+          infrastructure_provisioning: shard-lite
+  - name: dsi_integ_test_run_command_simple
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: run_command_simple
+  ###
 
-- name: compile
-  commands:
-    - command: manifest.load
-    - command: git.get_project
-      params:
-        directory: src
-        revisions:
-          enterprise: ${enterprise_rev}
-          mongo-tools: ${mongo-tools_rev}
-    - func: "compile mongodb"
+  - name: compile
+    commands:
+      - command: manifest.load
+      - command: git.get_project
+        params:
+          directory: src
+          revisions:
+            enterprise: ${enterprise_rev}
+            # mongo_tools: ${mongo_tools_rev}
+      - func: "compile mongodb"
 
-- name: linkbench
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "linkbench"
+  - name: linkbench
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "linkbench"
 
-- name: tpcc
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "tpcc"
+  - name: tpcc
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "tpcc"
 
-- name: industry_benchmarks
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "ycsb"
+  - name: industry_benchmarks
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "ycsb"
 
-- name: industry_benchmarks_secondary_reads
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "ycsb-secondary-reads"
+  - name: industry_benchmarks_secondary_reads
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "ycsb-secondary-reads"
 
-- name: industry_benchmarks_wmajority
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "ycsb-wmajority"
+  - name: industry_benchmarks_wmajority
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "ycsb-wmajority"
 
-- name: crud_workloads
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "crud_workloads"
+  - name: crud_workloads
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "crud_workloads"
 
-- name: cursor_manager
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "cursor_manager"
+  - name: cursor_manager
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "cursor_manager"
 
-- name: mixed_workloads
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "mixed_workloads"
+  - name: mixed_workloads
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "mixed_workloads"
 
-- name: misc_workloads
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "misc_workloads"
+  - name: misc_workloads
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "misc_workloads"
 
-- name: map_reduce_workloads
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "map_reduce_workloads"
+  - name: map_reduce_workloads
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "map_reduce_workloads"
 
-- name: retryable_writes_workloads
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "retryable_writes"
+  - name: retryable_writes_workloads
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "retryable_writes"
 
-- name: snapshot_reads
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "snapshot_reads"
+  - name: snapshot_reads
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "snapshot_reads"
 
-- name: secondary_reads
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "secondary_reads"
+  - name: secondary_reads
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "secondary_reads"
 
-- name: bestbuy_agg
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "bestbuy_agg"
+  - name: bestbuy_agg
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "bestbuy_agg"
 
-- name: bestbuy_query
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "bestbuy_query"
+  - name: bestbuy_query
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "bestbuy_query"
 
-- name: non_sharded_workloads
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "non_sharded"
+  - name: non_sharded_workloads
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "non_sharded"
 
-- name: mongos_workloads
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "mongos"
+  - name: mongos_workloads
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "mongos"
 
-- name: move_chunk_workloads
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "move_chunk"
+  - name: move_chunk_workloads
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "move_chunk"
 
-- name: move_chunk_waiting_workloads
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "move_chunk_waiting"
+  - name: move_chunk_waiting_workloads
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "move_chunk_waiting"
 
-- name: secondary_performance
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        # Unfortunately the dash/underscore style is different for mongodb_setup and test_control
-        test_control: "secondary_performance"
-        mongodb_setup: "secondary-performance"
+  - name: secondary_performance
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          # Unfortunately the dash/underscore style is different for mongodb_setup and test_control
+          test_control: "secondary_performance"
+          mongodb_setup: "secondary-performance"
 
-- name: initialsync
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "initialsync"
+  - name: initialsync
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "initialsync"
 
-- name: initialsync-logkeeper
-  priority: 5
-  exec_timeout_secs: 216000 # 2.5 days
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "initialsync-logkeeper"
+  - name: initialsync-logkeeper
+    priority: 5
+    exec_timeout_secs: 216000 # 2.5 days
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "initialsync-logkeeper"
 
-- name: change_streams_throughput
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "change_streams_throughput"
+  - name: change_streams_throughput
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "change_streams_throughput"
 
-- name: change_streams_latency
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "change_streams_latency"
+  - name: change_streams_latency
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "change_streams_latency"
 
-- name: change_streams_multi_mongos
-  priority: 5
-  commands:
-    - func: f_run_dsi_workload
-      vars:
-        test_control: "change_streams_multi_mongos"
+  - name: change_streams_multi_mongos
+    priority: 5
+    commands:
+      - func: f_run_dsi_workload
+        vars:
+          test_control: "change_streams_multi_mongos"
 
 
 buildvariants:
-- name: task_generation
-  display_name: Task Generation
-  modules: *modules
-  expansions:
-    platform: linux
-    project_dir: dsi
-  run_on:
-      - amazon2-build
-  tasks:
-    - name: schedule_global_auto_tasks
+  - name: task_generation
+    display_name: Task Generation
+    modules: *modules
+    expansions:
+      platform: linux
+      project_dir: dsi
+    run_on:
+        - amazon2-build
+    tasks:
+      - name: schedule_global_auto_tasks
 
-# We are explicitly tracking the rhel70 variant compile options from evergreen.yml.  If we can get
-# proper artifacts directly from that project, we should do that and remove these tasks.
-- name: compile-rhel70
-  display_name: Compile on rhel70
-  expansions: &compile-rhel70-expansions
-    compile_flags: --ssl MONGO_DISTMOD=rhel70 -j$(grep -c ^processor /proc/cpuinfo) --release --variables-files=etc/scons/mongodbtoolchain_gcc.vars
-    platform: linux
-    project_dir: &project_dir dsi
-    tooltags: ""
-    use_scons_cache: true
-  run_on:
-      - "rhel70"
-  tasks:
-    - name: compile
+  # We are explicitly tracking the rhel70 variant compile options from evergreen.yml.  If we can get
+  # proper artifacts directly from that project, we should do that and remove these tasks.
+  - name: compile-rhel70
+    display_name: Compile on rhel70
+    expansions: &compile-rhel70-expansions
+      compile_flags: --ssl MONGO_DISTMOD=rhel70 -j$(grep -c ^processor /proc/cpuinfo) --release --variables-files=etc/scons/mongodbtoolchain_gcc.vars
+      platform: linux
+      project_dir: &project_dir dsi
+      tooltags: ""
+      use_scons_cache: true
+    run_on:
+        - "rhel70"
+    tasks:
+      - name: compile
 
-- name: compile-amazon2
-  display_name: Compile enterprise on Amazon 2
-  modules:
-    - enterprise
-  expansions:
-    <<: *compile-rhel70-expansions
-    compile_flags: >-
-      --ssl
-      MONGO_DISTMOD=amazon2
-      -j$(grep -c ^processor /proc/cpuinfo)
-      --release
-      --variables-files=etc/scons/mongodbtoolchain_gcc.vars
-    compile-variant: -enterprise
-  run_on:
-      - "amazon2-build"
-  tasks:
-    - name: compile
+  - name: compile-amazon2
+    display_name: Compile enterprise on Amazon 2
+    modules:
+      - enterprise
+    expansions:
+      <<: *compile-rhel70-expansions
+      compile_flags: >-
+        --ssl
+        MONGO_DISTMOD=amazon2
+        -j$(grep -c ^processor /proc/cpuinfo)
+        --release
+        --variables-files=etc/scons/mongodbtoolchain_gcc.vars
+      compile-variant: -enterprise
+    run_on:
+        - "amazon2-build"
+    tasks:
+      - name: compile
 
-- name: linux-1-node-replSet
-  display_name: Linux 1-Node ReplSet
-  batchtime: 10080 # 7 days
-  modules: *modules
-  expansions:
-    mongodb_setup: single-replica
-    infrastructure_provisioning: single
-    platform: linux
-    project_dir: *project_dir
-    authentication: enabled
-    storageEngine: wiredTiger
-  run_on:
-      - "rhel70-perf-single"
-  depends_on: *_compile_amazon2
-  tasks: &1nodetasks
-    - name: industry_benchmarks
-    - name: crud_workloads
-    - name: mixed_workloads
-    - name: misc_workloads
-    - name: map_reduce_workloads
-    - name: smoke_test
-    - name: retryable_writes_workloads
-    - name: non_sharded_workloads
-    - name: bestbuy_agg
-    - name: bestbuy_query
-    - name: change_streams_throughput
-    - name: change_streams_latency
-    - name: snapshot_reads
-    - name: linkbench
-    - name: tpcc
+  - name: linux-1-node-replSet
+    display_name: Linux 1-Node ReplSet
+    batchtime: 10080 # 7 days
+    modules: *modules
+    expansions:
+      mongodb_setup: single-replica
+      infrastructure_provisioning: single
+      platform: linux
+      project_dir: *project_dir
+      authentication: enabled
+      storageEngine: wiredTiger
+    run_on:
+        - "rhel70-perf-single"
+    depends_on: *_compile_amazon2
+    tasks: &1nodetasks
+      - name: industry_benchmarks
+      - name: crud_workloads
+      - name: mixed_workloads
+      - name: misc_workloads
+      - name: map_reduce_workloads
+      - name: smoke_test
+      - name: retryable_writes_workloads
+      - name: non_sharded_workloads
+      - name: bestbuy_agg
+      - name: bestbuy_query
+      - name: change_streams_throughput
+      - name: change_streams_latency
+      - name: snapshot_reads
+      - name: linkbench
+      - name: tpcc
 
-- name: linux-standalone
-  display_name: Linux Standalone
-  batchtime: 2880  # 48 hours
-  modules: *modules
-  expansions:
-    mongodb_setup: standalone
-    infrastructure_provisioning: single
-    platform: linux
-    project_dir: *project_dir
-    authentication: enabled
-    storageEngine: wiredTiger
-  run_on:
-      - "rhel70-perf-single"
-  depends_on: *_compile_amazon2
-  tasks: &standalonetasks
-    - name: industry_benchmarks
-    - name: crud_workloads
-    - name: cursor_manager
-    - name: mixed_workloads
-    - name: misc_workloads
-    - name: map_reduce_workloads
-    - name: smoke_test
-    - name: non_sharded_workloads
-    - name: bestbuy_agg
-    - name: bestbuy_query
+  - name: linux-standalone
+    display_name: Linux Standalone
+    batchtime: 2880  # 48 hours
+    modules: *modules
+    expansions:
+      mongodb_setup: standalone
+      infrastructure_provisioning: single
+      platform: linux
+      project_dir: *project_dir
+      authentication: enabled
+      storageEngine: wiredTiger
+    run_on:
+        - "rhel70-perf-single"
+    depends_on: *_compile_amazon2
+    tasks: &standalonetasks
+      - name: industry_benchmarks
+      - name: crud_workloads
+      - name: cursor_manager
+      - name: mixed_workloads
+      - name: misc_workloads
+      - name: map_reduce_workloads
+      - name: smoke_test
+      - name: non_sharded_workloads
+      - name: bestbuy_agg
+      - name: bestbuy_query
 
-- name: linux-standalone-audit
-  display_name: Linux Standalone Audit
-  batchtime: 10080 # 7 days
-  modules: *modules
-  expansions:
-    mongodb_setup: standalone-audit
-    infrastructure_provisioning: single
-    platform: linux
-    project_dir: *project_dir
-    authentication: enabled
-    storageEngine: wiredTiger
-  run_on:
-      - "rhel70-perf-single"
-  depends_on: *_compile_amazon2
-  tasks: &standalonetasks
-    - name: industry_benchmarks
-    - name: crud_workloads
-    - name: smoke_test
+  - name: linux-standalone-audit
+    display_name: Linux Standalone Audit
+    batchtime: 10080 # 7 days
+    modules: *modules
+    expansions:
+      mongodb_setup: standalone-audit
+      infrastructure_provisioning: single
+      platform: linux
+      project_dir: *project_dir
+      authentication: enabled
+      storageEngine: wiredTiger
+    run_on:
+        - "rhel70-perf-single"
+    depends_on: *_compile_amazon2
+    tasks: &standalonetasks
+      - name: industry_benchmarks
+      - name: crud_workloads
+      - name: smoke_test
 
-- name: linux-3-shard
-  display_name: Linux 3-Shard Cluster
-  batchtime: 10080 # 7 days
-  modules: *modules
-  expansions:
-    mongodb_setup: shard
-    infrastructure_provisioning: shard
-    platform: linux
-    project_dir: *project_dir
-    authentication: enabled
-    storageEngine: wiredTiger
-  run_on:
-      - "rhel70-perf-shard"
-  depends_on: *_compile_amazon2
-  tasks:
-    - name: industry_benchmarks
-    - name: crud_workloads
-    - name: mixed_workloads
-    - name: misc_workloads
-    - name: map_reduce_workloads
-    - name: smoke_test
-    - name: industry_benchmarks_wmajority
-    - name: mongos_workloads
-    - name: change_streams_throughput
-    - name: change_streams_latency
-    - name: change_streams_multi_mongos
+  - name: linux-3-shard
+    display_name: Linux 3-Shard Cluster
+    batchtime: 10080 # 7 days
+    modules: *modules
+    expansions:
+      mongodb_setup: shard
+      infrastructure_provisioning: shard
+      platform: linux
+      project_dir: *project_dir
+      authentication: enabled
+      storageEngine: wiredTiger
+    run_on:
+        - "rhel70-perf-shard"
+    depends_on: *_compile_amazon2
+    tasks:
+      - name: industry_benchmarks
+      - name: crud_workloads
+      - name: mixed_workloads
+      - name: misc_workloads
+      - name: map_reduce_workloads
+      - name: smoke_test
+      - name: industry_benchmarks_wmajority
+      - name: mongos_workloads
+      - name: change_streams_throughput
+      - name: change_streams_latency
+      - name: change_streams_multi_mongos
 
-- name: linux-shard-lite
-  display_name: Linux Shard Lite Cluster
-  batchtime: 5760  # 4 days
-  modules: *modules
-  expansions:
-    mongodb_setup: shard-lite
-    infrastructure_provisioning: shard-lite
-    platform: linux
-    project_dir: *project_dir
-    authentication: enabled
-    storageEngine: wiredTiger
-  run_on:
-      - "rhel70-perf-shard-lite"
-  depends_on: *_compile_amazon2
-  tasks: &shardlitetasks
-    - name: bestbuy_agg
-    - name: bestbuy_query
-    - name: change_streams_latency
-    - name: change_streams_throughput
-    - name: industry_benchmarks
-    - name: industry_benchmarks_wmajority
-    - name: mixed_workloads
-    - name: mongos_workloads
-    - name: move_chunk_workloads
-    - name: move_chunk_waiting_workloads
-    - name: retryable_writes_workloads
-    - name: smoke_test
+  - name: linux-shard-lite
+    display_name: Linux Shard Lite Cluster
+    batchtime: 5760  # 4 days
+    modules: *modules
+    expansions:
+      mongodb_setup: shard-lite
+      infrastructure_provisioning: shard-lite
+      platform: linux
+      project_dir: *project_dir
+      authentication: enabled
+      storageEngine: wiredTiger
+    run_on:
+        - "rhel70-perf-shard-lite"
+    depends_on: *_compile_amazon2
+    tasks: &shardlitetasks
+      - name: bestbuy_agg
+      - name: bestbuy_query
+      - name: change_streams_latency
+      - name: change_streams_throughput
+      - name: industry_benchmarks
+      - name: industry_benchmarks_wmajority
+      - name: mixed_workloads
+      - name: mongos_workloads
+      - name: move_chunk_workloads
+      - name: move_chunk_waiting_workloads
+      - name: retryable_writes_workloads
+      - name: smoke_test
 
-- name: linux-3-node-replSet
-  display_name: Linux 3-Node ReplSet
-  batchtime: 2880  # 48 hours
-  modules: *modules
-  expansions:
-    mongodb_setup: replica
-    infrastructure_provisioning: replica
-    platform: linux
-    project_dir: *project_dir
-    authentication: enabled
-    storageEngine: wiredTiger
-  run_on:
-      - "rhel70-perf-replset"
-  depends_on: *_compile_amazon2
-  tasks: &3nodetasks
-    - name: industry_benchmarks
-    - name: industry_benchmarks_secondary_reads
-    - name: crud_workloads
-    - name: mixed_workloads
-    - name: misc_workloads
-    - name: map_reduce_workloads
-    - name: smoke_test
-    - name: retryable_writes_workloads
-    - name: industry_benchmarks_wmajority
-    - name: secondary_performance
-    - name: non_sharded_workloads
-    - name: bestbuy_agg
-    - name: bestbuy_query
-    - name: change_streams_throughput
-    - name: change_streams_latency
-    - name: snapshot_reads
-    - name: secondary_reads
-    - name: tpcc
-    - name: linkbench
+  - name: linux-3-node-replSet
+    display_name: Linux 3-Node ReplSet
+    batchtime: 2880  # 48 hours
+    modules: *modules
+    expansions:
+      mongodb_setup: replica
+      infrastructure_provisioning: replica
+      platform: linux
+      project_dir: *project_dir
+      authentication: enabled
+      storageEngine: wiredTiger
+    run_on:
+        - "rhel70-perf-replset"
+    depends_on: *_compile_amazon2
+    tasks: &3nodetasks
+      - name: industry_benchmarks
+      - name: industry_benchmarks_secondary_reads
+      - name: crud_workloads
+      - name: mixed_workloads
+      - name: misc_workloads
+      - name: map_reduce_workloads
+      - name: smoke_test
+      - name: retryable_writes_workloads
+      - name: industry_benchmarks_wmajority
+      - name: secondary_performance
+      - name: non_sharded_workloads
+      - name: bestbuy_agg
+      - name: bestbuy_query
+      - name: change_streams_throughput
+      - name: change_streams_latency
+      - name: snapshot_reads
+      - name: secondary_reads
+      - name: tpcc
+      - name: linkbench
 
-- name: linux-3-node-replSet-initialsync
-  display_name: Linux 3-Node ReplSet Initial Sync
-  batchtime: 2880  # 48 hours
-  modules: *modules
-  expansions:
-    mongodb_setup: replica-2node
-    infrastructure_provisioning: replica
-    platform: linux
-    authentication: disabled
-    storageEngine: wiredTiger
-    project_dir: *project_dir
-  run_on:
-      - "rhel70-perf-replset"
-  depends_on: *_compile_amazon2
-  tasks:
-    - name: initialsync
+  - name: linux-3-node-replSet-initialsync
+    display_name: Linux 3-Node ReplSet Initial Sync
+    batchtime: 2880  # 48 hours
+    modules: *modules
+    expansions:
+      mongodb_setup: replica-2node
+      infrastructure_provisioning: replica
+      platform: linux
+      authentication: disabled
+      storageEngine: wiredTiger
+      project_dir: *project_dir
+    run_on:
+        - "rhel70-perf-replset"
+    depends_on: *_compile_amazon2
+    tasks:
+      - name: initialsync
 
-- name: linux-replSet-initialsync-logkeeper
-  display_name: Linux ReplSet Initial Sync LogKeeper
-  batchtime: 10080 # 7 days
-  modules: *modules
-  expansions:
-    mongodb_setup: initialsync-logkeeper
-    infrastructure_provisioning: initialsync-logkeeper
-    # EBS logkeeper snapshot with FCV set to 4.4
-    snapshotId: snap-0dba360e743e27ea0
-    platform: linux
-    authentication: disabled
-    storageEngine: wiredTiger
-    project_dir: *project_dir
-  run_on:
-      - "rhel70-perf-initialsync-logkeeper"
-  depends_on: *_compile_amazon2
-  tasks:
-    - name: initialsync-logkeeper
+  - name: linux-replSet-initialsync-logkeeper
+    display_name: Linux ReplSet Initial Sync LogKeeper
+    batchtime: 10080 # 7 days
+    modules: *modules
+    expansions:
+      mongodb_setup: initialsync-logkeeper
+      infrastructure_provisioning: initialsync-logkeeper
+      # EBS logkeeper snapshot with FCV set to 4.4
+      snapshotId: snap-0dba360e743e27ea0
+      platform: linux
+      authentication: disabled
+      storageEngine: wiredTiger
+      project_dir: *project_dir
+    run_on:
+        - "rhel70-perf-initialsync-logkeeper"
+    depends_on: *_compile_amazon2
+    tasks:
+      - name: initialsync-logkeeper
