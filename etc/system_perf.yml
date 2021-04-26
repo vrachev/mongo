@@ -876,6 +876,7 @@ buildvariants:
     modules: *modules
     expansions:
       setup: single-replica-ese-cbc
+      infrastructure_provisioning: single
       cluster: single
       platform: linux
       project_dir: *project_dir
