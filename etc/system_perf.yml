@@ -16,6 +16,11 @@ variables:
         variant: compile-amazon2
       - name: schedule_global_auto_tasks
         variant: task_generation
+  _real_compile_amazon-64: &_compile_amazon-64
+      - name: compile
+        variant: compile-linux-64-amzn
+      - name: schedule_global_auto_tasks
+        variant: task_generation
   _real_compile_rhel70: &_compile_rhel70
       - name: compile
         variant: compile-rhel70
@@ -31,6 +36,11 @@ variables:
 #      - name: schedule_global_auto_tasks
 #        variant: task_generation
 #  _skip_compile_rhel70: &_compile_rhel70
+#      - name: schedule_global_auto_tasks
+#        variant: task_generation
+#  _skip_compile_amazon-64: &_compile_amazon-64
+#      - name: compile
+#        variant: compile-linux-64-amzn
 #      - name: schedule_global_auto_tasks
 #        variant: task_generation
 #  _skip_expansions: &_expansion_updates
@@ -746,6 +756,7 @@ buildvariants:
         -j$(grep -c ^processor /proc/cpuinfo)
         --release
         --variables-files=etc/scons/mongodbtoolchain_v3_gcc.vars
+        compile-variant: -enterprise
     run_on:
         - "amazon2-build"
     tasks:
@@ -782,7 +793,7 @@ buildvariants:
       storageEngine: wiredTiger
     run_on:
         - "rhel70-perf-single"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_amazon-64
     tasks: &1nodetasks
       - name: industry_benchmarks
       - name: ycsb_60GB
@@ -820,7 +831,7 @@ buildvariants:
       storageEngine: wiredTiger
     run_on:
         - "rhel70-perf-single"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_amazon-64
     tasks: &standalonetasks
       - name: schedule_patch_auto_tasks
       - name: schedule_variant_auto_tasks
@@ -851,6 +862,7 @@ buildvariants:
       project_dir: *project_dir
       authentication: enabled
       storageEngine: wiredTiger
+      compile-variant: -enterprise
     run_on:
         - "rhel70-perf-single"
     depends_on: *_compile_amazon2
@@ -869,11 +881,10 @@ buildvariants:
       project_dir: *project_dir
       authentication: enabled
       storageEngine: wiredTiger
+      compile-variant: -enterprise
     run_on:
         - "rhel70-perf-single"
-    depends_on:
-        - name: compile
-          variant: compile-amazon2
+    depends_on: *_compile_amazon2
     tasks:
       - name: industry_benchmarks
       - name: smoke_test
@@ -889,6 +900,7 @@ buildvariants:
       project_dir: *project_dir
       authentication: enabled
       storageEngine: wiredTiger
+      compile-variant: -enterprise
     run_on:
         - "rhel70-perf-single"
     depends_on: *_compile_amazon2
@@ -910,7 +922,7 @@ buildvariants:
       storageEngine: wiredTiger
     run_on:
         - "rhel70-perf-shard"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_amazon-64
     tasks:
       - name: industry_benchmarks
       - name: crud_workloads
@@ -938,7 +950,7 @@ buildvariants:
       storageEngine: wiredTiger
     run_on:
         - "rhel70-perf-shard-lite"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_amazon-64
     tasks: &shardlitetasks
       - name: bestbuy_agg
       - name: bestbuy_agg_merge_different_db
@@ -973,7 +985,7 @@ buildvariants:
       storageEngine: wiredTiger
     run_on:
         - "rhel70-perf-replset"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_amazon-64
     tasks: &3nodetasks
       - name: industry_benchmarks
       - name: ycsb_60GB
@@ -1015,7 +1027,7 @@ buildvariants:
       storageEngine: wiredTiger
     run_on:
         - "rhel70-perf-replset"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_amazon-64
     tasks:
       - name: industry_benchmarks
       - name: industry_benchmarks_secondary_reads
@@ -1042,7 +1054,7 @@ buildvariants:
       storageEngine: wiredTiger
     run_on:
         - "rhel70-perf-replset"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_amazon-64
     tasks:
       - name: industry_benchmarks
       - name: mixed_workloads
@@ -1060,7 +1072,7 @@ buildvariants:
       project_dir: *project_dir
     run_on:
         - "rhel70-perf-replset"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_amazon-64
     tasks:
       - name: initialsync
       - name: initialsync-logkeeper-short
@@ -1080,7 +1092,7 @@ buildvariants:
       project_dir: *project_dir
     run_on:
         - "rhel70-perf-initialsync-logkeeper"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_amazon-64
     tasks:
       - name: initialsync-logkeeper
 
