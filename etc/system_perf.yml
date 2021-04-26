@@ -661,7 +661,7 @@ buildvariants:
       storageEngine: wiredTiger
     run_on:
         - "rhel70-perf-single"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_rhel70
     tasks: &1nodetasks
       - name: industry_benchmarks
       - name: crud_workloads
@@ -692,7 +692,7 @@ buildvariants:
       storageEngine: wiredTiger
     run_on:
         - "rhel70-perf-single"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_rhel70
     tasks: &standalonetasks
       - name: industry_benchmarks
       - name: crud_workloads
@@ -716,6 +716,7 @@ buildvariants:
       project_dir: *project_dir
       authentication: enabled
       storageEngine: wiredTiger
+      compile-variant: -enterprise
     run_on:
         - "rhel70-perf-single"
     depends_on: *_compile_amazon2
@@ -737,7 +738,7 @@ buildvariants:
       storageEngine: wiredTiger
     run_on:
         - "rhel70-perf-shard"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_rhel70
     tasks:
       - name: industry_benchmarks
       - name: crud_workloads
@@ -764,7 +765,7 @@ buildvariants:
       storageEngine: wiredTiger
     run_on:
         - "rhel70-perf-shard-lite"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_rhel70
     tasks: &shardlitetasks
       - name: bestbuy_agg
       - name: bestbuy_query
@@ -792,7 +793,7 @@ buildvariants:
       storageEngine: wiredTiger
     run_on:
         - "rhel70-perf-replset"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_rhel70
     tasks: &3nodetasks
       - name: industry_benchmarks
       - name: industry_benchmarks_secondary_reads
@@ -827,7 +828,7 @@ buildvariants:
       project_dir: *project_dir
     run_on:
         - "rhel70-perf-replset"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_rhel70
     tasks:
       - name: initialsync
 
@@ -846,6 +847,6 @@ buildvariants:
       project_dir: *project_dir
     run_on:
         - "rhel70-perf-initialsync-logkeeper"
-    depends_on: *_compile_amazon2
+    depends_on: *_compile_rhel70
     tasks:
       - name: initialsync-logkeeper
