@@ -756,7 +756,7 @@ buildvariants:
         -j$(grep -c ^processor /proc/cpuinfo)
         --release
         --variables-files=etc/scons/mongodbtoolchain_v3_gcc.vars
-        compile-variant: -enterprise
+      compile-variant: -enterprise
     run_on:
         - "amazon2-build"
     tasks:
